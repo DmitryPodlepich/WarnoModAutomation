@@ -1,5 +1,38 @@
 ﻿@page "/"
+@using WarnoModeAutomation.Logic
+@using BlazorBootstrap
 
-<h1>Hello, world!</h1>
+<Accordion AlwaysOpen="true">
+    <AccordionItem Title="Status" IsActive="true">
+        <Content>
+            <div>
+                <p class="h5">
+                    <span class="badge badge-secondary">Mod name:</span>
+                    <strong><small>@Storage.ModeSettings.ModeName</small></strong>
+                </p>
 
-Welcome to your new app.
+                <hr />
+
+                <p class="h5">
+                    <span class="badge badge-secondary">Status:</span>
+                    <strong><small>@Storage.Status.Status</small></strong>
+                </p>
+
+                <hr />
+
+            </div>
+        </Content>
+    </AccordionItem>
+    <AccordionItem Title="Control">
+        <Content>
+            <Button Class="btn btn-primary" @onclick="CreateMod">Create mod</Button>
+        </Content>
+    </AccordionItem>
+</Accordion>
+
+@code {
+    public Task CreateMod()
+    {
+        await ModManager.CreateModAsync();
+    }
+}

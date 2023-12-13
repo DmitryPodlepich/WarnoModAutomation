@@ -21,6 +21,8 @@ namespace WarnoModeAutomation
     		builder.Logging.AddDebug();
 #endif
 
+            builder.Services.AddBlazorBootstrap();
+
             return builder.Build();
         }
     }

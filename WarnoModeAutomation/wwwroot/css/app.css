@@ -84,3 +84,19 @@ h1:focus {
         padding-left: env(safe-area-inset-left);
     }
 }
+
+.badge-secondary {
+	color: #fff;
+	background-color: #6c757d;
+}
+
+.collapsible {
+	display: flex;
+	overflow: hidden;
+	flex: 0 0 auto;
+	transition: 0.5s ease-in-out;
+}
+
+	.collapsible.show {
+		flex: 0 1 auto;
+	}

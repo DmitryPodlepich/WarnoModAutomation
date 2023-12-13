@@ -1,0 +1,31 @@
+﻿@page "/settings"
+@using WarnoModeAutomation.Logic
+
+<section class="p-3">
+
+    <h3 class="fw-bold" >Warno mod settings</h3>
+
+    <div class="input-group mb-3">
+        <div class="input-group-prepend">
+            <span class="input-group-text" id="inputGroup-sizing-default">Warno modes directory:</span>
+        </div>
+        <input @bind="Storage.ModeSettings.ModeDirectory" type="text" class="form-control" aria-label="Default" aria-describedby="inputGroup-sizing-default">
+    </div>
+
+    <div class="input-group mb-3">
+        <div class="input-group-prepend">
+            <span class="input-group-text" id="inputGroup-sizing-default">Mode name:</span>
+        </div>
+        <input @bind="Storage.ModeSettings.ModeName" type="text" class="form-control" aria-label="Default" aria-describedby="inputGroup-sizing-default">
+    </div>
+
+    <button @onclick="Set" class="btn btn-primary" >Save</button>
+
+</section>
+@code
+{
+    void Set()
+    {
+        
+    }
+}
