@@ -1,38 +1,95 @@
 ﻿@page "/"
-@using WarnoModeAutomation.Logic
-@using BlazorBootstrap
+@using System.Text
+@using WarnoModeAutomation.Logic;
+@using BlazorBootstrap;
 
-<Accordion AlwaysOpen="true">
-    <AccordionItem Title="Status" IsActive="true">
-        <Content>
-            <div>
-                <p class="h5">
-                    <span class="badge badge-secondary">Mod name:</span>
-                    <strong><small>@Storage.ModeSettings.ModeName</small></strong>
-                </p>
+<section>
 
-                <hr />
+    <div>
+        <Accordion AlwaysOpen="true">
+            <AccordionItem Title="Status" IsActive="true">
+                <Content>
+                    <div class="d-flex flex-column">
+                        <p class="h5">
+                            <span class="badge badge-secondary">Mod name:</span>
+                            <strong><small>@Storage.ModeSettings.ModeName</small></strong>
+                        </p>
 
-                <p class="h5">
-                    <span class="badge badge-secondary">Status:</span>
-                    <strong><small>@Storage.Status.Status</small></strong>
-                </p>
+                        <hr />
 
-                <hr />
+                        <p class="h5">
+                            <span class="badge badge-secondary">Status:</span>
+                            <strong><small>@Storage.Status.Status</small></strong>
+                        </p>
 
-            </div>
-        </Content>
-    </AccordionItem>
-    <AccordionItem Title="Control">
-        <Content>
-            <Button Class="btn btn-primary" @onclick="CreateMod">Create mod</Button>
-        </Content>
-    </AccordionItem>
-</Accordion>
+                        <hr />
+
+                    </div>
+                </Content>
+            </AccordionItem>
+            <AccordionItem Title="Control" IsActive="true">
+                <Content>
+                    <div class="d-flex flex-row">
+                        <Button Disabled="IsCreating" Class="btn btn-primary" @onclick="CreateMod"><i class="bi bi-plus-circle-dotted"></i> Create mod</Button>
+
+                        <hr>
+
+                        <Button Disabled="IsCreating" Class="btn btn-danger ms-2" @onclick="DeleteMod"><i class="bi bi-trash-fill"></i> Delete mod</Button>
+                    </div>
+                </Content>
+            </AccordionItem>
+        </Accordion>
+    </div>
+
+    <div class="d-flex flex-column p-3">
+
+        <div class="d-flex flex-row justify-content-between align-items-center mb-2">
+            <p class="m-0"><strong>Mod manager log: </strong></p>
+            <Button @onclick="ModManagerOutputClear" Class="btn btn-warning"><i class="bi bi-eraser-fill"></i> Clear</Button>
+        </div>
+
+        <InputTextArea style="min-height: 35vh; font-size: 14px;" @bind-Value="@ModManagerOutput"></InputTextArea>
+    </div>
+
+</section>
+
 
 @code {
-    public Task CreateMod()
+    public bool CreationResult;
+    public bool IsCreating;
+
+    public string ModManagerOutput { get => _stringBuilder.ToString(); set => _stringBuilder = new StringBuilder(value); }
+    private StringBuilder _stringBuilder;
+
+    protected override Task OnInitializedAsync()
     {
-        await ModManager.CreateModAsync();
+        _stringBuilder = new StringBuilder();
+
+        ModManager.OnOutput += ModManagerOnOutput;
+
+        return base.OnInitializedAsync();
+    }
+
+    public void ModManagerOutputClear()
+    {
+        _stringBuilder.Clear();
+    }
+
+    public void ModManagerOnOutput(string data)
+    {
+        _stringBuilder.AppendLine(data);
+    }
+
+    public async Task CreateMod()
+    {
+        IsCreating = true;
+        CreationResult = await ModManager.CreateModAsync();
+        Storage.Status.GetStatus();
+        IsCreating = false;
+    }
+
+    public async Task DeleteMod()
+    {
+        await Task.CompletedTask;
     }
 }
