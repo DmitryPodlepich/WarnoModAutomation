@@ -14,7 +14,7 @@ namespace WarnoModeAutomation.Logic
 
         static Storage()
         {
-            ModeSettings.ModeDirectory = @"C:\Program Files (x86)\Steam\steamapps\common\WARNO\Mods";
+            ModeSettings.ModsDirectory = @"C:\Program Files (x86)\Steam\steamapps\common\WARNO\Mods";
             ModeSettings.ModeName = "TestAutoMode";
         }
     }

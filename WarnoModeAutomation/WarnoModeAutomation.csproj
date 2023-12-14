@@ -58,6 +58,14 @@
     </ItemGroup>
 
     <ItemGroup>
+      <None Remove="Resources\Images\Loading.gif" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <MauiImage Include="wwwroot\loading.gif" />
+    </ItemGroup>
+
+    <ItemGroup>
         <PackageReference Include="Blazor.Bootstrap" Version="1.10.4" />
         <PackageReference Include="Microsoft.Maui.Controls" Version="$(MauiVersion)" />
         <PackageReference Include="Microsoft.Maui.Controls.Compatibility" Version="$(MauiVersion)" />

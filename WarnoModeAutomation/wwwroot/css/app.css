@@ -90,13 +90,18 @@ h1:focus {
 	background-color: #6c757d;
 }
 
-.collapsible {
-	display: flex;
-	overflow: hidden;
-	flex: 0 0 auto;
-	transition: 0.5s ease-in-out;
+.transition {
+	transition: 0.2s ease-in-out !important;
 }
 
-	.collapsible.show {
-		flex: 0 1 auto;
-	}
+.w-0 {
+	width: 0px !important;
+}
+
+.w-20px {
+	width: 20px !important;
+}
+
+.opacity-0 {
+	opacity: 0 !important;
+}

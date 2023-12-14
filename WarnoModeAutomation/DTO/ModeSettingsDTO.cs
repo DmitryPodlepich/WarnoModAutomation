@@ -8,7 +8,7 @@ namespace WarnoModeAutomation.DTO
 {
     public class ModeSettingsDTO
     {
-        public string ModeDirectory { get; set; }
+        public string ModsDirectory { get; set; }
         public string ModeName { get; set; }
     }
 }

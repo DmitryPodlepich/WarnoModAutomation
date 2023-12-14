@@ -10,7 +10,7 @@ namespace WarnoModeAutomation.Logic
     {
         public static bool IsModExist() 
         {
-            var modPath = Path.Combine(Storage.ModeSettings.ModeDirectory, Storage.ModeSettings.ModeName);
+            var modPath = Path.Combine(Storage.ModeSettings.ModsDirectory, Storage.ModeSettings.ModeName);
 
             return Directory.Exists(modPath);
         }

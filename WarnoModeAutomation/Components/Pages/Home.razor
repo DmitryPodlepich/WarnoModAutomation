@@ -30,19 +30,32 @@
             <AccordionItem Title="Control" IsActive="true">
                 <Content>
                     <div class="d-flex flex-row">
-                        <Button Disabled="IsRunning" Class="btn btn-primary" @onclick="CreateMod"><i class="bi bi-plus-circle-dotted"></i> Create</Button>
+                        <Button Loading="@(_currentOperation == OperationType.Creation)" LoadingText="Creating..." Disabled="@(_currentOperation != OperationType.Idle)" Class="btn btn-primary" @onclick="CreateMod">
+                            <i class="bi bi-plus-circle-dotted"></i> 
+                            Create 
+                        </Button>
 
                         <hr>
 
-                        <Button Disabled="IsRunning" Class="btn btn-danger ms-2" @onclick="DeleteMod"><i class="bi bi-trash-fill"></i> Delete</Button>
+                        <Button Loading="@(_currentOperation == OperationType.Generation)" LoadingText="Generating..." Disabled="@(_currentOperation != OperationType.Idle)" Class="btn btn-primary ms-2" @onclick="GenerateMod">
+                            <i class="bi bi-box-seam"></i>
+                            Generate
+                        </Button>
 
                         <hr>
 
-                        <Button Disabled="IsRunning" Class="btn btn-primary ms-2" @onclick="GenerateMod"><i class="bi bi-trash-fill"></i> Generate</Button>
+                        <Button Loading="@(_currentOperation == OperationType.Updation)" LoadingText="Updating..." Disabled="@(_currentOperation != OperationType.Idle)" Class="btn btn-primary ms-2" @onclick="UpdateMod">
+                            <i class="bi bi-download"></i>
+                            Update 
+                        </Button>
 
                         <hr>
 
-                        <Button Disabled="IsRunning" Class="btn btn-primary ms-2" @onclick="UpdateMod"><i class="bi bi-trash-fill"></i> Update </Button>
+                        <Button Loading="@(_currentOperation == OperationType.Deletion)" LoadingText="Deleting..." Disabled="@(_currentOperation != OperationType.Idle)" Class="btn btn-danger ms-2" @onclick="DeleteMod">
+                            <i class="bi bi-trash-fill"></i>
+                            Delete
+                        </Button>
+
                     </div>
                 </Content>
             </AccordionItem>
@@ -63,10 +76,18 @@
 
 
 @code {
-    public bool CreationResult;
-    public bool IsRunning;
+    private enum OperationType
+    {
+        Idle,
+        Creation,
+        Deletion,
+        Generation,
+        Updation
+    }
 
-    public string ModManagerOutput { get => _stringBuilder.ToString(); set => _stringBuilder = new StringBuilder(value); }
+    private OperationType _currentOperation = OperationType.Idle;
+
+    private string ModManagerOutput { get => _stringBuilder.ToString(); set => _stringBuilder = new StringBuilder(value); }
     private StringBuilder _stringBuilder;
 
     protected override Task OnInitializedAsync()
@@ -90,27 +111,33 @@
 
     public async Task CreateMod()
     {
-        IsRunning = true;
-        CreationResult = await ModManager.CreateModAsync();
+        _currentOperation = OperationType.Creation;
+
+        await ModManager.CreateModAsync();
         Storage.Status.GetStatus();
-        IsRunning = false;
+
+        _currentOperation = OperationType.Idle;
     }
 
     public void DeleteMod()
     {
-        IsRunning = true;
+        _currentOperation = OperationType.Deletion;
         ModManager.DeleteMod();
         Storage.Status.GetStatus();
-        IsRunning = false;
+        _currentOperation = OperationType.Idle;
     }
 
     public async Task GenerateMod()
     {
-        await Task.CompletedTask;
+        _currentOperation = OperationType.Generation;
+        await ModManager.GenerateModAsync();
+        Storage.Status.GetStatus();
+        _currentOperation = OperationType.Idle;
     }
 
     public async Task UpdateMod()
     {
+        _currentOperation = OperationType.Idle;
         await Task.CompletedTask;
     }
 }
