@@ -14,5 +14,22 @@ namespace WarnoModeAutomation.Logic
 
             return Directory.Exists(modPath);
         }
+
+        public static bool DeleteDirectoryWithFiles(string directoryPath, out string error)
+        {
+            error = string.Empty;
+
+            try
+            {
+                Directory.Delete(directoryPath, true);
+            }
+            catch(IOException ex) 
+            {
+                error = ex.Message;
+                return false;
+            }
+
+            return true;
+        }
     }
 }

@@ -30,11 +30,19 @@
             <AccordionItem Title="Control" IsActive="true">
                 <Content>
                     <div class="d-flex flex-row">
-                        <Button Disabled="IsCreating" Class="btn btn-primary" @onclick="CreateMod"><i class="bi bi-plus-circle-dotted"></i> Create mod</Button>
+                        <Button Disabled="IsRunning" Class="btn btn-primary" @onclick="CreateMod"><i class="bi bi-plus-circle-dotted"></i> Create</Button>
 
                         <hr>
 
-                        <Button Disabled="IsCreating" Class="btn btn-danger ms-2" @onclick="DeleteMod"><i class="bi bi-trash-fill"></i> Delete mod</Button>
+                        <Button Disabled="IsRunning" Class="btn btn-danger ms-2" @onclick="DeleteMod"><i class="bi bi-trash-fill"></i> Delete</Button>
+
+                        <hr>
+
+                        <Button Disabled="IsRunning" Class="btn btn-primary ms-2" @onclick="GenerateMod"><i class="bi bi-trash-fill"></i> Generate</Button>
+
+                        <hr>
+
+                        <Button Disabled="IsRunning" Class="btn btn-primary ms-2" @onclick="UpdateMod"><i class="bi bi-trash-fill"></i> Update </Button>
                     </div>
                 </Content>
             </AccordionItem>
@@ -56,7 +64,7 @@
 
 @code {
     public bool CreationResult;
-    public bool IsCreating;
+    public bool IsRunning;
 
     public string ModManagerOutput { get => _stringBuilder.ToString(); set => _stringBuilder = new StringBuilder(value); }
     private StringBuilder _stringBuilder;
@@ -82,13 +90,26 @@
 
     public async Task CreateMod()
     {
-        IsCreating = true;
+        IsRunning = true;
         CreationResult = await ModManager.CreateModAsync();
         Storage.Status.GetStatus();
-        IsCreating = false;
+        IsRunning = false;
     }
 
-    public async Task DeleteMod()
+    public void DeleteMod()
+    {
+        IsRunning = true;
+        ModManager.DeleteMod();
+        Storage.Status.GetStatus();
+        IsRunning = false;
+    }
+
+    public async Task GenerateMod()
+    {
+        await Task.CompletedTask;
+    }
+
+    public async Task UpdateMod()
     {
         await Task.CompletedTask;
     }
