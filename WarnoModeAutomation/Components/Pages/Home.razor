@@ -51,6 +51,13 @@
 
                         <hr>
 
+                        <Button Loading="@(_currentOperation == OperationType.Run)" LoadingText="Runing..." Disabled="@(_currentOperation != OperationType.Idle)" Class="btn btn-primary ms-2" @onclick="Run">
+                            <i class="bi bi-download"></i>
+                            Run
+                        </Button>
+
+                        <hr>
+
                         <Button Loading="@(_currentOperation == OperationType.Deletion)" LoadingText="Deleting..." Disabled="@(_currentOperation != OperationType.Idle)" Class="btn btn-danger ms-2" @onclick="DeleteMod">
                             <i class="bi bi-trash-fill"></i>
                             Delete
@@ -82,7 +89,8 @@
         Creation,
         Deletion,
         Generation,
-        Updation
+        Updation,
+        Run
     }
 
     private OperationType _currentOperation = OperationType.Idle;
@@ -139,5 +147,12 @@
     {
         _currentOperation = OperationType.Idle;
         await Task.CompletedTask;
+    }
+
+    public void Run() 
+    {
+        _currentOperation = OperationType.Run;
+        ModManager.Run();
+        _currentOperation = OperationType.Idle;
     }
 }
