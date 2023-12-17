@@ -1,4 +1,6 @@
 ﻿using Microsoft.Maui.Storage;
+using System.Collections;
+using System.Diagnostics;
 using System.Globalization;
 using System.Text;
 using WarnoModeAutomation.DTO;
@@ -83,16 +85,8 @@ namespace WarnoModeAutomation.Logic
             }
 
             var fileDescriptior = new FileDescriptor();
+            var descriptorsStack = new Stack<Descriptor>();
 
-            TEntityDescriptor instance = null;
-            object childInstanse = null;
-
-            bool isReadingEntiryDescriptorClass = false;
-            bool isReadingModulesDescriptorsCollection = false;
-            bool isReadingModuleDescriptor = false;
-
-            //try
-            //{
             const int bufferSize = 128;
             using (var fileStream = File.OpenRead(_buildingDescriptorsPath))
             using (var streamReader = new StreamReader(fileStream, Encoding.UTF8, true, bufferSize))
@@ -116,122 +110,113 @@ namespace WarnoModeAutomation.Logic
                         value = line.Split("=")[1].Trim();
                     }
 
-                    if (!isReadingEntiryDescriptorClass && line.Trim().Equals("("))
+                    _ = descriptorsStack.TryPeek(out var currentDescriptor);
+
+                    if (line.Trim().Equals(")") || line.Trim().Equals("),"))
                     {
-                        instance = new TEntityDescriptor();
-                        isReadingEntiryDescriptorClass = true;
+                        descriptorsStack.TryPop(out var _);
                         continue;
                     }
 
-                    if (isReadingEntiryDescriptorClass && !isReadingModulesDescriptorsCollection && line.Trim().Equals(")"))
+                    if (line.Trim().Equals("("))
                     {
-                        fileDescriptior.EntityDescriptors.Add(instance);
+                        var newDescriptor = CreateDescriptor(fileDescriptior, i, currentDescriptor);
 
-                        instance = null;
-                        isReadingEntiryDescriptorClass = false;
-                        continue;
-                    }
-
-                    if (isReadingModulesDescriptorsCollection && line.Trim().Equals("("))
-                    {
-                        var previousLine = fileDescriptior.RawLines.ElementAt(i - 2);
-
-                        var moduleDescriptorTypeName = previousLine.Value.Trim();
-
-                        if (FileDescriptor.ModulesDescriptorTypesMap.ContainsKey(moduleDescriptorTypeName))
-                        {
-                            var type = FileDescriptor.ModulesDescriptorTypesMap[moduleDescriptorTypeName];
-                            childInstanse = Activator.CreateInstance(type);
-                        }
-
-                        isReadingModuleDescriptor = true;
+                        if(newDescriptor is not null)
+                            descriptorsStack.Push(newDescriptor);
 
                         continue;
                     }
 
-                    if (isReadingModulesDescriptorsCollection && !isReadingModuleDescriptor && line.Trim().Equals("]"))
-                    {
-                        isReadingModulesDescriptorsCollection = false;
+                    if (!lineHasKeyAndValue)
                         continue;
-                    }
 
-                    if (isReadingModulesDescriptorsCollection && isReadingModuleDescriptor && line.Trim().Equals("),"))
+                    if (currentDescriptor is not null)
                     {
-                        if(childInstanse is not null)
-                            instance.ModulesDescriptors.Add(childInstanse);
-
-                        childInstanse = null;
-
-                        isReadingModuleDescriptor = false;
-                        continue;
-                    }
-
-                    if (isReadingModuleDescriptor)
-                    {
-                        if (lineHasKeyAndValue)
-                        {
-                            var applicableProperty = childInstanse?.GetType().GetProperties().SingleOrDefault(p => p.Name == key);
-
-                            if (applicableProperty is null)
-                                continue;
-
-                            if (value.Equals(string.Empty))
-                                continue;
-
-                            fileDescriptior.Map.Add(rawLineKey, new PropertyToObject() { ParentObject = childInstanse, PropertyInfo = applicableProperty });
-
-                            var parsedValue = Convert.ChangeType(value, applicableProperty.PropertyType, CultureInfo.InvariantCulture);
-
-                            applicableProperty.SetValue(childInstanse, parsedValue);
-                        }
-
-                        continue;
-                    }
-
-                    if (isReadingEntiryDescriptorClass)
-                    {
-                        var applicableProperty = instance.PropertiesInfo.SingleOrDefault(p => p.Name == key);
-
-                        if (applicableProperty is not null)
-                        {
-                            if (value.Equals(string.Empty))
-                                continue;
-
-                            //For Collections
-                            if (value.Equals("["))
-                            {
-                                isReadingModulesDescriptorsCollection = true;
-                                continue;
-                            }
-
-                            if (isReadingModulesDescriptorsCollection)
-                                continue;
-
-                            fileDescriptior.Map.Add(rawLineKey, new PropertyToObject() { ParentObject = instance, PropertyInfo = applicableProperty });
-
-                            var parsedValue = Convert.ChangeType(value, applicableProperty.PropertyType);
-                                    
-                            applicableProperty.SetValue(instance, parsedValue);
-
-                            continue;
-                        }
+                        SetDescriptorProperty(fileDescriptior, currentDescriptor, rawLineKey, key, value);
                     }
                 }
             }
 
             foreach (var item in fileDescriptior.EntityDescriptors)
             {
-                item.ClassNameForDebug = item.ClassNameForDebug + "1";
+                //item.ClassNameForDebug = item.ClassNameForDebug + "1";
+
+                var tSupplyModuleDescriptors = item.ModulesDescriptors
+                    .Where(x => x.Value.Type.Equals(typeof(TSupplyModuleDescriptor)))
+                    .Select(x => x.Value.DescriptorObject as TSupplyModuleDescriptor);
+
+                foreach (var tSupplyModuleDescriptor in tSupplyModuleDescriptors)
+                {
+                    tSupplyModuleDescriptor.SupplyCapacity = 100000;
+                }
             }
 
             var stringToSave = fileDescriptior.Serialize();
 
             File.WriteAllText(_buildingDescriptorsPath, stringToSave);
-            //}
-            //catch (Exception ex) 
-            //{
-            //    OnOutput?.Invoke(ex.Message);
-            //}
+        }
+
+        private static Descriptor CreateDescriptor(FileDescriptor fileDescriptor, int currentIndex, Descriptor currentDescriptor) 
+        {
+            var previousLine = fileDescriptor.RawLines.ElementAt(currentIndex - 2);
+
+            var splittedName = previousLine.Value.Split(' ');
+
+            var name = splittedName.Last().TrimEnd();
+
+            var definedType = FileDescriptor.TypesMap.ContainsKey(name) ? FileDescriptor.TypesMap[name] : typeof(Descriptor);
+
+            var descriptor = FileDescriptor.TypesMap.ContainsKey(name) 
+                ? Activator.CreateInstance(definedType) as Descriptor
+                : Activator.CreateInstance(definedType) as Descriptor;
+
+            if (descriptor is TEntityDescriptor)
+            {
+                fileDescriptor.EntityDescriptors.Add(descriptor as TEntityDescriptor);
+            }
+
+            if (currentDescriptor is not null && currentDescriptor.LastSettedPropery is not null && currentDescriptor.LastSettedPropery.GetValue(currentDescriptor) is IDictionary)
+            {
+                var collectionPropertyValue = currentDescriptor.LastSettedPropery.GetValue(currentDescriptor) as IDictionary;
+
+                var typeToObject = new TypeToObject(name, definedType, descriptor);
+
+                collectionPropertyValue.Add(Guid.NewGuid(), typeToObject);
+            }
+
+            return descriptor;
+        }
+
+        private static void SetDescriptorProperty(FileDescriptor fileDescriptor, Descriptor descriptor, Guid rawLineKey, string key, string value) 
+        {
+            var applicableProperty = descriptor.PropertiesInfo.SingleOrDefault(p => p.Name == key);
+
+            if (applicableProperty is null)
+                return;
+
+            if (value.Equals(string.Empty))
+                return;
+
+            if (applicableProperty.GetValue(descriptor) is ICollection)
+            {
+                applicableProperty.SetValue(descriptor, Activator.CreateInstance(applicableProperty.PropertyType));
+
+                descriptor.LastSettedPropery = applicableProperty;
+
+                return;
+            }
+
+            fileDescriptor.RawLineToObjectPropertyMap.Add(rawLineKey, new PropertyToObject() { Object = descriptor, PropertyInfo = applicableProperty });
+
+            var parsedValue = Convert.ChangeType(value, applicableProperty.PropertyType, CultureInfo.InvariantCulture);
+
+            if(applicableProperty.PropertyType == typeof(string))
+                parsedValue = (parsedValue as string).Replace("\'", "").Replace("\"", "");
+
+            applicableProperty.SetValue(descriptor, parsedValue);
+
+            descriptor.LastSettedPropery = applicableProperty;
         }
 
         public static void Save()
