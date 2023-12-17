@@ -20,8 +20,10 @@ namespace WarnoModeAutomation.DTO
         public PropertyInfo PropertyInfo { get; set; }
     }
 
-    public class FileDescriptor 
+    public class FileDescriptor(string filePath)
     {
+        public readonly string FilePath = filePath;
+
         public readonly List<TEntityDescriptor> EntityDescriptors = [];
 
         public readonly Dictionary<Guid,string> RawLines = [];
@@ -33,39 +35,6 @@ namespace WarnoModeAutomation.DTO
             { "TSupplyModuleDescriptor", typeof(TSupplyModuleDescriptor) },
             { "TEntityDescriptor", typeof(TEntityDescriptor) }
         };
-
-        public string Serialize()
-        {
-            var sb = new StringBuilder(RawLines.Count);
-
-            foreach(var rawLine in RawLines)
-            {
-                if (!RawLineToObjectPropertyMap.ContainsKey(rawLine.Key))
-                {
-                    sb.AppendLine(rawLine.Value);
-                    continue;
-                }
-
-                var mapInstantce = RawLineToObjectPropertyMap[rawLine.Key];
-
-                var splitted = rawLine.Value.Split('=');
-
-                var rawValue = splitted.Last().TrimEnd();
-
-                var propertyValue = mapInstantce.PropertyInfo.GetValue(mapInstantce.Object);
-
-                if (mapInstantce.PropertyInfo.PropertyType == typeof(string))
-                    propertyValue = "'" + propertyValue + "'";
-
-                var modifiedValue = rawValue.Replace(rawValue, propertyValue.ToString());
-
-                var modifiedLine = rawLine.Value.Replace(rawValue.Trim(), modifiedValue);
-
-                sb.AppendLine(modifiedLine);
-            }
-
-            return sb.ToString();
-        }
     }
 
     public class TEntityDescriptor : Descriptor

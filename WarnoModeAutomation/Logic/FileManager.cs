@@ -3,11 +3,21 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using WarnoModeAutomation.Constants;
+using WarnoModeAutomation.DTO;
 
 namespace WarnoModeAutomation.Logic
 {
     public static class FileManager
     {
+        public readonly static string GfxPath =
+            Path.Combine(Storage.ModeSettings.ModsDirectory, Storage.ModeSettings.ModeName, "GameData", "Generated", "Gameplay", "Gfx");
+
+        public readonly static NDFFileInfo[] NDFFiles =
+        [
+            new(WarnoConstants.BuildingDescriptorsFileBame, Path.Combine(GfxPath, WarnoConstants.BuildingDescriptorsFileBame))
+        ];
+
         public static bool IsModExist() 
         {
             var modPath = Path.Combine(Storage.ModeSettings.ModsDirectory, Storage.ModeSettings.ModeName);

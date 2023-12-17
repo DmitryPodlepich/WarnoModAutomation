@@ -51,7 +51,7 @@
 
                         <hr>
 
-                        <Button Loading="@(_currentOperation == OperationType.Run)" LoadingText="Runing..." Disabled="@(_currentOperation != OperationType.Idle)" Class="btn btn-primary ms-2" @onclick="Run">
+                        <Button Loading="@(_currentOperation == OperationType.Modify)" LoadingText="Modifying..." Disabled="@(_currentOperation != OperationType.Idle)" Class="btn btn-primary ms-2" @onclick="Modify">
                             <i class="bi bi-download"></i>
                             Run
                         </Button>
@@ -90,7 +90,7 @@
         Deletion,
         Generation,
         Updation,
-        Run
+        Modify
     }
 
     private OperationType _currentOperation = OperationType.Idle;
@@ -149,10 +149,10 @@
         await Task.CompletedTask;
     }
 
-    public void Run() 
+    public void Modify()
     {
-        _currentOperation = OperationType.Run;
-        ModManager.Run();
+        _currentOperation = OperationType.Modify;
+        ModManager.Modify();
         _currentOperation = OperationType.Idle;
     }
 }
