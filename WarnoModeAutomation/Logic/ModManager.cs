@@ -90,8 +90,6 @@ namespace WarnoModeAutomation.Logic
         {
             foreach (var item in fileDescriptor.EntityDescriptors)
             {
-                //item.ClassNameForDebug = item.ClassNameForDebug + "1";
-
                 var tSupplyModuleDescriptors = item.ModulesDescriptors
                     .Where(x => x.Value.Type.Equals(typeof(TSupplyModuleDescriptor)))
                     .Select(x => x.Value.DescriptorObject as TSupplyModuleDescriptor);

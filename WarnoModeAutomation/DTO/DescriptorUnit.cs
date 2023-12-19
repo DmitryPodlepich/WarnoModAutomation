@@ -39,9 +39,9 @@ namespace WarnoModeAutomation.DTO
 
     public class TEntityDescriptor : Descriptor
     {
-        public override Type Type => typeof(TEntityDescriptor);
         public string ClassNameForDebug { get; set; }
         public Dictionary<Guid, TypeToObject> ModulesDescriptors { get; set; } = new();
+        public override Type Type => typeof(TEntityDescriptor);
     }
 
     public class TSupplyModuleDescriptor : Descriptor
@@ -52,6 +52,7 @@ namespace WarnoModeAutomation.DTO
 
     public class Descriptor 
     {
+        public string EntityName { get; set; }
         public virtual Type Type => typeof(Descriptor);
 
         public readonly PropertyInfo[] PropertiesInfo;

@@ -11,6 +11,12 @@ namespace WarnoModeAutomation.Logic
 {
     public static class NDFSerializer
     {
+        #region NDFKeywords
+
+        private const string IS_KEYWORD = "is";
+
+        #endregion
+
         public static string Serialize(FileDescriptor fileDescriptor)
         {
             var sb = new StringBuilder(fileDescriptor.RawLines.Count);
@@ -112,13 +118,18 @@ namespace WarnoModeAutomation.Logic
 
             var splittedName = previousLine.Value.Split(' ');
 
-            var name = splittedName.Last().TrimEnd();
+            var typeName = splittedName.Last().TrimEnd();
 
-            var definedType = FileDescriptor.TypesMap.ContainsKey(name) ? FileDescriptor.TypesMap[name] : typeof(Descriptor);
+            var entityName = Array.Exists(splittedName, x => x.Equals(IS_KEYWORD))
+                ? splittedName[Array.IndexOf(splittedName, IS_KEYWORD) - 1] : typeName;
 
-            var descriptor = FileDescriptor.TypesMap.ContainsKey(name)
+            var definedType = FileDescriptor.TypesMap.ContainsKey(typeName) ? FileDescriptor.TypesMap[typeName] : typeof(Descriptor);
+
+            var descriptor = FileDescriptor.TypesMap.ContainsKey(typeName)
                 ? Activator.CreateInstance(definedType) as Descriptor
                 : Activator.CreateInstance(definedType) as Descriptor;
+
+            descriptor.EntityName = entityName;
 
             if (descriptor is TEntityDescriptor)
             {
@@ -129,7 +140,7 @@ namespace WarnoModeAutomation.Logic
             {
                 var collectionPropertyValue = currentDescriptor.LastSettedPropery.GetValue(currentDescriptor) as IDictionary;
 
-                var typeToObject = new TypeToObject(name, definedType, descriptor);
+                var typeToObject = new TypeToObject(typeName, definedType, descriptor);
 
                 collectionPropertyValue.Add(Guid.NewGuid(), typeToObject);
             }
