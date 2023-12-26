@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Principal;
 using System.Text;
 using System.Threading.Tasks;
 using WarnoModeAutomation.Constants;
@@ -10,22 +11,28 @@ namespace WarnoModeAutomation.Logic
 {
     public static class FileManager
     {
-        public readonly static string GfxPath =
-            Path.Combine(Storage.ModeSettings.ModsDirectory, Storage.ModeSettings.ModeName, "GameData", "Generated", "Gameplay", "Gfx");
+        public static string SystemPath => Path.GetPathRoot(Environment.SystemDirectory);
 
-        public readonly static NDFFileInfo[] NDFFiles =
+        public static string SavedGamesEugenSystemsModPath => Path.Combine(SystemPath, "Users", CurrentUserName, "Saved Games", "EugenSystems", "WARNO", "mod");
+
+        public static string GfxPath => Path.Combine(Storage.ModeSettings.ModsDirectory, Storage.ModeSettings.ModName, "GameData", "Generated", "Gameplay", "Gfx");
+
+        public static NDFFilePathInfo[] NDFFilesPaths =>
         [
-            new(WarnoConstants.BuildingDescriptorsFileBame, Path.Combine(GfxPath, WarnoConstants.BuildingDescriptorsFileBame))
+            new(WarnoConstants.BuildingDescriptorsFileName, Path.Combine(GfxPath, WarnoConstants.BuildingDescriptorsFileName)),
+            new(WarnoConstants.UniteDescriptorFileName, Path.Combine(GfxPath, WarnoConstants.UniteDescriptorFileName))
         ];
+
+        private static string CurrentUserName => WindowsIdentity.GetCurrent().Name;
 
         public static bool IsModExist() 
         {
-            var modPath = Path.Combine(Storage.ModeSettings.ModsDirectory, Storage.ModeSettings.ModeName);
+            var modPath = Path.Combine(Storage.ModeSettings.ModsDirectory, Storage.ModeSettings.ModName);
 
             return Directory.Exists(modPath);
         }
 
-        public static bool DeleteDirectoryWithFiles(string directoryPath, out string error)
+        public static bool TryDeleteDirectoryWithFiles(string directoryPath, out string error)
         {
             error = string.Empty;
 
@@ -34,6 +41,23 @@ namespace WarnoModeAutomation.Logic
                 Directory.Delete(directoryPath, true);
             }
             catch(IOException ex) 
+            {
+                error = ex.Message;
+                return false;
+            }
+
+            return true;
+        }
+
+        public static bool TryDeleteFile(string filePath, out string error) 
+        {
+            error = string.Empty;
+
+            try
+            {
+                File.Delete(filePath);
+            }
+            catch (IOException ex)
             {
                 error = ex.Message;
                 return false;

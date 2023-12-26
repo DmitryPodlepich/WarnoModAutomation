@@ -1,11 +1,15 @@
-﻿using System;
+﻿using BlazorBootstrap;
+using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using WarnoModeAutomation.DTO;
+using static System.Net.Mime.MediaTypeNames;
 
 namespace WarnoModeAutomation.Logic
 {
@@ -17,7 +21,8 @@ namespace WarnoModeAutomation.Logic
 
         #endregion
 
-        public static string Serialize(FileDescriptor fileDescriptor)
+        public static string Serialize<T>(FileDescriptor<T> fileDescriptor)
+            where T : Descriptor
         {
             var sb = new StringBuilder(fileDescriptor.RawLines.Count);
 
@@ -29,20 +34,43 @@ namespace WarnoModeAutomation.Logic
                     continue;
                 }
 
+                var modifiedLine = string.Empty;
+
                 var mapInstantce = fileDescriptor.RawLineToObjectPropertyMap[rawLine.Key];
+
+                var propertyValue = mapInstantce.PropertyInfo.GetValue(mapInstantce.Object);
+
+                //Logic for collections
+                if (mapInstantce.Index is not null)
+                {
+                    //Logic for MAPs
+                    var dictionary = mapInstantce.PropertyInfo.GetValue(mapInstantce.Object) as IDictionary;
+
+                    var index = 0;
+                    foreach (var value in dictionary.Values)
+                    {
+                        if (index == mapInstantce.Index)
+                        {
+                            modifiedLine = NDFRegexes.ReplaceMapItemValue(rawLine.Value, value);
+                            break;
+                        }
+                        index++;
+                    }
+
+                    sb.AppendLine(modifiedLine);
+                    continue;
+                }
 
                 var splitted = rawLine.Value.Split('=');
 
                 var rawValue = splitted.Last().TrimEnd();
-
-                var propertyValue = mapInstantce.PropertyInfo.GetValue(mapInstantce.Object);
 
                 if (mapInstantce.PropertyInfo.PropertyType == typeof(string))
                     propertyValue = "'" + propertyValue + "'";
 
                 var modifiedValue = rawValue.Replace(rawValue, propertyValue.ToString());
 
-                var modifiedLine = rawLine.Value.Replace(rawValue.Trim(), modifiedValue);
+                modifiedLine = rawLine.Value.Replace(rawValue.Trim(), modifiedValue);
 
                 sb.AppendLine(modifiedLine);
             }
@@ -50,12 +78,12 @@ namespace WarnoModeAutomation.Logic
             return sb.ToString();
         }
 
-        public static FileDescriptor Deserialize(string filePath)
+        public static FileDescriptor<T> Deserialize<T>(string filePath) where T : Descriptor
         {
             if (!File.Exists(filePath))
                 throw new FileNotFoundException(filePath);
 
-            var fileDescriptior = new FileDescriptor(filePath);
+            var fileDescriptior = new FileDescriptor<T>(filePath);
             var descriptorsStack = new Stack<Descriptor>();
 
             const int bufferSize = 128;
@@ -70,16 +98,6 @@ namespace WarnoModeAutomation.Logic
 
                     fileDescriptior.RawLines.Add(rawLineKey, line);
                     i++;
-
-                    var key = string.Empty;
-                    var value = string.Empty;
-                    var lineHasKeyAndValue = line.Contains("=");
-
-                    if (lineHasKeyAndValue)
-                    {
-                        key = line.Split('=')[0].Trim();
-                        value = line.Split("=")[1].Trim();
-                    }
 
                     _ = descriptorsStack.TryPeek(out var currentDescriptor);
 
@@ -99,12 +117,22 @@ namespace WarnoModeAutomation.Logic
                         continue;
                     }
 
-                    if (!lineHasKeyAndValue)
-                        continue;
+                    var lineHasKeyAndValue = line.Contains("=");
 
-                    if (currentDescriptor is not null)
+                    if (lineHasKeyAndValue && currentDescriptor is not null)
                     {
+                        var key = line.Split('=')[0].Trim();
+                        var value = line.Split("=")[1].Trim();
+
                         SetDescriptorProperty(fileDescriptior, currentDescriptor, rawLineKey, key, value);
+                    }
+
+                    if (currentDescriptor?.LastSettedProperyNDFType == NDFPropertyTypes.MAP)
+                    {
+                        if (NDFRegexes.TryExtractMapItem(line, out var item))
+                        {
+                            SetMapItem(fileDescriptior, currentDescriptor, rawLineKey, item);
+                        }
                     }
                 }
             }
@@ -112,7 +140,8 @@ namespace WarnoModeAutomation.Logic
             return fileDescriptior;
         }
 
-        private static Descriptor CreateDescriptor(FileDescriptor fileDescriptor, int currentIndex, Descriptor currentDescriptor)
+        private static Descriptor CreateDescriptor<T>(FileDescriptor<T> fileDescriptor, int currentIndex, Descriptor currentDescriptor)
+            where T : Descriptor
         {
             var previousLine = fileDescriptor.RawLines.ElementAt(currentIndex - 2);
 
@@ -123,32 +152,36 @@ namespace WarnoModeAutomation.Logic
             var entityName = Array.Exists(splittedName, x => x.Equals(IS_KEYWORD))
                 ? splittedName[Array.IndexOf(splittedName, IS_KEYWORD) - 1] : typeName;
 
-            var definedType = FileDescriptor.TypesMap.ContainsKey(typeName) ? FileDescriptor.TypesMap[typeName] : typeof(Descriptor);
+            var definedType = FileDescriptor<T>.TypesMap.ContainsKey(typeName) ? FileDescriptor<T>.TypesMap[typeName] : typeof(Descriptor);
 
-            var descriptor = FileDescriptor.TypesMap.ContainsKey(typeName)
+            var descriptor = FileDescriptor<T>.TypesMap.ContainsKey(typeName)
                 ? Activator.CreateInstance(definedType) as Descriptor
                 : Activator.CreateInstance(definedType) as Descriptor;
 
             descriptor.EntityName = entityName;
 
-            if (descriptor is TEntityDescriptor)
+            if (descriptor is T)
             {
-                fileDescriptor.EntityDescriptors.Add(descriptor as TEntityDescriptor);
+                fileDescriptor.EntityDescriptors.Add(descriptor as T);
             }
 
-            if (currentDescriptor is not null && currentDescriptor.LastSettedPropery is not null && currentDescriptor.LastSettedPropery.GetValue(currentDescriptor) is IDictionary)
+            if (currentDescriptor is not null && currentDescriptor.LastSettedPropery is not null && currentDescriptor.LastSettedPropery.GetValue(currentDescriptor) is ICollection)
             {
-                var collectionPropertyValue = currentDescriptor.LastSettedPropery.GetValue(currentDescriptor) as IDictionary;
+                if (currentDescriptor.LastSettedProperyNDFType == NDFPropertyTypes.BlockOfCode)
+                {
+                    var collectionPropertyValue = currentDescriptor.LastSettedPropery.GetValue(currentDescriptor) as IDictionary;
 
-                var typeToObject = new TypeToObject(typeName, definedType, descriptor);
+                    var typeToObject = new TypeToObject(typeName, definedType, descriptor);
 
-                collectionPropertyValue.Add(Guid.NewGuid(), typeToObject);
+                    collectionPropertyValue.Add(Guid.NewGuid(), typeToObject);
+                }
             }
 
             return descriptor;
         }
 
-        private static void SetDescriptorProperty(FileDescriptor fileDescriptor, Descriptor descriptor, Guid rawLineKey, string key, string value)
+        private static void SetDescriptorProperty<T>(FileDescriptor<T> fileDescriptor, Descriptor descriptor, Guid rawLineKey, string key, string value)
+            where T : Descriptor
         {
             var applicableProperty = descriptor.PropertiesInfo.SingleOrDefault(p => p.Name == key);
 
@@ -164,6 +197,13 @@ namespace WarnoModeAutomation.Logic
 
                 descriptor.LastSettedPropery = applicableProperty;
 
+                var lastSettedPropertyType = NDFPropertyTypes.BlockOfCode;
+
+                if (value.Contains("MAP"))
+                    lastSettedPropertyType = NDFPropertyTypes.MAP;
+
+                descriptor.LastSettedProperyNDFType = lastSettedPropertyType;
+
                 return;
             }
 
@@ -177,6 +217,83 @@ namespace WarnoModeAutomation.Logic
             applicableProperty.SetValue(descriptor, parsedValue);
 
             descriptor.LastSettedPropery = applicableProperty;
+
+            descriptor.LastSettedProperyNDFType = NDFPropertyTypes.Primitive;
         }
+
+        private static void SetMapItem<T>(FileDescriptor<T> fileDescriptor, Descriptor descriptor, Guid rawLineKey, KeyValuePair<string, string> mapItem)
+            where T : Descriptor
+        {
+            if (descriptor?.LastSettedPropery is null)
+                return;
+
+            if (descriptor.LastSettedProperyNDFType != NDFPropertyTypes.MAP)
+                return;
+
+            if (descriptor.LastSettedPropery.GetValue(descriptor) is not IDictionary)
+                return;
+
+            var keyType = descriptor.LastSettedPropery.PropertyType.GenericTypeArguments[0];
+
+            var valueType = descriptor.LastSettedPropery.PropertyType.GenericTypeArguments[1];
+
+            var collectionPropertyValue = descriptor.LastSettedPropery.GetValue(descriptor) as IDictionary;
+
+            var key = Convert.ChangeType(mapItem.Key, keyType);
+
+            var value = Convert.ChangeType(mapItem.Value, valueType);
+
+            if (!collectionPropertyValue.Contains(key))
+            {
+                collectionPropertyValue.Add(key, value);
+
+                var index = 0;
+                foreach (var entry in collectionPropertyValue.Keys)
+                {
+                    if (entry == key)
+                        break;
+                    index++;
+                }
+
+                fileDescriptor.RawLineToObjectPropertyMap.Add(rawLineKey, new PropertyToObject() { Object = descriptor, PropertyInfo = descriptor.LastSettedPropery, Index = index});
+            }
+        }
+    }
+
+    public static partial class NDFRegexes
+    {
+        public static bool IsMapItem(string value)
+        {
+            return MapItemRegex().IsMatch(value);
+        }
+
+        public static bool TryExtractMapItem(string value, out KeyValuePair<string, string> item) 
+        {
+            item = new KeyValuePair<string, string>();
+
+            if (!IsMapItem(value))
+                return false;
+
+            var matchCollection = MapItemRegex().Matches(value).FirstOrDefault();
+
+            item = new KeyValuePair<string, string>(matchCollection.Groups["key"].Value, matchCollection.Groups["value"].Value);
+
+            return true;
+        }
+
+        public static string ReplaceMapItemValue(string rawLine, object value)
+        {
+            if (!IsMapItem(rawLine))
+                throw new InvalidDataException($"Raw line: {rawLine} does not match MapItemRegex pattern!");
+
+            var matchCollection = MapItemRegex().Matches(rawLine).FirstOrDefault();
+
+            var t = MapItemRegex().Replace(rawLine, m => $"({m.Groups["key"].Value}, {value})");
+
+            return t;
+        }
+
+        [GeneratedRegex(@"\((?<key>.{1,}),(?<value>.{1,})\)", RegexOptions.Compiled)]
+        private static partial Regex MapItemRegex();
     }
 }

@@ -1,13 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace WarnoModeAutomation.Constants
+﻿namespace WarnoModeAutomation.Constants
 {
     public static class WarnoConstants
     {
-        public const string BuildingDescriptorsFileBame = "BuildingDescriptors.ndf";
+        public const string ConfigFileName = "Config.ini";
+        public const string UniteDescriptorFileName = "UniteDescriptor.ndf";
+        public const string BuildingDescriptorsFileName = "BuildingDescriptors.ndf";
     }
 }

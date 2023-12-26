@@ -7,24 +7,37 @@ using System.Threading.Tasks;
 
 namespace WarnoModeAutomation.DTO
 {
-    public class TypeToObject(string typeName ,Type type, object descriptorObject)
+    public class TypeToObject
     {
-        public string TypeName { get; } = typeName;
-        public Type Type { get; } = type;
-        public object DescriptorObject { get; } = descriptorObject;
+        public TypeToObject(string typeName, Type type, object descriptorObject)
+        {
+            TypeName = typeName;
+            Type = type;
+            DescriptorObject = descriptorObject;
+        }
+
+        public string TypeName { get; init; }
+        public Type Type { get; init; }
+        public object DescriptorObject { get; set; }
     }
 
     public class PropertyToObject 
     {
         public object Object { get; set; }
         public PropertyInfo PropertyInfo { get; set; }
+        public int? Index { get; set; } = null;
     }
 
-    public class FileDescriptor(string filePath)
+    public class FileDescriptor<T> where T : Descriptor 
     {
-        public readonly string FilePath = filePath;
+        public FileDescriptor(string filePath)
+        {
+            FilePath = filePath;
+        }
 
-        public readonly List<TEntityDescriptor> EntityDescriptors = [];
+        public readonly string FilePath;
+
+        public readonly List<T> EntityDescriptors = [];
 
         public readonly Dictionary<Guid,string> RawLines = [];
 
@@ -33,7 +46,8 @@ namespace WarnoModeAutomation.DTO
         public static readonly Dictionary<string, Type> TypesMap = new()
         {
             { "TSupplyModuleDescriptor", typeof(TSupplyModuleDescriptor) },
-            { "TEntityDescriptor", typeof(TEntityDescriptor) }
+            { "TEntityDescriptor", typeof(TEntityDescriptor) },
+            { "TProductionModuleDescriptor", typeof(TProductionModuleDescriptor) }
         };
     }
 
@@ -50,6 +64,15 @@ namespace WarnoModeAutomation.DTO
         public float SupplyCapacity { get; set; }
     }
 
+    public class TProductionModuleDescriptor : Descriptor 
+    {
+        public override Type Type => typeof(TProductionModuleDescriptor);
+
+        public int ProductionTime { get; set; }
+
+        public Dictionary<string, int> ProductionRessourcesNeeded { get; set; } = new();
+    }
+
     public class Descriptor 
     {
         public string EntityName { get; set; }
@@ -59,9 +82,18 @@ namespace WarnoModeAutomation.DTO
 
         public PropertyInfo LastSettedPropery;
 
+        public NDFPropertyTypes LastSettedProperyNDFType = NDFPropertyTypes.Primitive;
+
         public Descriptor()
         {
             PropertiesInfo = Type.GetProperties();
         }
+    }
+
+    public enum NDFPropertyTypes 
+    {
+        Primitive,
+        BlockOfCode,
+        MAP
     }
 }

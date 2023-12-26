@@ -12,7 +12,7 @@
                     <div class="d-flex flex-column">
                         <p class="h5">
                             <span class="badge badge-secondary">Mod name:</span>
-                            <strong><small>@Storage.ModeSettings.ModeName</small></strong>
+                            <strong><small>@Storage.ModeSettings.ModName</small></strong>
                         </p>
 
                         <hr />
@@ -153,6 +153,7 @@
     {
         _currentOperation = OperationType.Modify;
         ModManager.Modify();
+        ModManagerOnOutput("Modification finished successfull!");
         _currentOperation = OperationType.Idle;
     }
 }
