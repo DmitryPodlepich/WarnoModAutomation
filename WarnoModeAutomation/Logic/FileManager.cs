@@ -20,7 +20,9 @@ namespace WarnoModeAutomation.Logic
         public static NDFFilePathInfo[] NDFFilesPaths =>
         [
             new(WarnoConstants.BuildingDescriptorsFileName, Path.Combine(GfxPath, WarnoConstants.BuildingDescriptorsFileName)),
-            new(WarnoConstants.UniteDescriptorFileName, Path.Combine(GfxPath, WarnoConstants.UniteDescriptorFileName))
+            new(WarnoConstants.UniteDescriptorFileName, Path.Combine(GfxPath, WarnoConstants.UniteDescriptorFileName)),
+            new(WarnoConstants.WeaponDescriptorDescriptorsFileName, Path.Combine(GfxPath, WarnoConstants.WeaponDescriptorDescriptorsFileName)),
+            new(WarnoConstants.AmmunitionDescriptorsFileName, Path.Combine(GfxPath, WarnoConstants.AmmunitionDescriptorsFileName)),
         ];
 
         private static string CurrentUserName => WindowsIdentity.GetCurrent().Name;

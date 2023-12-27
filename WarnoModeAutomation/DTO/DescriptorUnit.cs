@@ -28,14 +28,9 @@ namespace WarnoModeAutomation.DTO
         public int? Index { get; set; } = null;
     }
 
-    public class FileDescriptor<T> where T : Descriptor 
+    public class FileDescriptor<T>(string filePath) where T : Descriptor 
     {
-        public FileDescriptor(string filePath)
-        {
-            FilePath = filePath;
-        }
-
-        public readonly string FilePath;
+        public readonly string FilePath = filePath;
 
         public readonly List<T> EntityDescriptors = [];
 
@@ -75,7 +70,7 @@ namespace WarnoModeAutomation.DTO
 
     public class Descriptor 
     {
-        public string EntityName { get; set; }
+        public string EntityNDFType { get; set; }
         public virtual Type Type => typeof(Descriptor);
 
         public readonly PropertyInfo[] PropertiesInfo;

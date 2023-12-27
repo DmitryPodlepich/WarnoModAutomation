@@ -106,11 +106,11 @@ namespace WarnoModeAutomation.Logic
         {
             var filePath = FileManager.NDFFilesPaths.SingleOrDefault(f => f.FileName == WarnoConstants.UniteDescriptorFileName);
 
-            var fileDescriptor = NDFSerializer.Deserialize<TEntityDescriptor>(filePath.FilePath);
+            var unitsFileDescriptor = NDFSerializer.Deserialize<TEntityDescriptor>(filePath.FilePath);
 
             //Chaparral
 
-            var chaparralEntityDescriptor = fileDescriptor.EntityDescriptors.FirstOrDefault(x => x.EntityName.Contains("M48_Chaparral"));
+            var chaparralEntityDescriptor = unitsFileDescriptor.EntityDescriptors.FirstOrDefault(x => x.ClassNameForDebug.Equals("Unit_M48_Chaparral_MIM72F_US"));
 
             if (chaparralEntityDescriptor is null)
                 return;
@@ -127,16 +127,15 @@ namespace WarnoModeAutomation.Logic
                     tProductionModuleDescriptor.ProductionRessourcesNeeded[item.Key] = 105;
                 }
             }
-
         }
 
         private static void ModifyBuildings()
         {
             var buildingsFilePath = FileManager.NDFFilesPaths.SingleOrDefault(f => f.FileName == WarnoConstants.BuildingDescriptorsFileName);
 
-            var fileDescriptor = NDFSerializer.Deserialize<TEntityDescriptor>(buildingsFilePath.FilePath);
+            var buildingsFileDescriptor = NDFSerializer.Deserialize<TEntityDescriptor>(buildingsFilePath.FilePath);
 
-            foreach (var item in fileDescriptor.EntityDescriptors)
+            foreach (var item in buildingsFileDescriptor.EntityDescriptors)
             {
                 var tSupplyModuleDescriptors = item.ModulesDescriptors
                     .Where(x => x.Value.Type.Equals(typeof(TSupplyModuleDescriptor)))
@@ -160,7 +159,7 @@ namespace WarnoModeAutomation.Logic
                 }
             }
 
-            var stringToSave = NDFSerializer.Serialize(fileDescriptor);
+            var stringToSave = NDFSerializer.Serialize(buildingsFileDescriptor);
 
             File.WriteAllText(buildingsFilePath.FilePath, stringToSave);
         }

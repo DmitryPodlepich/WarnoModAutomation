@@ -149,7 +149,7 @@ namespace WarnoModeAutomation.Logic
 
             var typeName = splittedName.Last().TrimEnd();
 
-            var entityName = Array.Exists(splittedName, x => x.Equals(IS_KEYWORD))
+            var entityNDFType = Array.Exists(splittedName, x => x.Equals(IS_KEYWORD))
                 ? splittedName[Array.IndexOf(splittedName, IS_KEYWORD) - 1] : typeName;
 
             var definedType = FileDescriptor<T>.TypesMap.ContainsKey(typeName) ? FileDescriptor<T>.TypesMap[typeName] : typeof(Descriptor);
@@ -158,7 +158,7 @@ namespace WarnoModeAutomation.Logic
                 ? Activator.CreateInstance(definedType) as Descriptor
                 : Activator.CreateInstance(definedType) as Descriptor;
 
-            descriptor.EntityName = entityName;
+            descriptor.EntityNDFType = entityNDFType;
 
             if (descriptor is T)
             {
