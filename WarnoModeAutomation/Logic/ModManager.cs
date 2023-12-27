@@ -5,6 +5,7 @@ using System.Globalization;
 using System.Text;
 using WarnoModeAutomation.Constants;
 using WarnoModeAutomation.DTO;
+using WarnoModeAutomation.DTO.NDFFiles;
 
 namespace WarnoModeAutomation.Logic
 {
@@ -33,7 +34,7 @@ namespace WarnoModeAutomation.Logic
             return await cmdProvier.PerformCMDCommand($"{_createNewModBatFileName} {Storage.ModeSettings.ModName}");
         }
 
-        //ToDo: Required Remove mod aslo from C:\Users\Dmitry\Saved Games\EugenSystems\WARNO\mod
+        //ToDo: Not tested yet!
         public static bool DeleteMod() 
         {
             var modDirectory = Path.Combine(Storage.ModeSettings.ModsDirectory, Storage.ModeSettings.ModName);
@@ -116,8 +117,8 @@ namespace WarnoModeAutomation.Logic
                 return;
 
             var tProductionModuleDescriptor = chaparralEntityDescriptor.ModulesDescriptors
-                    .Single(x => x.Value.Type.Equals(typeof(TProductionModuleDescriptor)))
-                    .Value.DescriptorObject as TProductionModuleDescriptor;
+                    .OfType<TProductionModuleDescriptor>()
+                    .SingleOrDefault();
 
             foreach (var item in tProductionModuleDescriptor.ProductionRessourcesNeeded)
             {
@@ -135,27 +136,17 @@ namespace WarnoModeAutomation.Logic
 
             var buildingsFileDescriptor = NDFSerializer.Deserialize<TEntityDescriptor>(buildingsFilePath.FilePath);
 
-            foreach (var item in buildingsFileDescriptor.EntityDescriptors)
+            foreach (var entityDescriptor in buildingsFileDescriptor.EntityDescriptors)
             {
-                var tSupplyModuleDescriptors = item.ModulesDescriptors
-                    .Where(x => x.Value.Type.Equals(typeof(TSupplyModuleDescriptor)))
-                    .Select(x => x.Value.DescriptorObject as TSupplyModuleDescriptor);
+                var tSupplyModuleDescriptor = entityDescriptor.ModulesDescriptors.OfType<TSupplyModuleDescriptor>().SingleOrDefault();
 
-                foreach (var tSupplyModuleDescriptor in tSupplyModuleDescriptors)
+                tSupplyModuleDescriptor.SupplyCapacity = 36000;
+
+                var tProductionModuleDescriptors = entityDescriptor.ModulesDescriptors.OfType<TProductionModuleDescriptor>().SingleOrDefault();
+
+                if (tProductionModuleDescriptors.ProductionRessourcesNeeded.ContainsKey("~/Resource_CommandPoints"))
                 {
-                    tSupplyModuleDescriptor.SupplyCapacity = 36000;
-                }
-
-                var tProductionModuleDescriptors = item.ModulesDescriptors
-                    .Where(x => x.Value.Type.Equals(typeof(TProductionModuleDescriptor)))
-                    .Select(x => x.Value.DescriptorObject as TProductionModuleDescriptor);
-
-                foreach (var tProductionModuleDescriptor in tProductionModuleDescriptors)
-                {
-                    if (tProductionModuleDescriptor.ProductionRessourcesNeeded.ContainsKey("~/Resource_CommandPoints"))
-                    {
-                        tProductionModuleDescriptor.ProductionRessourcesNeeded["~/Resource_CommandPoints"] = 200;
-                    }
+                    tProductionModuleDescriptors.ProductionRessourcesNeeded["~/Resource_CommandPoints"] = 235;
                 }
             }
 

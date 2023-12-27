@@ -1,4 +1,5 @@
-﻿using BlazorBootstrap;
+﻿using NDFSerialization.Enums;
+using NDFSerialization.Models;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -7,9 +8,6 @@ using System.Globalization;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
-using System.Threading.Tasks;
-using WarnoModeAutomation.DTO;
-using static System.Net.Mime.MediaTypeNames;
 
 namespace WarnoModeAutomation.Logic
 {
@@ -111,8 +109,7 @@ namespace WarnoModeAutomation.Logic
                     {
                         var newDescriptor = CreateDescriptor(fileDescriptior, i, currentDescriptor);
 
-                        if (newDescriptor is not null)
-                            descriptorsStack.Push(newDescriptor);
+                        descriptorsStack.Push(newDescriptor);
 
                         continue;
                     }
@@ -152,30 +149,27 @@ namespace WarnoModeAutomation.Logic
             var entityNDFType = Array.Exists(splittedName, x => x.Equals(IS_KEYWORD))
                 ? splittedName[Array.IndexOf(splittedName, IS_KEYWORD) - 1] : typeName;
 
-            var definedType = FileDescriptor<T>.TypesMap.ContainsKey(typeName) ? FileDescriptor<T>.TypesMap[typeName] : typeof(Descriptor);
+            if (!FileDescriptor<T>.TypesMap.TryGetValue(typeName, out Type definedType))
+                definedType = typeof(UnknownDescriptor);
 
-            var descriptor = FileDescriptor<T>.TypesMap.ContainsKey(typeName)
-                ? Activator.CreateInstance(definedType) as Descriptor
-                : Activator.CreateInstance(definedType) as Descriptor;
+            var descriptor = Activator.CreateInstance(definedType) as Descriptor;
 
             descriptor.EntityNDFType = entityNDFType;
 
-            if (descriptor is T)
-            {
-                fileDescriptor.EntityDescriptors.Add(descriptor as T);
-            }
-
+            //Nested objects logic
             if (currentDescriptor is not null && currentDescriptor.LastSettedPropery is not null && currentDescriptor.LastSettedPropery.GetValue(currentDescriptor) is ICollection)
             {
-                if (currentDescriptor.LastSettedProperyNDFType == NDFPropertyTypes.BlockOfCode)
+                if (currentDescriptor.LastSettedProperyNDFType == NDFPropertyTypes.Vector)
                 {
-                    var collectionPropertyValue = currentDescriptor.LastSettedPropery.GetValue(currentDescriptor) as IDictionary;
+                    var collectionPropertyValue = currentDescriptor.LastSettedPropery.GetValue(currentDescriptor) as IList;
 
-                    var typeToObject = new TypeToObject(typeName, definedType, descriptor);
-
-                    collectionPropertyValue.Add(Guid.NewGuid(), typeToObject);
+                    collectionPropertyValue.Add(descriptor);
+                    return descriptor;
                 }
             }
+
+            if(descriptor is T entityDescriptor)
+                fileDescriptor.EntityDescriptors.Add(entityDescriptor);
 
             return descriptor;
         }
@@ -197,7 +191,7 @@ namespace WarnoModeAutomation.Logic
 
                 descriptor.LastSettedPropery = applicableProperty;
 
-                var lastSettedPropertyType = NDFPropertyTypes.BlockOfCode;
+                var lastSettedPropertyType = NDFPropertyTypes.Vector;
 
                 if (value.Contains("MAP"))
                     lastSettedPropertyType = NDFPropertyTypes.MAP;
