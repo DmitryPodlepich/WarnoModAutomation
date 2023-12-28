@@ -1,6 +1,4 @@
 ﻿using System.Collections;
-using System.Drawing;
-using static System.Reflection.Metadata.BlobBuilder;
 
 namespace NDFSerialization.NDFDataTypes
 {
@@ -10,7 +8,7 @@ namespace NDFSerialization.NDFDataTypes
     /// </summary>
     public class NDFVector : IEnumerable
     {
-        private object[] _data = [2];
+        private object[] _data = [4];
         private int _index;
 
         public object this[int index]

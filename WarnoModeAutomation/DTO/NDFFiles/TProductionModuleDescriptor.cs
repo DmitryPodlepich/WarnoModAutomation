@@ -1,4 +1,5 @@
 ﻿using NDFSerialization.Models;
+using NDFSerialization.NDFDataTypes;
 
 namespace WarnoModeAutomation.DTO.NDFFiles
 {
@@ -8,7 +9,7 @@ namespace WarnoModeAutomation.DTO.NDFFiles
 
         public int ProductionTime { get; set; }
 
-        //ToDo: create attribute [NDFMAP]
-        public Dictionary<string, int> ProductionRessourcesNeeded { get; set; } = [];
+        [NDFMAP]
+        public Dictionary<string, int> ProductionRessourcesNeeded { get; set; }
     }
 }

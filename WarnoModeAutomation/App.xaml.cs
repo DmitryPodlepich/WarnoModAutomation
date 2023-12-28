@@ -1,4 +1,6 @@
-﻿namespace WarnoModeAutomation
+﻿using WarnoModeAutomation.Logic;
+
+namespace WarnoModeAutomation
 {
     public partial class App : Application
     {
@@ -7,6 +9,9 @@
             InitializeComponent();
 
             MainPage = new MainPage();
+
+            //ToDo: test
+            _ = NDFSerializer.Initialize();
         }
     }
 }

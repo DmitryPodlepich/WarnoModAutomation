@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Reflection;
-using System.Security.AccessControl;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Reflection;
 
 namespace NDFSerialization.Models
 {
@@ -23,6 +17,14 @@ namespace NDFSerialization.Models
         public FileDescriptor(string filePath)
         {
             FilePath = filePath;
+
+            Initialize();
+        }
+
+        public static void Initialize()
+        {
+            if (TypesMap.Count != 0)
+                return;
 
             var descriptorType = typeof(Descriptor);
 

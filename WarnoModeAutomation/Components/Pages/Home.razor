@@ -1,5 +1,6 @@
 ﻿@page "/"
 @using System.Text
+@using System.Diagnostics
 @using WarnoModeAutomation.Logic;
 @using BlazorBootstrap;
 
@@ -152,8 +153,15 @@
     public void Modify()
     {
         _currentOperation = OperationType.Modify;
+
+        var stopwatch = new Stopwatch();
+
+        stopwatch.Start();
+
         ModManager.Modify();
-        ModManagerOnOutput("Modification finished successfull!");
+
+        stopwatch.Stop();
+        ModManagerOnOutput($"Modification finished successful! time: {stopwatch.ElapsedMilliseconds}");
         _currentOperation = OperationType.Idle;
     }
 }

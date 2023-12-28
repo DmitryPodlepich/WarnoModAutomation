@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Text.RegularExpressions;
 
@@ -19,6 +20,11 @@ namespace WarnoModeAutomation.Logic
         private const string IS_KEYWORD = "is";
 
         #endregion
+
+        public static async Task Initialize() 
+        {
+            await Task.Run(() => FileDescriptor<Descriptor>.Initialize());
+        }
 
         public static string Serialize<T>(FileDescriptor<T> fileDescriptor)
             where T : Descriptor
@@ -120,7 +126,7 @@ namespace WarnoModeAutomation.Logic
                     if (lineHasKeyAndValue && currentDescriptor is not null)
                     {
                         var key = line.Split('=')[0].Trim();
-                        var value = line.Split("=")[1].Trim();
+                        var value = line.Split('=')[1].Trim();
 
                         SetDescriptorProperty(fileDescriptior, currentDescriptor, rawLineKey, key, value);
                     }
@@ -178,21 +184,36 @@ namespace WarnoModeAutomation.Logic
         private static void SetDescriptorProperty<T>(FileDescriptor<T> fileDescriptor, Descriptor descriptor, Guid rawLineKey, string key, string value)
             where T : Descriptor
         {
+            if (string.IsNullOrWhiteSpace(value) || string.IsNullOrWhiteSpace(key))
+                return;
+
             var applicableProperty = descriptor.PropertiesInfo.SingleOrDefault(p => p.Name == key);
 
             if (applicableProperty is null)
                 return;
 
-            if (value.Equals(string.Empty))
-                return;
-
-            if (applicableProperty.GetValue(descriptor) is IEnumerable)
+            if (applicableProperty.PropertyType.GetInterface(nameof(IEnumerable)) is not null && applicableProperty.PropertyType != typeof(string))
             {
+                var lastSettedProperyNDFType = NDFPropertyTypes.Vector;
+
+                var mapAttribute = applicableProperty.PropertyType.GetCustomAttribute(typeof(NDFMAPAttribute));
+
+                if (mapAttribute is not null)
+                {
+                    if (!value.Contains("MAP"))
+                        throw new InvalidOperationException($"Line: {fileDescriptor.RawLines[rawLineKey]} is not applicable to be NDF MAP!");
+
+                    if (!applicableProperty.PropertyType.IsAssignableFrom(typeof(IDictionary<,>)))
+                        throw new InvalidOperationException($"Property:{ applicableProperty.Name } with type: { applicableProperty.PropertyType.FullName} must be IDictionary<,> to correspond NDF MAP type!");
+
+                    lastSettedProperyNDFType = NDFPropertyTypes.MAP;
+                }
+
                 applicableProperty.SetValue(descriptor, Activator.CreateInstance(applicableProperty.PropertyType));
 
                 descriptor.LastSettedPropery = applicableProperty;
 
-                descriptor.LastSettedProperyNDFType = value.Contains("MAP") ? NDFPropertyTypes.MAP : NDFPropertyTypes.Vector;
+                descriptor.LastSettedProperyNDFType = lastSettedProperyNDFType;
 
                 return;
             }
