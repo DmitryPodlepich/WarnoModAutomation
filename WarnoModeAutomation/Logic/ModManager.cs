@@ -140,13 +140,13 @@ namespace WarnoModeAutomation.Logic
             {
                 var tSupplyModuleDescriptor = entityDescriptor.ModulesDescriptors.OfType<TSupplyModuleDescriptor>().SingleOrDefault();
 
-                tSupplyModuleDescriptor.SupplyCapacity = 36000;
+                tSupplyModuleDescriptor.SupplyCapacity = 46000;
 
                 var tProductionModuleDescriptors = entityDescriptor.ModulesDescriptors.OfType<TProductionModuleDescriptor>().SingleOrDefault();
 
                 if (tProductionModuleDescriptors.ProductionRessourcesNeeded.ContainsKey("~/Resource_CommandPoints"))
                 {
-                    tProductionModuleDescriptors.ProductionRessourcesNeeded["~/Resource_CommandPoints"] = 235;
+                    tProductionModuleDescriptors.ProductionRessourcesNeeded["~/Resource_CommandPoints"] = 225;
                 }
             }
 

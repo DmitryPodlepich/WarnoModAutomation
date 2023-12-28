@@ -8,6 +8,7 @@ namespace WarnoModeAutomation.DTO.NDFFiles
 
         public int ProductionTime { get; set; }
 
+        //ToDo: create attribute [NDFMAP]
         public Dictionary<string, int> ProductionRessourcesNeeded { get; set; } = [];
     }
 }

@@ -1,5 +1,6 @@
 ﻿using NDFSerialization.Enums;
 using NDFSerialization.Models;
+using NDFSerialization.NDFDataTypes;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -157,11 +158,11 @@ namespace WarnoModeAutomation.Logic
             descriptor.EntityNDFType = entityNDFType;
 
             //Nested objects logic
-            if (currentDescriptor is not null && currentDescriptor.LastSettedPropery is not null && currentDescriptor.LastSettedPropery.GetValue(currentDescriptor) is ICollection)
+            if (currentDescriptor is not null && currentDescriptor.LastSettedPropery is not null && currentDescriptor.LastSettedPropery.GetValue(currentDescriptor) is IEnumerable)
             {
                 if (currentDescriptor.LastSettedProperyNDFType == NDFPropertyTypes.Vector)
                 {
-                    var collectionPropertyValue = currentDescriptor.LastSettedPropery.GetValue(currentDescriptor) as IList;
+                    var collectionPropertyValue = currentDescriptor.LastSettedPropery.GetValue(currentDescriptor) as NDFVector;
 
                     collectionPropertyValue.Add(descriptor);
                     return descriptor;
@@ -185,18 +186,13 @@ namespace WarnoModeAutomation.Logic
             if (value.Equals(string.Empty))
                 return;
 
-            if (applicableProperty.GetValue(descriptor) is ICollection)
+            if (applicableProperty.GetValue(descriptor) is IEnumerable)
             {
                 applicableProperty.SetValue(descriptor, Activator.CreateInstance(applicableProperty.PropertyType));
 
                 descriptor.LastSettedPropery = applicableProperty;
 
-                var lastSettedPropertyType = NDFPropertyTypes.Vector;
-
-                if (value.Contains("MAP"))
-                    lastSettedPropertyType = NDFPropertyTypes.MAP;
-
-                descriptor.LastSettedProperyNDFType = lastSettedPropertyType;
+                descriptor.LastSettedProperyNDFType = value.Contains("MAP") ? NDFPropertyTypes.MAP : NDFPropertyTypes.Vector;
 
                 return;
             }

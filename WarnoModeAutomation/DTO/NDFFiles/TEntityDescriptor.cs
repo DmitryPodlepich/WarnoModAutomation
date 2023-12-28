@@ -1,9 +1,5 @@
 ﻿using NDFSerialization.Models;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using NDFSerialization.NDFDataTypes;
 
 namespace WarnoModeAutomation.DTO.NDFFiles
 {
@@ -11,9 +7,8 @@ namespace WarnoModeAutomation.DTO.NDFFiles
     {
         public string ClassNameForDebug { get; set; }
 
-        //ToDo: create own collection Vector or attribute.
-        //ToDo: Also think about MAP and nested objects...
-        public List<object> ModulesDescriptors { get; set; } = [];
+        //ToDo: If collection is null there is a bug! We cannot check if it is Ienumerable with reflection.
+        public NDFVector ModulesDescriptors { get; set; } = [];
         public override Type Type => typeof(TEntityDescriptor);
     }
 }
