@@ -10,7 +10,6 @@ namespace WarnoModeAutomation
 
             MainPage = new MainPage();
 
-            //ToDo: test
             _ = NDFSerializer.Initialize();
         }
     }
