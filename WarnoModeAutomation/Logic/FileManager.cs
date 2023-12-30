@@ -12,22 +12,21 @@ namespace WarnoModeAutomation.Logic
     public static class FileManager
     {
         public static string SystemPath => Path.GetPathRoot(Environment.SystemDirectory);
-
         public static string SavedGamesEugenSystemsModPath => Path.Combine(SystemPath, "Users", CurrentUserName, "Saved Games", "EugenSystems", "WARNO", "mod");
-
-        public static string GfxPath => Path.Combine(Storage.ModeSettings.ModsDirectory, Storage.ModeSettings.ModName, "GameData", "Generated", "Gameplay", "Gfx");
-
+        public static string GeneratedGfxPath => Path.Combine(Storage.ModeSettings.ModsDirectory, Storage.ModeSettings.ModName, "GameData", "Generated", "Gameplay", "Gfx");
+        public static string GamePlayGfxPath => Path.Combine(Storage.ModeSettings.ModsDirectory, Storage.ModeSettings.ModName, "GameData", "Gameplay", "Gfx");
+        public static string DepictionResourcesPath => Path.Combine(GamePlayGfxPath, "DepictionResources");
         public static NDFFilePathInfo[] NDFFilesPaths =>
         [
-            new(WarnoConstants.BuildingDescriptorsFileName, Path.Combine(GfxPath, WarnoConstants.BuildingDescriptorsFileName)),
-            new(WarnoConstants.UniteDescriptorFileName, Path.Combine(GfxPath, WarnoConstants.UniteDescriptorFileName)),
-            new(WarnoConstants.WeaponDescriptorDescriptorsFileName, Path.Combine(GfxPath, WarnoConstants.WeaponDescriptorDescriptorsFileName)),
-            new(WarnoConstants.AmmunitionDescriptorsFileName, Path.Combine(GfxPath, WarnoConstants.AmmunitionDescriptorsFileName)),
+            new(WarnoConstants.BuildingDescriptorsFileName, Path.Combine(GeneratedGfxPath, WarnoConstants.BuildingDescriptorsFileName)),
+            new(WarnoConstants.UniteDescriptorFileName, Path.Combine(GeneratedGfxPath, WarnoConstants.UniteDescriptorFileName)),
+            new(WarnoConstants.WeaponDescriptorDescriptorsFileName, Path.Combine(GeneratedGfxPath, WarnoConstants.WeaponDescriptorDescriptorsFileName)),
+            new(WarnoConstants.AmmunitionDescriptorsFileName, Path.Combine(GeneratedGfxPath, WarnoConstants.AmmunitionDescriptorsFileName)),
         ];
 
         private static string CurrentUserName => WindowsIdentity.GetCurrent().Name;
 
-        public static bool IsModExist() 
+        public static bool IsModExist()
         {
             var modPath = Path.Combine(Storage.ModeSettings.ModsDirectory, Storage.ModeSettings.ModName);
 
@@ -42,7 +41,7 @@ namespace WarnoModeAutomation.Logic
             {
                 Directory.Delete(directoryPath, true);
             }
-            catch(IOException ex) 
+            catch (IOException ex)
             {
                 error = ex.Message;
                 return false;
@@ -51,7 +50,7 @@ namespace WarnoModeAutomation.Logic
             return true;
         }
 
-        public static bool TryDeleteFile(string filePath, out string error) 
+        public static bool TryDeleteFile(string filePath, out string error)
         {
             error = string.Empty;
 
@@ -66,6 +65,18 @@ namespace WarnoModeAutomation.Logic
             }
 
             return true;
+        }
+
+        public static FileInfo TryGetFileWithFullSearch(string directoryPath, string fileName)
+        {
+            string[] files = Directory.GetFiles(directoryPath, fileName, SearchOption.AllDirectories);
+
+            if (files.Length > 0)
+            { 
+                return new FileInfo(files[0]);
+            }
+
+            return null;
         }
     }
 }

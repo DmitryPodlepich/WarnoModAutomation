@@ -100,7 +100,9 @@ namespace WarnoModeAutomation.Logic
         public static void Modify()
         {
             //modifying buildings
-            ModifyBuildings();
+            //ModifyBuildings();
+
+            ModifyUnits();
         }
 
         private static void ModifyUnits() 
@@ -111,10 +113,12 @@ namespace WarnoModeAutomation.Logic
 
             //Chaparral
 
-            var chaparralEntityDescriptor = unitsFileDescriptor.EntityDescriptors.FirstOrDefault(x => x.ClassNameForDebug.Equals("Unit_M48_Chaparral_MIM72F_US"));
+            var chaparralEntityDescriptor = unitsFileDescriptor.RootDescriptors.FirstOrDefault(x => x.ClassNameForDebug.Equals("Unit_M48_Chaparral_MIM72F_US"));
 
             if (chaparralEntityDescriptor is null)
                 return;
+
+            chaparralEntityDescriptor.SetRealUnitName();
 
             var tProductionModuleDescriptor = chaparralEntityDescriptor.ModulesDescriptors
                     .OfType<TProductionModuleDescriptor>()
@@ -136,7 +140,7 @@ namespace WarnoModeAutomation.Logic
 
             var buildingsFileDescriptor = NDFSerializer.Deserialize<TEntityDescriptor>(buildingsFilePath.FilePath);
 
-            foreach (var entityDescriptor in buildingsFileDescriptor.EntityDescriptors)
+            foreach (var entityDescriptor in buildingsFileDescriptor.RootDescriptors)
             {
                 var tSupplyModuleDescriptor = entityDescriptor.ModulesDescriptors.OfType<TSupplyModuleDescriptor>().SingleOrDefault();
 

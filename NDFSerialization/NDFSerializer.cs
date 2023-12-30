@@ -1,4 +1,5 @@
-﻿using NDFSerialization.Enums;
+﻿using NDFSerialization;
+using NDFSerialization.Enums;
 using NDFSerialization.Models;
 using NDFSerialization.NDFDataTypes;
 using System;
@@ -91,7 +92,7 @@ namespace WarnoModeAutomation.Logic
             var fileDescriptior = new FileDescriptor<T>(filePath);
             var descriptorsStack = new Stack<Descriptor>();
 
-            const int bufferSize = 128;
+            const int bufferSize = 512;
             using (var fileStream = File.OpenRead(filePath))
             using (var streamReader = new StreamReader(fileStream, Encoding.UTF8, true, bufferSize))
             {
@@ -168,15 +169,18 @@ namespace WarnoModeAutomation.Logic
             {
                 if (currentDescriptor.LastSettedProperyNDFType == NDFPropertyTypes.Vector)
                 {
-                    var collectionPropertyValue = currentDescriptor.LastSettedPropery.GetValue(currentDescriptor) as NDFVector;
+                    if (definedType != typeof(UnknownDescriptor))
+                    {
+                        var collectionPropertyValue = currentDescriptor.LastSettedPropery.GetValue(currentDescriptor) as NDFVector;
+                        collectionPropertyValue.Add(descriptor);
+                    }
 
-                    collectionPropertyValue.Add(descriptor);
                     return descriptor;
                 }
             }
 
             if(descriptor is T entityDescriptor)
-                fileDescriptor.EntityDescriptors.Add(entityDescriptor);
+                fileDescriptor.RootDescriptors.Add(entityDescriptor);
 
             return descriptor;
         }
@@ -196,15 +200,15 @@ namespace WarnoModeAutomation.Logic
             {
                 var lastSettedProperyNDFType = NDFPropertyTypes.Vector;
 
-                var mapAttribute = applicableProperty.PropertyType.GetCustomAttribute(typeof(NDFMAPAttribute));
+                var mapAttribute = applicableProperty.GetCustomAttribute<NDFMAPAttribute>();
 
                 if (mapAttribute is not null)
                 {
-                    if (!value.Contains("MAP"))
-                        throw new InvalidOperationException($"Line: {fileDescriptor.RawLines[rawLineKey]} is not applicable to be NDF MAP!");
+                    //if (!value.Contains("MAP"))
+                    //    throw new InvalidOperationException($"Line: {fileDescriptor.RawLines[rawLineKey]} is not applicable to be NDF MAP!");
 
-                    if (!applicableProperty.PropertyType.IsAssignableFrom(typeof(IDictionary<,>)))
-                        throw new InvalidOperationException($"Property:{ applicableProperty.Name } with type: { applicableProperty.PropertyType.FullName} must be IDictionary<,> to correspond NDF MAP type!");
+                    //if (!applicableProperty.PropertyType.IsAssignableFrom(typeof(IDictionary)))
+                    //    throw new InvalidOperationException($"Property:{ applicableProperty.Name } with type: { applicableProperty.PropertyType.FullName} must be IDictionary<,> to correspond NDF MAP type!");
 
                     lastSettedProperyNDFType = NDFPropertyTypes.MAP;
                 }
@@ -269,42 +273,5 @@ namespace WarnoModeAutomation.Logic
                 fileDescriptor.RawLineToObjectPropertyMap.Add(rawLineKey, new PropertyToObject() { Object = descriptor, PropertyInfo = descriptor.LastSettedPropery, Index = index});
             }
         }
-    }
-
-    public static partial class NDFRegexes
-    {
-        public static bool IsMapItem(string value)
-        {
-            return MapItemRegex().IsMatch(value);
-        }
-
-        public static bool TryExtractMapItem(string value, out KeyValuePair<string, string> item) 
-        {
-            item = new KeyValuePair<string, string>();
-
-            if (!IsMapItem(value))
-                return false;
-
-            var matchCollection = MapItemRegex().Matches(value).FirstOrDefault();
-
-            item = new KeyValuePair<string, string>(matchCollection.Groups["key"].Value, matchCollection.Groups["value"].Value);
-
-            return true;
-        }
-
-        public static string ReplaceMapItemValue(string rawLine, object value)
-        {
-            if (!IsMapItem(rawLine))
-                throw new InvalidDataException($"Raw line: {rawLine} does not match MapItemRegex pattern!");
-
-            var matchCollection = MapItemRegex().Matches(rawLine).FirstOrDefault();
-
-            var t = MapItemRegex().Replace(rawLine, m => $"({m.Groups["key"].Value}, {value})");
-
-            return t;
-        }
-
-        [GeneratedRegex(@"\((?<key>.{1,}),(?<value>.{1,})\)", RegexOptions.Compiled)]
-        private static partial Regex MapItemRegex();
     }
 }

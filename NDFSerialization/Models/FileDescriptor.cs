@@ -6,7 +6,7 @@ namespace NDFSerialization.Models
     {
         public readonly string FilePath;
 
-        public readonly List<T> EntityDescriptors = [];
+        public readonly List<T> RootDescriptors = [];
 
         public readonly Dictionary<Guid, string> RawLines = [];
 
