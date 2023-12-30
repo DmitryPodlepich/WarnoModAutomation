@@ -5,7 +5,11 @@ VisualStudioVersion = 17.8.34330.188
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "WarnoModeAutomation", "WarnoModeAutomation\WarnoModeAutomation.csproj", "{E43E3C68-7070-4D8C-85AE-86F440E5E763}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NDFSerialization", "NDFSerialization\NDFSerialization.csproj", "{7D58E5F4-0C3C-4341-A16C-397F6E9C426E}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NDFSerialization", "NDFSerialization\NDFSerialization.csproj", "{7D58E5F4-0C3C-4341-A16C-397F6E9C426E}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WebSearch", "WebSearch\WebSearch.csproj", "{2622A3C6-C840-46C4-A373-6F54412E3C4D}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "JsonDatabase", "JsonDatabase\JsonDatabase.csproj", "{777A0853-950A-44EB-B92D-1E53FB2A1087}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -23,6 +27,14 @@ Global
 		{7D58E5F4-0C3C-4341-A16C-397F6E9C426E}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{7D58E5F4-0C3C-4341-A16C-397F6E9C426E}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{7D58E5F4-0C3C-4341-A16C-397F6E9C426E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2622A3C6-C840-46C4-A373-6F54412E3C4D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2622A3C6-C840-46C4-A373-6F54412E3C4D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2622A3C6-C840-46C4-A373-6F54412E3C4D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2622A3C6-C840-46C4-A373-6F54412E3C4D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{777A0853-950A-44EB-B92D-1E53FB2A1087}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{777A0853-950A-44EB-B92D-1E53FB2A1087}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{777A0853-950A-44EB-B92D-1E53FB2A1087}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{777A0853-950A-44EB-B92D-1E53FB2A1087}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

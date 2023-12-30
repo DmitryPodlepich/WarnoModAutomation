@@ -3,6 +3,8 @@
 @using System.Diagnostics
 @using WarnoModeAutomation.Logic;
 @using BlazorBootstrap;
+@using Microsoft.JSInterop
+@inject IJSRuntime JS
 
 <section>
 
@@ -52,9 +54,16 @@
 
                         <hr>
 
+                        <Button Loading="@(_currentOperation == OperationType.FillDatabase)" LoadingText="Filling..." Disabled="@(_currentOperation != OperationType.Idle)" Class="btn btn-primary ms-2" @onclick="FillDatabase">
+                            <i class="bi bi-download"></i>
+                            Fill database
+                        </Button>
+
+                        <hr>
+
                         <Button Loading="@(_currentOperation == OperationType.Modify)" LoadingText="Modifying..." Disabled="@(_currentOperation != OperationType.Idle)" Class="btn btn-primary ms-2" @onclick="Modify">
                             <i class="bi bi-download"></i>
-                            Run
+                            Modify
                         </Button>
 
                         <hr>
@@ -77,13 +86,20 @@
             <Button @onclick="ModManagerOutputClear" Class="btn btn-warning"><i class="bi bi-eraser-fill"></i> Clear</Button>
         </div>
 
-        <InputTextArea style="min-height: 35vh; font-size: 14px;" @bind-Value="@ModManagerOutput"></InputTextArea>
+       <InputTextArea @ref=TextAreaRef style="min-height: 35vh; font-size: 14px;"  @bind-Value="@ModManagerOutput"></InputTextArea>
     </div>
 
 </section>
 
+<script>
+    function scrollHeight(textarea) {
+        textarea.scrollTop = textarea.scrollHeight;
+    }
+</script>
 
 @code {
+    InputTextArea TextAreaRef;
+
     private enum OperationType
     {
         Idle,
@@ -91,7 +107,8 @@
         Deletion,
         Generation,
         Updation,
-        Modify
+        Modify,
+        FillDatabase
     }
 
     private OperationType _currentOperation = OperationType.Idle;
@@ -115,34 +132,41 @@
 
     public void ModManagerOnOutput(string data)
     {
-        _stringBuilder.AppendLine(data);
+        App.Current.Dispatcher.Dispatch(async () =>
+        {
+            _stringBuilder.AppendLine(data);
+            StateHasChanged();
+            await JS.InvokeVoidAsync("scrollHeight", TextAreaRef.Element);
+        });
     }
 
     public async Task CreateMod()
     {
-        _currentOperation = OperationType.Creation;
-
-        await ModManager.CreateModAsync();
-        Storage.Status.GetStatus();
-
-        _currentOperation = OperationType.Idle;
+        await Perform(OperationType.Generation, async () =>
+        {
+            await ModManager.CreateModAsync();
+            Storage.Status.GetStatus();
+        });
     }
 
     //ToDo: add alert!
-    public void DeleteMod()
+    public async Task DeleteMod()
     {
-        _currentOperation = OperationType.Deletion;
-        ModManager.DeleteMod();
-        Storage.Status.GetStatus();
-        _currentOperation = OperationType.Idle;
+        await Perform(OperationType.Generation, async () =>
+        {
+            ModManager.DeleteMod();
+            Storage.Status.GetStatus();
+            await Task.CompletedTask;
+        });
     }
 
     public async Task GenerateMod()
     {
-        _currentOperation = OperationType.Generation;
-        await ModManager.GenerateModAsync();
-        Storage.Status.GetStatus();
-        _currentOperation = OperationType.Idle;
+        await Perform(OperationType.Generation, async () => 
+        {
+            await ModManager.GenerateModAsync();
+            Storage.Status.GetStatus();
+        });
     }
 
     public async Task UpdateMod()
@@ -152,18 +176,35 @@
     }
 
     //Add stopwatch to all operations
-    public void Modify()
+    public async Task Modify()
     {
-        _currentOperation = OperationType.Modify;
+        await Perform(OperationType.Modify, async () => await ModManager.Modify());
+
+    }
+
+    public async Task FillDatabase()
+    {
+        await Perform(OperationType.FillDatabase, async () =>
+        {
+            var tokenSource = new CancellationTokenSource();
+
+            await ModManager.FillDatabaseAsync(tokenSource);
+
+        });
+    }
+
+    private async Task Perform(OperationType operationType, Func<Task> action)
+    {
+        _currentOperation = operationType;
 
         var stopwatch = new Stopwatch();
 
         stopwatch.Start();
 
-        ModManager.Modify();
+        await action();
 
         stopwatch.Stop();
-        ModManagerOnOutput($"Modification finished successful! time: {stopwatch.ElapsedMilliseconds}");
+        ModManagerOnOutput($"{operationType} finished! time: {stopwatch.ElapsedMilliseconds}");
         _currentOperation = OperationType.Idle;
     }
 }

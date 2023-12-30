@@ -75,6 +75,7 @@
 
     <ItemGroup>
       <ProjectReference Include="..\NDFSerialization\NDFSerialization.csproj" />
+      <ProjectReference Include="..\WebSearch\WebSearch.csproj" />
     </ItemGroup>
 
 </Project>

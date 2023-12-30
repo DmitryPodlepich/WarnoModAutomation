@@ -2,10 +2,12 @@
 using System.Collections;
 using System.Diagnostics;
 using System.Globalization;
+using System.Linq;
 using System.Text;
 using WarnoModeAutomation.Constants;
 using WarnoModeAutomation.DTO;
 using WarnoModeAutomation.DTO.NDFFiles;
+using WebSearch;
 
 namespace WarnoModeAutomation.Logic
 {
@@ -97,15 +99,21 @@ namespace WarnoModeAutomation.Logic
             return await cmdProvier.PerformCMDCommand(_generateModBatFileName);
         }
 
-        public static void Modify()
+        public static async Task FillDatabaseAsync(CancellationTokenSource cancellationTokenSource) 
+        {
+            WebSearchEngine.OnOutput += OnCMDProviderOutput;
+            await WebSearchEngine.FillDatabaseWithMilitaryTodayAsync(cancellationTokenSource);
+        }
+
+        public static async Task Modify()
         {
             //modifying buildings
             //ModifyBuildings();
 
-            ModifyUnits();
+            await ModifyUnits();
         }
 
-        private static void ModifyUnits() 
+        private static async Task ModifyUnits() 
         {
             var filePath = FileManager.NDFFilesPaths.SingleOrDefault(f => f.FileName == WarnoConstants.UniteDescriptorFileName);
 
@@ -120,17 +128,17 @@ namespace WarnoModeAutomation.Logic
 
             chaparralEntityDescriptor.SetRealUnitName();
 
+            //await WebSearchEngine.Initialize();
+
+            //var result = await WebSearchEngine.GetRealFireRange("MIM72G", chaparralEntityDescriptor.GameUIUnitName, chaparralEntityDescriptor.ClassNameForDebug);
+
             var tProductionModuleDescriptor = chaparralEntityDescriptor.ModulesDescriptors
                     .OfType<TProductionModuleDescriptor>()
                     .SingleOrDefault();
 
-            foreach (var item in tProductionModuleDescriptor.ProductionRessourcesNeeded)
+            if (tProductionModuleDescriptor.ProductionRessourcesNeeded.ContainsKey("~/Resource_CommandPoints"))
             {
-                if (item.Key.Contains("Resource_CommandPoints"))
-                {
-                    tProductionModuleDescriptor.ProductionRessourcesNeeded.Remove(item.Key);
-                    tProductionModuleDescriptor.ProductionRessourcesNeeded[item.Key] = 105;
-                }
+                tProductionModuleDescriptor.ProductionRessourcesNeeded["~/Resource_CommandPoints"] = 105;
             }
         }
 
@@ -162,6 +170,7 @@ namespace WarnoModeAutomation.Logic
         private static void OnCMDProviderOutput(string data)
         {
             OnOutput?.Invoke(data);
+            Debug.WriteLine("OnCMDProviderOutput: " + data);
         }
     }
 }
