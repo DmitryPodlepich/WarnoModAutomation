@@ -33,7 +33,10 @@ namespace NDFSerialization.NDFDataTypes
 
         IEnumerator<T> IEnumerable<T>.GetEnumerator()
         {
-            return (IEnumerator<T>)GetEnumerator();
+            for (int i = 0; i < _index; i++)
+            {
+                yield return _data[i];
+            }
         }
 
         public IEnumerator GetEnumerator()

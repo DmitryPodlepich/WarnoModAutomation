@@ -119,27 +119,65 @@ namespace WarnoModeAutomation.Logic
 
             var unitsFileDescriptor = NDFSerializer.Deserialize<TEntityDescriptor>(filePath.FilePath);
 
+            const string infanterie = "Infanterie";
+
+            var tagsCombinationWithNerf = new []{ "Canon_AA_Standard", "Canon_AA", "Air" };
+
+            //units which will use real fire range with nerf (Aircrafts, anti air vehicles, except anti air infantry)
+            var unitsWithNerf = new List<TEntityDescriptor>();
+
+            foreach (var tEntityDescriptor in unitsFileDescriptor.RootDescriptors)
+            {
+                var tagsModule = tEntityDescriptor.ModulesDescriptors.OfType<TTagsModuleDescriptor>().SingleOrDefault();
+
+                if (tagsModule.TagSet.Any(tag => tagsCombinationWithNerf.Contains(tag)) && !tagsModule.TagSet.Contains(infanterie))
+                    unitsWithNerf.Add(tEntityDescriptor);
+            }
+
+            //units which will use real fire range values without nerf (Infantry, helicopters, all ground vehicles except anti air)
+            var unitsWithoutNerf = unitsFileDescriptor.RootDescriptors.Except(unitsWithNerf);
+
+            Debug.WriteLine(Environment.NewLine);
+            Debug.WriteLine("unitsWithNerf:");
+            Debug.WriteLine(Environment.NewLine);
+
+            foreach (var unit in unitsWithNerf)
+            {
+                Debug.WriteLine(unit.ClassNameForDebug);
+            }
+
+            Debug.WriteLine(Environment.NewLine);
+            Debug.WriteLine("unitsWithoutNerf:");
+            Debug.WriteLine(Environment.NewLine);
+
+            foreach (var unit in unitsWithoutNerf)
+            {
+                Debug.WriteLine(unit.ClassNameForDebug);
+            }
+
+            Debug.WriteLine(Environment.NewLine);
+
             //Chaparral
 
-            var chaparralEntityDescriptor = unitsFileDescriptor.RootDescriptors.FirstOrDefault(x => x.ClassNameForDebug.Equals("Unit_M48_Chaparral_MIM72F_US"));
+            //var chaparralEntityDescriptor = unitsFileDescriptor.RootDescriptors.FirstOrDefault(x => x.ClassNameForDebug.Equals("Unit_M48_Chaparral_MIM72F_US"));
 
-            if (chaparralEntityDescriptor is null)
-                return;
+            //if (chaparralEntityDescriptor is null)
+            //    return;
 
-            chaparralEntityDescriptor.SetRealUnitName();
+            //chaparralEntityDescriptor.SetRealUnitName();
 
             //await WebSearchEngine.Initialize();
 
             //var result = await WebSearchEngine.GetRealFireRange("MIM72G", chaparralEntityDescriptor.GameUIUnitName, chaparralEntityDescriptor.ClassNameForDebug);
 
-            var tProductionModuleDescriptor = chaparralEntityDescriptor.ModulesDescriptors
-                    .OfType<TProductionModuleDescriptor>()
-                    .SingleOrDefault();
+            //var tProductionModuleDescriptor = chaparralEntityDescriptor.ModulesDescriptors
+            //        .OfType<TProductionModuleDescriptor>()
+            //        .SingleOrDefault();
 
-            if (tProductionModuleDescriptor.ProductionRessourcesNeeded.ContainsKey("~/Resource_CommandPoints"))
-            {
-                tProductionModuleDescriptor.ProductionRessourcesNeeded["~/Resource_CommandPoints"] = 105;
-            }
+            //if (tProductionModuleDescriptor.ProductionRessourcesNeeded.ContainsKey("~/Resource_CommandPoints"))
+            //{
+            //    tProductionModuleDescriptor.ProductionRessourcesNeeded["~/Resource_CommandPoints"] = 105;
+            //}
         }
 
         private static void ModifyBuildings()
