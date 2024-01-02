@@ -2,6 +2,7 @@
 using NDFSerialization.Enums;
 using NDFSerialization.Models;
 using NDFSerialization.NDFDataTypes;
+using NDFSerialization.NDFDataTypes.Interfaces;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -100,44 +101,68 @@ namespace WarnoModeAutomation.Logic
                 var i = 0;
                 while ((line = streamReader.ReadLine()) != null)
                 {
-                    var rawLineKey = Guid.NewGuid();
-
-                    fileDescriptior.RawLines.Add(rawLineKey, line);
-                    i++;
-
-                    _ = descriptorsStack.TryPeek(out var currentDescriptor);
-
-                    if (line.Trim().Equals(")") || line.Trim().Equals("),"))
+                    try
                     {
-                        descriptorsStack.TryPop(out var _);
-                        continue;
-                    }
 
-                    if (line.Trim().Equals("("))
-                    {
-                        var newDescriptor = CreateDescriptor(fileDescriptior, i, currentDescriptor);
+                        var rawLineKey = Guid.NewGuid();
 
-                        descriptorsStack.Push(newDescriptor);
+                        fileDescriptior.RawLines.Add(rawLineKey, line);
+                        i++;
 
-                        continue;
-                    }
+                        _ = descriptorsStack.TryPeek(out var currentDescriptor);
 
-                    var lineHasKeyAndValue = line.Contains("=");
-
-                    if (lineHasKeyAndValue && currentDescriptor is not null)
-                    {
-                        var key = line.Split('=')[0].Trim();
-                        var value = line.Split('=')[1].Trim();
-
-                        SetDescriptorProperty(fileDescriptior, currentDescriptor, rawLineKey, key, value);
-                    }
-
-                    if (currentDescriptor?.LastSettedProperyNDFType == NDFPropertyTypes.MAP)
-                    {
-                        if (NDFRegexes.TryExtractMapItem(line, out var item))
+                        if (line.Trim().Equals(")") || line.Trim().Equals("),"))
                         {
-                            SetMapItem(fileDescriptior, currentDescriptor, rawLineKey, item);
+                            descriptorsStack.TryPop(out var _);
+                            continue;
                         }
+
+                        if (line.Trim().Equals("("))
+                        {
+                            var newDescriptor = CreateDescriptor(fileDescriptior, i, currentDescriptor);
+
+                            descriptorsStack.Push(newDescriptor);
+
+                            continue;
+                        }
+
+                        if (line.Trim().Equals("]") 
+                            && (currentDescriptor?.LastSettedProperyNDFType == NDFPropertyTypes.Vector || currentDescriptor?.LastSettedProperyNDFType == NDFPropertyTypes.VectorGeneric))
+                        {
+                            currentDescriptor.LastSettedPropery = null;
+                            currentDescriptor.LastSettedProperyNDFType = NDFPropertyTypes.Primitive;
+                            continue;
+                        }
+
+                        var lineHasKeyAndValue = line.Contains('=');
+
+                        if (lineHasKeyAndValue && currentDescriptor is not null)
+                        {
+                            var key = line.Split('=')[0].Trim();
+                            var value = line.Split('=')[1].Trim();
+
+                            SetDescriptorProperty(fileDescriptior, currentDescriptor, rawLineKey, key, value);
+                            continue;
+                        }
+
+                        if (currentDescriptor?.LastSettedProperyNDFType == NDFPropertyTypes.MAP)
+                        {
+                            if (NDFRegexes.TryExtractMapItem(line, out var item))
+                            {
+                                SetMapItem(fileDescriptior, currentDescriptor, rawLineKey, item);
+                                continue;
+                            }
+                        }
+
+                        if (currentDescriptor?.LastSettedProperyNDFType == NDFPropertyTypes.Vector || currentDescriptor?.LastSettedProperyNDFType == NDFPropertyTypes.VectorGeneric)
+                        {
+                            SetVectorItem(fileDescriptior, currentDescriptor, rawLineKey, line);
+                            continue;
+                        }
+                    }
+                    catch (Exception ex)
+                    { 
+                        Debug.WriteLine(ex.Message);
                     }
                 }
             }
@@ -165,13 +190,13 @@ namespace WarnoModeAutomation.Logic
             descriptor.EntityNDFType = entityNDFType;
 
             //Nested objects logic
-            if (currentDescriptor is not null && currentDescriptor.LastSettedPropery is not null && currentDescriptor.LastSettedPropery.GetValue(currentDescriptor) is IEnumerable)
+            if (currentDescriptor is not null && currentDescriptor.LastSettedPropery is not null && currentDescriptor.LastSettedPropery.GetValue(currentDescriptor) is INDFVector)
             {
                 if (currentDescriptor.LastSettedProperyNDFType == NDFPropertyTypes.Vector)
                 {
                     if (definedType != typeof(UnknownDescriptor))
                     {
-                        var collectionPropertyValue = currentDescriptor.LastSettedPropery.GetValue(currentDescriptor) as NDFVector;
+                        var collectionPropertyValue = currentDescriptor.LastSettedPropery.GetValue(currentDescriptor) as INDFVector;
                         collectionPropertyValue.Add(descriptor);
                     }
 
@@ -198,20 +223,7 @@ namespace WarnoModeAutomation.Logic
 
             if (applicableProperty.PropertyType.GetInterface(nameof(IEnumerable)) is not null && applicableProperty.PropertyType != typeof(string))
             {
-                var lastSettedProperyNDFType = NDFPropertyTypes.Vector;
-
-                var mapAttribute = applicableProperty.GetCustomAttribute<NDFMAPAttribute>();
-
-                if (mapAttribute is not null)
-                {
-                    //if (!value.Contains("MAP"))
-                    //    throw new InvalidOperationException($"Line: {fileDescriptor.RawLines[rawLineKey]} is not applicable to be NDF MAP!");
-
-                    //if (!applicableProperty.PropertyType.IsAssignableFrom(typeof(IDictionary)))
-                    //    throw new InvalidOperationException($"Property:{ applicableProperty.Name } with type: { applicableProperty.PropertyType.FullName} must be IDictionary<,> to correspond NDF MAP type!");
-
-                    lastSettedProperyNDFType = NDFPropertyTypes.MAP;
-                }
+                var lastSettedProperyNDFType = DefineNDFPropertyType(applicableProperty);
 
                 applicableProperty.SetValue(descriptor, Activator.CreateInstance(applicableProperty.PropertyType));
 
@@ -272,6 +284,55 @@ namespace WarnoModeAutomation.Logic
 
                 fileDescriptor.RawLineToObjectPropertyMap.Add(rawLineKey, new PropertyToObject() { Object = descriptor, PropertyInfo = descriptor.LastSettedPropery, Index = index});
             }
+        }
+
+        private static void SetVectorItem<T>(FileDescriptor<T> fileDescriptor, Descriptor descriptor, Guid rawLineKey, string line) 
+            where T : Descriptor
+        {
+            try
+            {
+                if (string.IsNullOrWhiteSpace(line))
+                    return;
+
+                //Skip all objects
+                if (line.TrimStart()[0] == 'T' || line.TrimStart()[0] == '~' || line.Contains(" is"))
+                    return;
+
+                if (descriptor.LastSettedProperyNDFType != NDFPropertyTypes.Vector && descriptor.LastSettedProperyNDFType != NDFPropertyTypes.VectorGeneric)
+                    return;
+
+                var lastSettedPropertyValue = descriptor.LastSettedPropery.GetValue(descriptor);
+
+                var vectorCollection = lastSettedPropertyValue as INDFVector;
+
+                vectorCollection.Add(line);
+
+                fileDescriptor.RawLineToObjectPropertyMap.Add(rawLineKey, new PropertyToObject() { Object = descriptor, PropertyInfo = descriptor.LastSettedPropery, Index = vectorCollection.CurrentIndex });
+                
+            }
+            catch(Exception ex)
+            {
+                Debug.WriteLine(ex.Message);
+            }
+        }
+
+        private static NDFPropertyTypes DefineNDFPropertyType(PropertyInfo propertyInfo) 
+        {
+            var type = NDFPropertyTypes.Primitive;
+
+            if (propertyInfo.PropertyType == typeof(NDFVector))
+                return NDFPropertyTypes.Vector;
+
+            if (propertyInfo.PropertyType.GetGenericTypeDefinition() == typeof(NDFVectorGeneric<>))
+                return NDFPropertyTypes.VectorGeneric;
+
+
+            var mapAttribute = propertyInfo.GetCustomAttribute<NDFMAPAttribute>();
+
+            if (mapAttribute is not null)
+                return NDFPropertyTypes.MAP;
+
+            return type;
         }
     }
 }

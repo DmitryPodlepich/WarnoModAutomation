@@ -9,6 +9,42 @@ namespace NDFSerialization
 {
     public static partial class NDFRegexes
     {
+        [GeneratedRegex("[\"|'](?<string>\\w{1,})[\"|']", RegexOptions.Compiled & RegexOptions.IgnoreCase)]
+        public static partial Regex VectorItemString();
+
+        [GeneratedRegex(@"[\s|\t]*(?<number>\d{1,}.?\d{1,}),?", RegexOptions.Compiled & RegexOptions.IgnoreCase)]
+        public static partial Regex VectorNumberRegex();
+
+        public static bool TryExctractVectorStringItem(string value, out string result) 
+        {
+            result = null;
+
+            if (VectorItemString().IsMatch(value))
+            {
+                var matchCollection = VectorItemString().Matches(value).FirstOrDefault();
+
+                result = matchCollection.Groups["string"].Value;
+                return true;
+            }
+
+            return false;
+        }
+
+        public static bool TryExctractVectorNumberItem(string value, out string result)
+        {
+            result = null;
+
+            if (VectorNumberRegex().IsMatch(value))
+            {
+                var matchCollection = VectorNumberRegex().Matches(value).FirstOrDefault();
+
+                result = matchCollection.Groups["number"].Value;
+                return true;
+            }
+
+            return false;
+        }
+
         public static bool IsMapItem(string value)
         {
             return MapItemRegex().IsMatch(value);
@@ -40,7 +76,7 @@ namespace NDFSerialization
             return t;
         }
 
-        [GeneratedRegex(@"\((?<key>.{1,}),(?<value>.{1,})\)", RegexOptions.Compiled)]
+        [GeneratedRegex(@"\((?<key>.{1,}),(?<value>.{1,})\)", RegexOptions.Compiled & RegexOptions.IgnoreCase)]
         private static partial Regex MapItemRegex();
     }
 }

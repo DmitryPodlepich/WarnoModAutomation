@@ -10,6 +10,7 @@ namespace NDFSerialization.Enums
     {
         Primitive,
         Vector,
+        VectorGeneric,
         MAP
     }
 }

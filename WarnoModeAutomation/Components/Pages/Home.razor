@@ -175,7 +175,6 @@
         await Task.CompletedTask;
     }
 
-    //Add stopwatch to all operations
     public async Task Modify()
     {
         await Perform(OperationType.Modify, async () => await ModManager.Modify());
