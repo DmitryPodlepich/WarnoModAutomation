@@ -3,6 +3,7 @@ using NDFSerialization.Enums;
 using NDFSerialization.Models;
 using NDFSerialization.NDFDataTypes;
 using NDFSerialization.NDFDataTypes.Interfaces;
+using NDFSerialization.NDFDataTypes.Primitive;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -204,6 +205,14 @@ namespace WarnoModeAutomation.Logic
                 }
             }
 
+            if (currentDescriptor is not null && currentDescriptor.LastSettedPropery is not null && currentDescriptor.LastSettedProperyNDFType == NDFPropertyTypes.Descriptor)
+            {
+                if (definedType != typeof(UnknownDescriptor))
+                {
+                    return currentDescriptor.LastSettedPropery.GetValue(currentDescriptor) as Descriptor;
+                }
+            }
+
             if(descriptor is T entityDescriptor)
                 fileDescriptor.RootDescriptors.Add(entityDescriptor);
 
@@ -213,7 +222,7 @@ namespace WarnoModeAutomation.Logic
         private static void SetDescriptorProperty<T>(FileDescriptor<T> fileDescriptor, Descriptor descriptor, Guid rawLineKey, string key, string value)
             where T : Descriptor
         {
-            if (string.IsNullOrWhiteSpace(value) || string.IsNullOrWhiteSpace(key))
+            if (string.IsNullOrWhiteSpace(key))
                 return;
 
             var applicableProperty = descriptor.PropertiesInfo.SingleOrDefault(p => p.Name == key);
@@ -234,14 +243,37 @@ namespace WarnoModeAutomation.Logic
                 return;
             }
 
+            if (applicableProperty.PropertyType.BaseType == typeof(Descriptor))
+            {
+                applicableProperty.SetValue(descriptor, Activator.CreateInstance(applicableProperty.PropertyType));
+
+                descriptor.LastSettedPropery = applicableProperty;
+
+                descriptor.LastSettedProperyNDFType = NDFPropertyTypes.Descriptor;
+
+                return;
+            }
+
             fileDescriptor.RawLineToObjectPropertyMap.Add(rawLineKey, new PropertyToObject() { Object = descriptor, PropertyInfo = applicableProperty });
 
-            var parsedValue = Convert.ChangeType(value, applicableProperty.PropertyType, CultureInfo.InvariantCulture);
+            if (string.IsNullOrEmpty(value))
+                return;
 
-            if (applicableProperty.PropertyType == typeof(string))
-                parsedValue = (parsedValue as string).Replace("\'", "").Replace("\"", "");
+            if (applicableProperty.PropertyType == typeof(DistanceMetre))
+            {
+                var distanceMetre = new DistanceMetre(value);
 
-            applicableProperty.SetValue(descriptor, parsedValue);
+                applicableProperty.SetValue(descriptor, distanceMetre);
+            }
+            else
+            {
+                var parsedValue = Convert.ChangeType(value, applicableProperty.PropertyType, CultureInfo.InvariantCulture);
+
+                if (applicableProperty.PropertyType == typeof(string))
+                    parsedValue = (parsedValue as string).Replace("\'", "").Replace("\"", "");
+
+                applicableProperty.SetValue(descriptor, parsedValue);
+            }
 
             descriptor.LastSettedPropery = applicableProperty;
 
@@ -266,9 +298,9 @@ namespace WarnoModeAutomation.Logic
 
             var collectionPropertyValue = descriptor.LastSettedPropery.GetValue(descriptor) as IDictionary;
 
-            var key = Convert.ChangeType(mapItem.Key, keyType);
+            var key = Convert.ChangeType(mapItem.Key, keyType, CultureInfo.InvariantCulture);
 
-            var value = Convert.ChangeType(mapItem.Value, valueType);
+            var value = Convert.ChangeType(mapItem.Value, valueType, CultureInfo.InvariantCulture);
 
             if (!collectionPropertyValue.Contains(key))
             {

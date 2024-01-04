@@ -1,4 +1,5 @@
 ﻿using Microsoft.Maui.Storage;
+using NDFSerialization.Models;
 using System.Collections;
 using System.Diagnostics;
 using System.Globalization;
@@ -7,6 +8,8 @@ using System.Text;
 using WarnoModeAutomation.Constants;
 using WarnoModeAutomation.DTO;
 using WarnoModeAutomation.DTO.NDFFiles;
+using WarnoModeAutomation.DTO.NDFFiles.Ammunition;
+using WarnoModeAutomation.DTO.NDFFiles.Weapon;
 using WebSearch;
 
 namespace WarnoModeAutomation.Logic
@@ -107,10 +110,21 @@ namespace WarnoModeAutomation.Logic
 
         public static async Task Modify()
         {
-            //modifying buildings
-            //ModifyBuildings();
+            var amunitionFilePath = FileManager.NDFFilesPaths.SingleOrDefault(f => f.FileName == WarnoConstants.AmmunitionDescriptorsFileName);
 
-            await ModifyUnits();
+            var amunition = NDFSerializer.Deserialize<TAmmunitionDescriptor>(amunitionFilePath.FilePath);
+
+            var weaponFilePath = FileManager.NDFFilesPaths.SingleOrDefault(f => f.FileName == WarnoConstants.WeaponDescriptorDescriptorsFileName);
+
+            var weapon = NDFSerializer.Deserialize<TWeaponManagerModuleDescriptor>(weaponFilePath.FilePath);
+
+            var unitsFilePath = FileManager.NDFFilesPaths.SingleOrDefault(f => f.FileName == WarnoConstants.UniteDescriptorFileName);
+
+            var units = NDFSerializer.Deserialize<TEntityDescriptor>(unitsFilePath.FilePath);
+
+            var buildingsFilePath = FileManager.NDFFilesPaths.SingleOrDefault(f => f.FileName == WarnoConstants.BuildingDescriptorsFileName);
+
+            var buildings = NDFSerializer.Deserialize<TEntityDescriptor>(buildingsFilePath.FilePath);
         }
 
         private static async Task ModifyUnits() 

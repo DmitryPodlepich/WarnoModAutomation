@@ -9,6 +9,7 @@ namespace NDFSerialization.Enums
     public enum NDFPropertyTypes
     {
         Primitive,
+        Descriptor,
         Vector,
         VectorGeneric,
         MAP
