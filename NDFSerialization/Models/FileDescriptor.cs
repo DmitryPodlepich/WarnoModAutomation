@@ -14,6 +14,8 @@ namespace NDFSerialization.Models
 
         public static readonly Dictionary<string, Type> TypesMap = [];
 
+        private static readonly object _lock = new();
+
         public FileDescriptor(string filePath)
         {
             FilePath = filePath;
@@ -23,22 +25,25 @@ namespace NDFSerialization.Models
 
         public static void Initialize()
         {
-            if (TypesMap.Count != 0)
-                return;
-
-            var descriptorType = typeof(Descriptor);
-
-            var assemblies = AppDomain.CurrentDomain.GetAssemblies();
-
-            foreach (Assembly assembly in assemblies)
+            lock (_lock)
             {
-                Type[] types = assembly.GetTypes();
+                if (TypesMap.Count != 0)
+                    return;
 
-                var derivedTypes = types.Where(t => descriptorType.IsAssignableFrom(t) && t != descriptorType);
+                var descriptorType = typeof(Descriptor);
 
-                foreach (Type derivedType in derivedTypes)
+                var assemblies = AppDomain.CurrentDomain.GetAssemblies();
+
+                foreach (Assembly assembly in assemblies)
                 {
-                    TypesMap.Add(derivedType.Name, derivedType);
+                    Type[] types = assembly.GetTypes();
+
+                    var derivedTypes = types.Where(t => descriptorType.IsAssignableFrom(t) && t != descriptorType);
+
+                    foreach (Type derivedType in derivedTypes)
+                    {
+                        TypesMap.Add(derivedType.Name, derivedType);
+                    }
                 }
             }
         }

@@ -4,7 +4,7 @@ using System.Text.RegularExpressions;
 
 namespace NDFSerialization.NDFDataTypes.Primitive
 {
-    public partial class DistanceMetre
+    public class DistanceMetre
     {
         private string _initialData;
 
@@ -12,7 +12,7 @@ namespace NDFSerialization.NDFDataTypes.Primitive
 
         public override string ToString()
         {
-            var replaced = DistanceMetreRegex().Replace(_initialData, FloatValue.ToString());
+            var replaced = DistanceMetreRegex.Replace(_initialData, FloatValue.ToString("0.0", CultureInfo.InvariantCulture));
             return replaced;
         }
 
@@ -20,9 +20,9 @@ namespace NDFSerialization.NDFDataTypes.Primitive
         {
             _initialData = value;
 
-            if (DistanceMetreRegex().IsMatch(value))
+            if (DistanceMetreRegex.IsMatch(value))
             {
-                var groups = DistanceMetreRegex().Match(value).Groups;
+                var groups = DistanceMetreRegex.Match(value).Groups;
 
                 if (groups.ContainsKey("DistanceValue"))
                 {
@@ -36,7 +36,7 @@ namespace NDFSerialization.NDFDataTypes.Primitive
             }
         }
 
-        [GeneratedRegex("(?<DistanceValue>[\\d{1,}.]+)", RegexOptions.IgnoreCase | RegexOptions.Compiled )]
-        private static partial Regex DistanceMetreRegex();
+        //[GeneratedRegex("(?<DistanceValue>[\\d{1,}.]+)", RegexOptions.IgnoreCase | RegexOptions.Compiled)]
+        private readonly static Regex DistanceMetreRegex = new("(?<DistanceValue>[\\d{1,}.]+)", RegexOptions.IgnoreCase | RegexOptions.Compiled);
     }
 }

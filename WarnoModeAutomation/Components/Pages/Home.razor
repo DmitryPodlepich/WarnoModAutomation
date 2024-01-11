@@ -54,12 +54,12 @@
 
                         <hr>
 
-                        <Button Loading="@(_currentOperation == OperationType.FillDatabase)" LoadingText="Filling..." Disabled="@(_currentOperation != OperationType.Idle)" Class="btn btn-primary ms-2" @onclick="FillDatabase">
+                        @*  <Button Loading="@(_currentOperation == OperationType.FillDatabase)" LoadingText="Filling..." Disabled="@(_currentOperation != OperationType.Idle)" Class="btn btn-primary ms-2" @onclick="FillDatabase">
                             <i class="bi bi-download"></i>
                             Fill database
                         </Button>
 
-                        <hr>
+                        <hr> *@
 
                         <Button Loading="@(_currentOperation == OperationType.Modify)" LoadingText="Modifying..." Disabled="@(_currentOperation != OperationType.Idle)" Class="btn btn-primary ms-2" @onclick="Modify">
                             <i class="bi bi-download"></i>
@@ -200,7 +200,14 @@
 
         stopwatch.Start();
 
-        await action();
+        try
+        {
+            await action();
+        }
+        catch (Exception ex)
+        {
+            ModManagerOnOutput(ex.Message);
+        }
 
         stopwatch.Stop();
         ModManagerOnOutput($"{operationType} finished! time: {stopwatch.ElapsedMilliseconds}");

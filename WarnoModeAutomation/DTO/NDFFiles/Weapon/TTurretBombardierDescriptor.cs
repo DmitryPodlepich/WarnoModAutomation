@@ -4,9 +4,9 @@ using WarnoModeAutomation.DTO.NDFFiles.Weapon.Interfaces;
 
 namespace WarnoModeAutomation.DTO.NDFFiles.Weapon
 {
-    public class TTurretInfanterieDescriptor : Descriptor, ITTurretDescriptor
+    public class TTurretBombardierDescriptor : Descriptor, ITTurretDescriptor
     {
-        public override Type Type => typeof(TTurretInfanterieDescriptor);
+        public override Type Type => typeof(TTurretBombardierDescriptor);
 
         public NDFVector MountedWeaponDescriptorList { get; set; }
     }

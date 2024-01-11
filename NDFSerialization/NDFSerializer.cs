@@ -51,18 +51,30 @@ namespace WarnoModeAutomation.Logic
                 //Logic for collections
                 if (mapInstantce.Index is not null)
                 {
-                    //Logic for MAPs
-                    var dictionary = mapInstantce.PropertyInfo.GetValue(mapInstantce.Object) as IDictionary;
-
-                    var index = 0;
-                    foreach (var value in dictionary.Values)
+                    //Logic for vectors
+                    if (mapInstantce.PropertyInfo.PropertyType.GetInterface(nameof(INDFVector)) is not null)
                     {
-                        if (index == mapInstantce.Index)
+                        var vectorCollection = mapInstantce.PropertyInfo.GetValue(mapInstantce.Object) as INDFVector;
+
+                        var vectorItem = vectorCollection.Get(mapInstantce.Index.Value);
+
+                        modifiedLine = rawLine.Value.Replace(rawLine.Value.Trim(), vectorItem.ItemToString(rawLine.Value));
+                    }
+                    else
+                    {
+                        //Logic for MAPs
+                        var dictionary = mapInstantce.PropertyInfo.GetValue(mapInstantce.Object) as IDictionary;
+
+                        var index = 0;
+                        foreach (var value in dictionary.Values)
                         {
-                            modifiedLine = NDFRegexes.ReplaceMapItemValue(rawLine.Value, value);
-                            break;
+                            if (index == mapInstantce.Index)
+                            {
+                                modifiedLine = NDFRegexes.ReplaceMapItemValue(rawLine.Value, value);
+                                break;
+                            }
+                            index++;
                         }
-                        index++;
                     }
 
                     sb.AppendLine(modifiedLine);
@@ -73,10 +85,7 @@ namespace WarnoModeAutomation.Logic
 
                 var rawValue = splitted.Last().TrimEnd();
 
-                if (mapInstantce.PropertyInfo.PropertyType == typeof(string))
-                    propertyValue = "'" + propertyValue + "'";
-
-                var modifiedValue = rawValue.Replace(rawValue, propertyValue.ToString());
+                var modifiedValue = rawValue.Replace(rawValue, propertyValue.ItemToString(rawValue));
 
                 modifiedLine = rawLine.Value.Replace(rawValue.Trim(), modifiedValue);
 
@@ -104,13 +113,17 @@ namespace WarnoModeAutomation.Logic
                 {
                     try
                     {
-
                         var rawLineKey = Guid.NewGuid();
 
                         fileDescriptior.RawLines.Add(rawLineKey, line);
                         i++;
 
                         _ = descriptorsStack.TryPeek(out var currentDescriptor);
+
+                        //if (i == 34)
+                        //{
+                        //    Debugger.Break();
+                        //}
 
                         if (line.Trim().Equals(")") || line.Trim().Equals("),"))
                         {
@@ -300,7 +313,9 @@ namespace WarnoModeAutomation.Logic
 
             var key = Convert.ChangeType(mapItem.Key, keyType, CultureInfo.InvariantCulture);
 
-            var value = Convert.ChangeType(mapItem.Value, valueType, CultureInfo.InvariantCulture);
+            object value = valueType == typeof(DistanceMetre) 
+                ? new DistanceMetre(mapItem.Value)
+                : Convert.ChangeType(mapItem.Value, valueType, CultureInfo.InvariantCulture);
 
             if (!collectionPropertyValue.Contains(key))
             {
@@ -339,7 +354,7 @@ namespace WarnoModeAutomation.Logic
 
                 vectorCollection.Add(line);
 
-                fileDescriptor.RawLineToObjectPropertyMap.Add(rawLineKey, new PropertyToObject() { Object = descriptor, PropertyInfo = descriptor.LastSettedPropery, Index = vectorCollection.CurrentIndex });
+                fileDescriptor.RawLineToObjectPropertyMap.Add(rawLineKey, new PropertyToObject() { Object = descriptor, PropertyInfo = descriptor.LastSettedPropery, Index = vectorCollection.CurrentIndex - 1 });
                 
             }
             catch(Exception ex)
@@ -365,6 +380,45 @@ namespace WarnoModeAutomation.Logic
                 return NDFPropertyTypes.MAP;
 
             return type;
+        }
+
+        private static object EnshureItemQuotes(object original, object current)
+        {
+            if (original.GetType() == typeof(string) && current.GetType() == typeof(string))
+            {
+                if (original.ToString().Contains('\''))
+                    return "'" + current + "'";
+
+                if (original.ToString().Contains("\""))
+                    return "\"" + current + "\"";
+            }
+
+            return current;
+        }
+
+        private static string ItemToString(this object item, object original)
+        {
+            if(item.GetType() == typeof(float))
+                return ((float)item).ToString(CultureInfo.InvariantCulture);
+
+            else if (item.GetType() == typeof(double))
+                return ((double)item).ToString(CultureInfo.InvariantCulture);
+
+            else if (item.GetType() == typeof(decimal))
+                return ((decimal)item).ToString(CultureInfo.InvariantCulture);
+
+            else if (original.GetType() == typeof(string) && item.GetType() == typeof(string))
+            {
+                var comma = original.ToString().TrimEnd().Last() == ',' ? "," : string.Empty;
+
+                if (original.ToString().Contains('\''))
+                    return "'" + item + "'" + comma;
+
+                if (original.ToString().Contains('"'))
+                    return "\"" + item + "\"" + comma;
+            }
+
+            return item.ToString();
         }
     }
 }

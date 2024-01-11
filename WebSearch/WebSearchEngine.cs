@@ -68,7 +68,7 @@ namespace WebSearch
                                 {
                                     ammoRangeDTO = new AmmoRangeDTO
                                     {
-                                        WebName = unitName,
+                                        //WebName = unitName,
                                         FireRangeInMeters = int.Parse(parserNumber)
                                     };
 

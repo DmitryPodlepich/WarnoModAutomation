@@ -12,12 +12,12 @@ namespace NDFSerialization.NDFDataTypes
     /// A vector is a list of zero or more elements enclosed in a [ ] block and separated by , (comma).
     /// Allowed to contain a collection of any different types of objects.
     /// </summary>
-    public class NDFVectorGeneric<T> : INDFVector, IEnumerable, IEnumerable<T> where T : IComparable, IConvertible, IEquatable<T>
+    public class NDFVectorGeneric<T> : INDFVector, IEnumerable<T> where T : IComparable, IConvertible, IEquatable<T>
     {
         private T[] _data = new T[4];
         private int _index;
 
-        public int CurrentIndex => -_index;
+        public int CurrentIndex => _index;
 
         public T this[int index]
         {
@@ -47,6 +47,11 @@ namespace NDFSerialization.NDFDataTypes
             }
         }
 
+        public object Get(int index)
+        {
+            return _data[index];
+        }
+
         public void Add(T item)
         {
             if (item is null)
@@ -61,6 +66,7 @@ namespace NDFSerialization.NDFDataTypes
             var newArray = new T[Math.Min(_data.Length * 2, int.MaxValue)];
             Array.Copy(_data, newArray, _data.Length);
             _data = newArray;
+            _data[_index++] = item;
         }
 
         public void Add(object item)
