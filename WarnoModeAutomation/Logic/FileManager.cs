@@ -11,7 +11,7 @@ namespace WarnoModeAutomation.Logic
 {
     public static class FileManager
     {
-        public static string SystemPath => Path.GetPathRoot(Environment.SystemDirectory);
+        public static string SystemPath => "C:/";
         public static string SavedGamesEugenSystemsModPath => Path.Combine(SystemPath, "Users", CurrentUserName, "Saved Games", "EugenSystems", "WARNO", "mod");
         public static string GeneratedGfxPath => Path.Combine(Storage.ModeSettings.ModsDirectory, Storage.ModeSettings.ModName, "GameData", "Generated", "Gameplay", "Gfx");
         public static string GamePlayGfxPath => Path.Combine(Storage.ModeSettings.ModsDirectory, Storage.ModeSettings.ModName, "GameData", "Gameplay", "Gfx");
@@ -24,7 +24,7 @@ namespace WarnoModeAutomation.Logic
             new(WarnoConstants.AmmunitionDescriptorsFileName, Path.Combine(GeneratedGfxPath, WarnoConstants.AmmunitionDescriptorsFileName)),
         ];
 
-        private static string CurrentUserName => WindowsIdentity.GetCurrent().Name;
+        private static string CurrentUserName => Environment.UserName;
 
         public static bool IsModExist()
         {
@@ -33,12 +33,23 @@ namespace WarnoModeAutomation.Logic
             return Directory.Exists(modPath);
         }
 
+        private static void SetAttributesNormal(DirectoryInfo dir)
+        {
+            foreach (var subDir in dir.GetDirectories())
+                SetAttributesNormal(subDir);
+            foreach (var file in dir.GetFiles())
+            {
+                file.Attributes = FileAttributes.Normal;
+            }
+        }
+
         public static bool TryDeleteDirectoryWithFiles(string directoryPath, out string error)
         {
             error = string.Empty;
 
             try
             {
+                SetAttributesNormal(new DirectoryInfo(directoryPath));
                 Directory.Delete(directoryPath, true);
             }
             catch (IOException ex)

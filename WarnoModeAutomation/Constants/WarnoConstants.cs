@@ -15,8 +15,11 @@
         public const int SovMinOpticalStrength = 20;
         public const int NatoMinOpticalStrength = 40;
 
-        public const int SovTBAVisionPercentage = 60;
-        public const int NatoTBAVisionPercentage = 40;
+        public const int SovGroundisionPercentage = 15;
+        public const int NatoGroundVisionPercentage = 10;
+
+        public const int SovTBAVisionPercentage = 30;
+        public const int NatoTBAVisionPercentage = 20;
 
         public const int SovHAVisionPercentage = 50;
         public const int NatoHAVisionPercentage = 30;

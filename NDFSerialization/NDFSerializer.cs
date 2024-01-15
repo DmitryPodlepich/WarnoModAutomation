@@ -36,60 +36,67 @@ namespace WarnoModeAutomation.Logic
 
             foreach (var rawLine in fileDescriptor.RawLines)
             {
-                if (!fileDescriptor.RawLineToObjectPropertyMap.ContainsKey(rawLine.Key))
+                try
                 {
-                    sb.AppendLine(rawLine.Value);
-                    continue;
-                }
-
-                var modifiedLine = string.Empty;
-
-                var mapInstantce = fileDescriptor.RawLineToObjectPropertyMap[rawLine.Key];
-
-                var propertyValue = mapInstantce.PropertyInfo.GetValue(mapInstantce.Object);
-
-                //Logic for collections
-                if (mapInstantce.Index is not null)
-                {
-                    //Logic for vectors
-                    if (mapInstantce.PropertyInfo.PropertyType.GetInterface(nameof(INDFVector)) is not null)
+                    if (!fileDescriptor.RawLineToObjectPropertyMap.ContainsKey(rawLine.Key))
                     {
-                        var vectorCollection = mapInstantce.PropertyInfo.GetValue(mapInstantce.Object) as INDFVector;
-
-                        var vectorItem = vectorCollection.Get(mapInstantce.Index.Value);
-
-                        modifiedLine = rawLine.Value.Replace(rawLine.Value.Trim(), vectorItem.ItemToString(rawLine.Value));
+                        sb.AppendLine(rawLine.Value);
+                        continue;
                     }
-                    else
-                    {
-                        //Logic for MAPs
-                        var dictionary = mapInstantce.PropertyInfo.GetValue(mapInstantce.Object) as IDictionary;
 
-                        var index = 0;
-                        foreach (var value in dictionary.Values)
+                    var modifiedLine = string.Empty;
+
+                    var mapInstantce = fileDescriptor.RawLineToObjectPropertyMap[rawLine.Key];
+
+                    var propertyValue = mapInstantce.PropertyInfo.GetValue(mapInstantce.Object);
+
+                    //Logic for collections
+                    if (mapInstantce.Index is not null)
+                    {
+                        //Logic for vectors
+                        if (mapInstantce.PropertyInfo.PropertyType.GetInterface(nameof(INDFVector)) is not null)
                         {
-                            if (index == mapInstantce.Index)
-                            {
-                                modifiedLine = NDFRegexes.ReplaceMapItemValue(rawLine.Value, value);
-                                break;
-                            }
-                            index++;
+                            var vectorCollection = mapInstantce.PropertyInfo.GetValue(mapInstantce.Object) as INDFVector;
+
+                            var vectorItem = vectorCollection.Get(mapInstantce.Index.Value);
+
+                            modifiedLine = rawLine.Value.Replace(rawLine.Value.Trim(), vectorItem.ItemToString(rawLine.Value));
                         }
+                        else
+                        {
+                            //Logic for MAPs
+                            var dictionary = mapInstantce.PropertyInfo.GetValue(mapInstantce.Object) as IDictionary;
+
+                            var index = 0;
+                            foreach (var value in dictionary.Values)
+                            {
+                                if (index == mapInstantce.Index)
+                                {
+                                    modifiedLine = NDFRegexes.ReplaceMapItemValue(rawLine.Value, value);
+                                    break;
+                                }
+                                index++;
+                            }
+                        }
+
+                        sb.AppendLine(modifiedLine);
+                        continue;
                     }
+
+                    var splitted = rawLine.Value.Split('=');
+
+                    var rawValue = splitted.Last().TrimEnd();
+
+                    var modifiedValue = rawValue.Replace(rawValue, propertyValue.ItemToString(rawValue));
+
+                    modifiedLine = rawLine.Value.Replace(rawValue.Trim(), modifiedValue);
 
                     sb.AppendLine(modifiedLine);
-                    continue;
                 }
-
-                var splitted = rawLine.Value.Split('=');
-
-                var rawValue = splitted.Last().TrimEnd();
-
-                var modifiedValue = rawValue.Replace(rawValue, propertyValue.ItemToString(rawValue));
-
-                modifiedLine = rawLine.Value.Replace(rawValue.Trim(), modifiedValue);
-
-                sb.AppendLine(modifiedLine);
+                catch (Exception ex)
+                {
+                    Debug.WriteLine(ex.Message);
+                }
             }
 
             return sb.ToString();

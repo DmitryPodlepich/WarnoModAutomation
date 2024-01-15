@@ -18,6 +18,7 @@ namespace WarnoModeAutomation.Logic
     {
         private const string _createNewModBatFileName = "CreateNewMod.bat";
         private const string _generateModBatFileName = "GenerateMod.bat";
+        private const string _updateModBatFileName = "UpdateMod.bat";
 
         public delegate void Outputter(string data);
         public static event Outputter OnOutput;
@@ -46,7 +47,7 @@ namespace WarnoModeAutomation.Logic
 
             var modSavedGamesDirectory = Path.Combine(FileManager.SavedGamesEugenSystemsModPath, Storage.ModeSettings.ModName);
 
-            var savedGamesConfigFilePath = Path.Combine(modSavedGamesDirectory, WarnoConstants.ConfigFileName);
+            var savedGamesConfigFilePath = Path.Combine(FileManager.SavedGamesEugenSystemsModPath, WarnoConstants.ConfigFileName);
 
             if (!File.Exists(savedGamesConfigFilePath))
             {
@@ -102,6 +103,24 @@ namespace WarnoModeAutomation.Logic
             return await cmdProvier.PerformCMDCommand(_generateModBatFileName);
         }
 
+        public static async Task UpdateModAsync() 
+        {
+            var batFullPath = Path.Combine(Storage.ModeSettings.ModsDirectory, Storage.ModeSettings.ModName, _updateModBatFileName);
+
+            var modDirectory = Path.Combine(Storage.ModeSettings.ModsDirectory, Storage.ModeSettings.ModName);
+
+            if (!File.Exists(batFullPath))
+            {
+                OnOutput?.Invoke($"{batFullPath} file does not exist!");
+            }
+
+            using var cmdProvier = new CMDProvider(modDirectory);
+
+            cmdProvier.OnOutput += OnCMDProviderOutput;
+
+            _ = await cmdProvier.PerformCMDCommand(_generateModBatFileName);
+        }
+
         public static async Task FillDatabaseAsync(CancellationTokenSource cancellationTokenSource) 
         {
             WebSearchEngine.OnOutput += OnCMDProviderOutput;
@@ -139,7 +158,8 @@ namespace WarnoModeAutomation.Logic
 
             //Serialize all descriptors here back to ndf files
             await File.WriteAllTextAsync(unitsFilePath.FilePath, NDFSerializer.Serialize(units));
-
+            await File.WriteAllTextAsync(amunitionFilePath.FilePath, NDFSerializer.Serialize(amunition));
+            await File.WriteAllTextAsync(weaponFilePath.FilePath, NDFSerializer.Serialize(weapon));
             await File.WriteAllTextAsync(buildingsFilePath.FilePath, NDFSerializer.Serialize(buildings));
         }
 
@@ -163,70 +183,79 @@ namespace WarnoModeAutomation.Logic
             //units which will use real fire range values without nerf (Infantry, helicopters, all ground vehicles except anti air)
             var unitsWithoutNerf = unitsRelatedData.UnitsEntityDescriptor.RootDescriptors.Except(unitsWithNerf);
 
+            var modifiedAmunition = new HashSet<string>();
+
             foreach (var unit in unitsWithNerf)
             {
-                //find unit weapon and ammo information
-                var unitWeaponModuleDescriptor = unit.ModulesDescriptors
-                    .OfType<TModuleSelector>()
-                    .SingleOrDefault(d => d.EntityNDFType == "WeaponManager");
-
-                if (unitWeaponModuleDescriptor is null)
+                try
                 {
-                    OnCMDProviderOutput($"Cannot find TModuleSelector for unit: {unit.ClassNameForDebug}");
-                    continue;
-                }
 
-                var weaponManagerModule = unitsRelatedData.WeaponManagerModuleDescriptor.RootDescriptors
-                    .SingleOrDefault(w => unitWeaponModuleDescriptor.Default.Contains(w.EntityNDFType, StringComparison.InvariantCultureIgnoreCase));
+                    //find unit weapon and ammo information
+                    var unitWeaponModuleDescriptor = unit.ModulesDescriptors
+                        .OfType<TModuleSelector>()
+                        .SingleOrDefault(d => d.EntityNDFType == "WeaponManager");
 
-                if (weaponManagerModule is null)
-                {
-                    OnCMDProviderOutput($"Cannot find weapon module by name: {unitWeaponModuleDescriptor.Default}");
-                    continue;
-                }
-
-                var unitAmunitionNames = weaponManagerModule
-                    .TurretDescriptorList.OfType<ITTurretDescriptor>()
-                    .SelectMany(d => d.MountedWeaponDescriptorList.OfType<TMountedWeaponDescriptor>())
-                    .Select(w => w.Ammunition.Replace("~/",""));
-
-                var unitAmunitions = unitsRelatedData.AmmunitionDescriptor.RootDescriptors
-                    .Where(d => unitAmunitionNames.Contains(d.EntityNDFType));
-
-                if (!unitAmunitions.Any())
-                {
-                    OnCMDProviderOutput($"Cannot find unitAmunitions for unit: {unit.ClassNameForDebug}");
-                    continue;
-                }
-
-                //OnCMDProviderOutput(Environment.NewLine);
-
-                //OnCMDProviderOutput($"Unit ClassNameForDebug: {unit.ClassNameForDebug}");
-
-                bool unitAmunitionsHasChanges = false;
-
-                foreach (var unitAmunition in unitAmunitions)
-                {
-                    //OnCMDProviderOutput($"Unit amunition name: {unitAmunition.EntityNDFType}");
-
-                    var realFireRange = JsonDatabase.JsonDatabase.FindAmmoRange(unitAmunition.EntityNDFType);
-
-                    if (realFireRange is null)
+                    if (unitWeaponModuleDescriptor is null)
                     {
-                        OnCMDProviderOutput($"Cannot find real amunition fire range fro unit: {unit.ClassNameForDebug}. unitAmunition: {unitAmunition.EntityNDFType}");
+                        OnCMDProviderOutput($"Cannot find TModuleSelector for unit: {unit.ClassNameForDebug}");
                         continue;
                     }
 
-                    //ToDo: There potentially will be a bug. If unit have several amunitions for same ground or air target.
-                    ModifyAmunition(unit, weaponManagerModule, unitAmunition, realFireRange, true);
+                    var weaponManagerModule = unitsRelatedData.WeaponManagerModuleDescriptor.RootDescriptors
+                        .SingleOrDefault(w => unitWeaponModuleDescriptor.Default.Contains(w.EntityNDFType, StringComparison.InvariantCultureIgnoreCase));
 
-                    unitAmunitionsHasChanges = true;
+                    if (weaponManagerModule is null)
+                    {
+                        OnCMDProviderOutput($"Cannot find weapon module by name: {unitWeaponModuleDescriptor.Default}");
+                        continue;
+                    }
 
-                    OnCMDProviderOutput($"Unit: {unit.ClassNameForDebug} amunition {unitAmunition.EntityNDFType} modified!");
+                    var unitAmunitionNames = weaponManagerModule
+                        .TurretDescriptorList.OfType<ITTurretDescriptor>()
+                        .SelectMany(d => d.MountedWeaponDescriptorList.OfType<TMountedWeaponDescriptor>())
+                        .Select(w => w.Ammunition.Replace("~/", ""));
+
+                    var unitAmunitions = unitsRelatedData.AmmunitionDescriptor.RootDescriptors
+                        .Where(d => unitAmunitionNames.Contains(d.EntityNDFType));
+
+                    if (!unitAmunitions.Any())
+                    {
+                        OnCMDProviderOutput($"Cannot find unitAmunitions for unit: {unit.ClassNameForDebug}");
+                        continue;
+                    }
+
+                    bool unitAmunitionsHasChanges = false;
+
+                    foreach (var unitAmunition in unitAmunitions)
+                    {
+                        if (modifiedAmunition.Contains(unitAmunition.EntityNDFType))
+                            continue;
+
+                        var realFireRange = JsonDatabase.JsonDatabase.FindAmmoRange(unitAmunition.EntityNDFType);
+
+                        if (realFireRange is null)
+                        {
+                            OnCMDProviderOutput($"Cannot find real amunition fire range fro unit: {unit.ClassNameForDebug}. unitAmunition: {unitAmunition.EntityNDFType}");
+                            continue;
+                        }
+
+                        //ToDo: There potentially will be a bug. If unit have several amunitions for same ground or air target.
+                        ModifyAmunition(unit, weaponManagerModule, unitAmunition, realFireRange, true);
+
+                        modifiedAmunition.Add(unitAmunition.EntityNDFType);
+
+                        unitAmunitionsHasChanges = true;
+
+                        OnCMDProviderOutput($"Unit: {unit.ClassNameForDebug} amunition {unitAmunition.EntityNDFType} modified!");
+                    }
+
+                    if (unitAmunitionsHasChanges)
+                        UpdateUnitVisionByAmunitionDistance(unit, unitAmunitions);
                 }
-
-                if(unitAmunitionsHasChanges)
-                    UpdateUnitVisionByAmunitionDistance(unit, unitAmunitions);
+                catch (Exception ex)
+                {
+                    Debug.WriteLine(ex.Message);
+                }
             }
 
             return unitsRelatedData;
@@ -325,13 +354,23 @@ namespace WarnoModeAutomation.Logic
                 scannerConfigurationDescriptor.OpticalStrength = isSovUnit ? WarnoConstants.SovMinOpticalStrength : WarnoConstants.NatoMinOpticalStrength;
             }
 
-            var longestTBAAmunitionRange = ammunitionDescriptor.Select(x => x.PorteeMaximaleTBA).Max();
+            var longestGroundAmunitionRange = ammunitionDescriptor.Select(x => x.PorteeMaximale).MaxBy(x => x.FloatValue);
 
-            var longestHAAmunitionRange = ammunitionDescriptor.Select(x => x.PorteeMaximaleHA).Max();
+            var longestTBAAmunitionRange = ammunitionDescriptor.Select(x => x.PorteeMaximaleTBA).MaxBy(x => x.FloatValue);
 
-            scannerConfigurationDescriptor.PorteeVisionTBA.FloatValue = Math.Max(CalculateUnitVisionTBA(longestTBAAmunitionRange, isSovUnit), CalculateUnitVisionHA(longestHAAmunitionRange, isSovUnit));
+            var longestHAAmunitionRange = ammunitionDescriptor.Select(x => x.PorteeMaximaleHA).MaxBy(x => x.FloatValue);
 
-            scannerConfigurationDescriptor.DetectionTBA.FloatValue = CalculateUnitDetectionTBAAndHA(scannerConfigurationDescriptor.PorteeVisionTBA.FloatValue);
+            var newTBAVisionValue = Math.Max(CalculateUnitVisionTBA(longestTBAAmunitionRange, isSovUnit), CalculateUnitVisionHA(longestHAAmunitionRange, isSovUnit));
+
+            scannerConfigurationDescriptor.PorteeVisionTBA.FloatValue = Math.Max(scannerConfigurationDescriptor.PorteeVisionTBA.FloatValue, newTBAVisionValue);
+
+            var newDetectionValue = CalculateUnitDetectionTBAAndHA(scannerConfigurationDescriptor.PorteeVisionTBA.FloatValue);
+
+            scannerConfigurationDescriptor.DetectionTBA.FloatValue = Math.Max(scannerConfigurationDescriptor.DetectionTBA.FloatValue, newDetectionValue);
+
+            var newGroundVisionValue = Math.Max(scannerConfigurationDescriptor.PorteeVision.FloatValue, CalculateUnitVisionGround(longestGroundAmunitionRange, isSovUnit));
+
+            scannerConfigurationDescriptor.PorteeVision.FloatValue = Math.Max(scannerConfigurationDescriptor.PorteeVision.FloatValue, newGroundVisionValue);
 
             //ToDo: change unit vison according to a new fire range
             //-For Scout unit: vision - 2 %;
@@ -340,7 +379,18 @@ namespace WarnoModeAutomation.Logic
 
         private static float CalculateUnitDetectionTBAAndHA(float visionDistance) 
         {
-            return visionDistance - GetNumberPercentage(WarnoConstants.TBAAndHADetectionPercentage ,visionDistance);
+            var percentage = GetNumberPercentage(WarnoConstants.TBAAndHADetectionPercentage ,visionDistance);
+
+            return visionDistance - percentage;
+        }
+
+        private static float CalculateUnitVisionGround(DistanceMetre amunitionDistance, bool isSovUnit)
+        {
+            var percentage = isSovUnit
+                ? GetNumberPercentage(WarnoConstants.SovGroundisionPercentage, amunitionDistance.FloatValue)
+                : GetNumberPercentage(WarnoConstants.NatoGroundVisionPercentage, amunitionDistance.FloatValue);
+
+            return amunitionDistance.FloatValue - percentage;
         }
 
         private static float CalculateUnitVisionTBA(DistanceMetre amunitionDistance, bool isSovUnit)
@@ -388,7 +438,7 @@ namespace WarnoModeAutomation.Logic
 
             var increasePercentage = GetPercentageAfromB(difference, increasedDistance);
 
-            pointsCount += (int)Math.Round((increasePercentage / 10) + (originalPointsCount / 10));
+            pointsCount += (int)Math.Round((increasePercentage / 8) + (originalPointsCount / 8));
         }
 
         private static float GetNumberPercentage(int percent, float fromNumber)
@@ -417,7 +467,9 @@ namespace WarnoModeAutomation.Logic
 
             var percentageoriginalValue = GetPercentageAfromB(originalValue, newValue);
 
-            var repcentageTotal = percentageDifference * percentageoriginalValue;
+            //var repcentageTotal = difference / percentageoriginalValue * 10;
+
+            var repcentageTotal = difference / percentageoriginalValue * (percentageDifference / 10);
 
             return (float)Math.Round((double)(newValue - repcentageTotal));
 
@@ -430,73 +482,6 @@ namespace WarnoModeAutomation.Logic
         private static float ConvertToWarnoDistance(int valueToConvert)
         {
             return valueToConvert / 1000 * 2830;
-        }
-
-        private static async Task ModifyUnits() 
-        {
-            var filePath = FileManager.NDFFilesPaths.SingleOrDefault(f => f.FileName == WarnoConstants.UniteDescriptorFileName);
-
-            var unitsFileDescriptor = NDFSerializer.Deserialize<TEntityDescriptor>(filePath.FilePath);
-
-            const string infanterie = "Infanterie";
-
-            var tagsCombinationWithNerf = new []{ "Canon_AA_Standard", "Canon_AA", "Air" };
-
-            //units which will use real fire range with nerf (Aircrafts, anti air vehicles, except anti air infantry)
-            var unitsWithNerf = new List<TEntityDescriptor>();
-
-            foreach (var tEntityDescriptor in unitsFileDescriptor.RootDescriptors)
-            {
-                var tagsModule = tEntityDescriptor.ModulesDescriptors.OfType<TTagsModuleDescriptor>().SingleOrDefault();
-
-                if (tagsModule.TagSet.Any(tag => tagsCombinationWithNerf.Contains(tag)) && !tagsModule.TagSet.Contains(infanterie))
-                    unitsWithNerf.Add(tEntityDescriptor);
-            }
-
-            //units which will use real fire range values without nerf (Infantry, helicopters, all ground vehicles except anti air)
-            var unitsWithoutNerf = unitsFileDescriptor.RootDescriptors.Except(unitsWithNerf);
-
-            Debug.WriteLine(Environment.NewLine);
-            Debug.WriteLine("unitsWithNerf:");
-            Debug.WriteLine(Environment.NewLine);
-
-            foreach (var unit in unitsWithNerf)
-            {
-                Debug.WriteLine(unit.ClassNameForDebug);
-            }
-
-            Debug.WriteLine(Environment.NewLine);
-            Debug.WriteLine("unitsWithoutNerf:");
-            Debug.WriteLine(Environment.NewLine);
-
-            foreach (var unit in unitsWithoutNerf)
-            {
-                Debug.WriteLine(unit.ClassNameForDebug);
-            }
-
-            Debug.WriteLine(Environment.NewLine);
-
-            //Chaparral
-
-            //var chaparralEntityDescriptor = unitsFileDescriptor.RootDescriptors.FirstOrDefault(x => x.ClassNameForDebug.Equals("Unit_M48_Chaparral_MIM72F_US"));
-
-            //if (chaparralEntityDescriptor is null)
-            //    return;
-
-            //chaparralEntityDescriptor.SetRealUnitName();
-
-            //await WebSearchEngine.Initialize();
-
-            //var result = await WebSearchEngine.GetRealFireRange("MIM72G", chaparralEntityDescriptor.GameUIUnitName, chaparralEntityDescriptor.ClassNameForDebug);
-
-            //var tProductionModuleDescriptor = chaparralEntityDescriptor.ModulesDescriptors
-            //        .OfType<TProductionModuleDescriptor>()
-            //        .SingleOrDefault();
-
-            //if (tProductionModuleDescriptor.ProductionRessourcesNeeded.ContainsKey("~/Resource_CommandPoints"))
-            //{
-            //    tProductionModuleDescriptor.ProductionRessourcesNeeded["~/Resource_CommandPoints"] = 105;
-            //}
         }
 
         private static FileDescriptor<TEntityDescriptor> ModifyBuildings(FileDescriptor<TEntityDescriptor> buildingsFileDescriptor)
@@ -516,10 +501,6 @@ namespace WarnoModeAutomation.Logic
             }
 
             return buildingsFileDescriptor;
-
-            //var stringToSave = NDFSerializer.Serialize(buildingsFileDescriptor);
-
-            //File.WriteAllText(buildingsFilePath, stringToSave);
         }
 
         private static void OnCMDProviderOutput(string data)

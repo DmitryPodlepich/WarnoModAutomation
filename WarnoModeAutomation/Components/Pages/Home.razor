@@ -142,7 +142,7 @@
 
     public async Task CreateMod()
     {
-        await Perform(OperationType.Generation, async () =>
+        await Perform(OperationType.Creation, async () =>
         {
             await ModManager.CreateModAsync();
             Storage.Status.GetStatus();
@@ -152,7 +152,7 @@
     //ToDo: add alert!
     public async Task DeleteMod()
     {
-        await Perform(OperationType.Generation, async () =>
+        await Perform(OperationType.Deletion, async () =>
         {
             ModManager.DeleteMod();
             Storage.Status.GetStatus();
@@ -171,8 +171,11 @@
 
     public async Task UpdateMod()
     {
-        _currentOperation = OperationType.Idle;
-        await Task.CompletedTask;
+        await Perform(OperationType.Updation, async () =>
+        {
+            await ModManager.UpdateModAsync();
+            Storage.Status.GetStatus();
+        });
     }
 
     public async Task Modify()
