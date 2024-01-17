@@ -10,7 +10,9 @@
         public const string AmmunitionDescriptorsFileName = "Ammunition.ndf";
 
         //ToDo: move to configuration
-        public const int NatoAccuracityBuffPercentage = 20;
+        public const string ArtillerieTag = "Artillerie";
+        public const string ArtileryWeaponCursorType = "Weapon_Cursor_CorrectedArtillery";
+        public const int NatoCommonAccuracityBonusPercentage = 20;
 
         public const int SovMinOpticalStrength = 20;
         public const int NatoMinOpticalStrength = 40;
@@ -26,5 +28,8 @@
 
         public const int TBAAndHADetectionPercentage = 20;
         public const int GroudDetectionPercentage = 10;
+
+        public const int ArtileryDamagePercentage = 50;
+        public const int NatoArtileryAccuracityBonusPercentage = 50;
     }
 }

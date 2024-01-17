@@ -1,4 +1,5 @@
-﻿using JsonDatabase.DTO;
+﻿using BlazorBootstrap;
+using JsonDatabase.DTO;
 using NDFSerialization.Models;
 using NDFSerialization.NDFDataTypes.Primitive;
 using System.ComponentModel;
@@ -142,17 +143,33 @@ namespace WarnoModeAutomation.Logic
 
             Task[] tasks =
             [
-                Task.Run(() => amunition = NDFSerializer.Deserialize<TAmmunitionDescriptor>(amunitionFilePath.FilePath)),
-                Task.Run(() => weapon = NDFSerializer.Deserialize<TWeaponManagerModuleDescriptor>(weaponFilePath.FilePath)),
-                Task.Run(() => units = NDFSerializer.Deserialize<TEntityDescriptor>(unitsFilePath.FilePath)),
-                Task.Run(() => buildings = NDFSerializer.Deserialize<TEntityDescriptor>(buildingsFilePath.FilePath)),
+                Task.Run(() =>
+                {
+                    amunition = NDFSerializer.Deserialize<TAmmunitionDescriptor>(amunitionFilePath.FilePath);
+                    OnCMDProviderOutput($"{amunitionFilePath.FileName} desirialized!");
+                }),
+                Task.Run(() =>
+                {
+                    weapon = NDFSerializer.Deserialize<TWeaponManagerModuleDescriptor>(weaponFilePath.FilePath);
+                    OnCMDProviderOutput($"{weaponFilePath.FileName} desirialized!");
+                }),
+                Task.Run(() =>
+                {
+                    units = NDFSerializer.Deserialize<TEntityDescriptor>(unitsFilePath.FilePath);
+                    OnCMDProviderOutput($"{unitsFilePath.FileName} desirialized!");
+                }),
+                Task.Run(() =>
+                {
+                    buildings = NDFSerializer.Deserialize<TEntityDescriptor>(buildingsFilePath.FilePath);
+                    OnCMDProviderOutput($"{buildingsFilePath.FileName} desirialized!");
+                }),
             ];
 
             await Task.WhenAll(tasks);
 
             var unitsRelatedData = new UnitsRelatedDataDTO(amunition, weapon, units);
 
-            unitsRelatedData = ModifyUnits(unitsRelatedData);
+             ModifyUnits(unitsRelatedData);
 
             buildings = ModifyBuildings(buildings);
 
@@ -163,7 +180,7 @@ namespace WarnoModeAutomation.Logic
             await File.WriteAllTextAsync(buildingsFilePath.FilePath, NDFSerializer.Serialize(buildings));
         }
 
-        private static UnitsRelatedDataDTO ModifyUnits(UnitsRelatedDataDTO unitsRelatedData) 
+        private static void ModifyUnits(UnitsRelatedDataDTO unitsRelatedData) 
         {
             const string infanterie = "Infanterie";
 
@@ -187,115 +204,180 @@ namespace WarnoModeAutomation.Logic
 
             foreach (var unit in unitsWithNerf)
             {
-                try
-                {
-
-                    //find unit weapon and ammo information
-                    var unitWeaponModuleDescriptor = unit.ModulesDescriptors
-                        .OfType<TModuleSelector>()
-                        .SingleOrDefault(d => d.EntityNDFType == "WeaponManager");
-
-                    if (unitWeaponModuleDescriptor is null)
-                    {
-                        OnCMDProviderOutput($"Cannot find TModuleSelector for unit: {unit.ClassNameForDebug}");
-                        continue;
-                    }
-
-                    var weaponManagerModule = unitsRelatedData.WeaponManagerModuleDescriptor.RootDescriptors
-                        .SingleOrDefault(w => unitWeaponModuleDescriptor.Default.Contains(w.EntityNDFType, StringComparison.InvariantCultureIgnoreCase));
-
-                    if (weaponManagerModule is null)
-                    {
-                        OnCMDProviderOutput($"Cannot find weapon module by name: {unitWeaponModuleDescriptor.Default}");
-                        continue;
-                    }
-
-                    var unitAmunitionNames = weaponManagerModule
-                        .TurretDescriptorList.OfType<ITTurretDescriptor>()
-                        .SelectMany(d => d.MountedWeaponDescriptorList.OfType<TMountedWeaponDescriptor>())
-                        .Select(w => w.Ammunition.Replace("~/", ""));
-
-                    var unitAmunitions = unitsRelatedData.AmmunitionDescriptor.RootDescriptors
-                        .Where(d => unitAmunitionNames.Contains(d.EntityNDFType));
-
-                    if (!unitAmunitions.Any())
-                    {
-                        OnCMDProviderOutput($"Cannot find unitAmunitions for unit: {unit.ClassNameForDebug}");
-                        continue;
-                    }
-
-                    bool unitAmunitionsHasChanges = false;
-
-                    foreach (var unitAmunition in unitAmunitions)
-                    {
-                        if (modifiedAmunition.Contains(unitAmunition.EntityNDFType))
-                            continue;
-
-                        var realFireRange = JsonDatabase.JsonDatabase.FindAmmoRange(unitAmunition.EntityNDFType);
-
-                        if (realFireRange is null)
-                        {
-                            OnCMDProviderOutput($"Cannot find real amunition fire range fro unit: {unit.ClassNameForDebug}. unitAmunition: {unitAmunition.EntityNDFType}");
-                            continue;
-                        }
-
-                        //ToDo: There potentially will be a bug. If unit have several amunitions for same ground or air target.
-                        ModifyAmunition(unit, weaponManagerModule, unitAmunition, realFireRange, true);
-
-                        modifiedAmunition.Add(unitAmunition.EntityNDFType);
-
-                        unitAmunitionsHasChanges = true;
-
-                        OnCMDProviderOutput($"Unit: {unit.ClassNameForDebug} amunition {unitAmunition.EntityNDFType} modified!");
-                    }
-
-                    if (unitAmunitionsHasChanges)
-                        UpdateUnitVisionByAmunitionDistance(unit, unitAmunitions);
-                }
-                catch (Exception ex)
-                {
-                    Debug.WriteLine(ex.Message);
-                }
+                ModifyUnit(unit, unitsRelatedData, ref modifiedAmunition, true);
             }
 
-            return unitsRelatedData;
+            foreach (var unit in unitsWithoutNerf)
+            {
+                ModifyUnit(unit, unitsRelatedData, ref modifiedAmunition, false);
+            }
         }
 
-        private static void ModifyAmunition(TEntityDescriptor unit, TWeaponManagerModuleDescriptor weaponManager, TAmmunitionDescriptor ammunition, AmmoRangeDTO ammoRangeDTO, bool shouldNerf) 
+        private static void ModifyUnit(TEntityDescriptor unit, UnitsRelatedDataDTO unitsRelatedData, ref HashSet<string> modifiedAmunition, bool shouldNerf) 
+        {
+            try
+            {
+                //find unit weapon and ammo information
+                var unitWeaponModuleDescriptor = unit.ModulesDescriptors
+                    .OfType<TModuleSelector>()
+                    .SingleOrDefault(d => d.EntityNDFType == "WeaponManager");
+
+                if (unitWeaponModuleDescriptor is null)
+                {
+                    OnCMDProviderOutput($"Cannot find TModuleSelector for unit: {unit.ClassNameForDebug}");
+                    return;
+                }
+
+                var weaponManagerModule = unitsRelatedData.WeaponManagerModuleDescriptor.RootDescriptors
+                    .SingleOrDefault(w => unitWeaponModuleDescriptor.Default.Contains(w.EntityNDFType, StringComparison.InvariantCultureIgnoreCase));
+
+                if (weaponManagerModule is null)
+                {
+                    OnCMDProviderOutput($"Cannot find weapon module by name: {unitWeaponModuleDescriptor.Default}");
+                    return;
+                }
+
+                var unitAmunitionNames = weaponManagerModule
+                    .TurretDescriptorList.OfType<ITTurretDescriptor>()
+                    .SelectMany(d => d.MountedWeaponDescriptorList.OfType<TMountedWeaponDescriptor>())
+                    .Select(w => w.Ammunition.Replace("~/", ""));
+
+                var unitAmunitions = unitsRelatedData.AmmunitionDescriptor.RootDescriptors
+                    .Where(d => unitAmunitionNames.Contains(d.EntityNDFType));
+
+                if (!unitAmunitions.Any())
+                {
+                    OnCMDProviderOutput($"Cannot find unitAmunitions for unit: {unit.ClassNameForDebug}");
+                    return;
+                }
+
+                var tProductionModuleDescriptors = unit.ModulesDescriptors.OfType<TProductionModuleDescriptor>().SingleOrDefault();
+
+                if (tProductionModuleDescriptors is null)
+                {
+                    OnCMDProviderOutput($"Unit: {unit.ClassNameForDebug} TProductionModuleDescriptor not found!");
+                    return;
+                }
+
+                if (!tProductionModuleDescriptors.ProductionRessourcesNeeded.TryGetValue("~/Resource_CommandPoints", out int resourceCommandPoints))
+                {
+                    OnCMDProviderOutput($"Cannot find Resource_CommandPoints for unit: {unit.ClassNameForDebug}");
+                    return;
+                }
+
+                var tTypeUnitModuleDescriptor = unit.ModulesDescriptors.OfType<TTypeUnitModuleDescriptor>().SingleOrDefault();
+
+                if (tTypeUnitModuleDescriptor is null)
+                {
+                    OnCMDProviderOutput($"Unit: {unit.ClassNameForDebug} TTypeUnitModuleDescriptor not found!");
+                }
+
+                var tagsModuleDescriptor = unit.ModulesDescriptors.OfType<TTagsModuleDescriptor>().SingleOrDefault();
+
+                if (tagsModuleDescriptor is null)
+                {
+                    OnCMDProviderOutput($"Unit: {unit.ClassNameForDebug} TTagsModuleDescriptor not found!");
+                }
+
+                bool unitAmunitionsHasDistanceChanges = false;
+
+                foreach (var unitAmunition in unitAmunitions)
+                {
+                    if (modifiedAmunition.Contains(unitAmunition.EntityNDFType))
+                        continue;
+
+                    if (EnsureModifiedArtileryDamage(unitAmunition))
+                        OnCMDProviderOutput($"ArtileryDamage for: {unit.ClassNameForDebug}. unitAmunition: {unitAmunition.EntityNDFType} has been increased by {WarnoConstants.ArtileryDamagePercentage} %");
+
+                    if (!NDFTypesExtensions.IsSovUnit(tTypeUnitModuleDescriptor))
+                        ModifyAmunitionAccuracity(tProductionModuleDescriptors, unitAmunition);
+
+                    var realFireRange = JsonDatabase.JsonDatabase.FindAmmoRange(unitAmunition.EntityNDFType);
+
+                    if (realFireRange is not null)
+                    {
+                        ModifyAmunitionDistance(tProductionModuleDescriptors, unitAmunition, realFireRange, shouldNerf);
+
+                        OnCMDProviderOutput($"Fire range for unit: {unit.ClassNameForDebug}. unitAmunition: {unitAmunition.EntityNDFType} has been changed!");
+
+                        unitAmunitionsHasDistanceChanges = true;
+                    }
+
+                    modifiedAmunition.Add(unitAmunition.EntityNDFType);
+
+                    OnCMDProviderOutput($"Unit: {unit.ClassNameForDebug} amunition {unitAmunition.EntityNDFType} modified!");
+                }
+
+                if (unitAmunitionsHasDistanceChanges)
+                    UpdateUnitVisionByAmunitionDistance(unit, unitAmunitions);
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine(ex.Message);
+            }
+        }
+
+        private static void ModifyAmunitionAccuracity(TProductionModuleDescriptor tProductionModuleDescriptors, TAmmunitionDescriptor ammunition) 
         {
             int additionalResourceCommandPoints = 0;
 
-            var tProductionModuleDescriptors = unit.ModulesDescriptors.OfType<TProductionModuleDescriptor>().SingleOrDefault();
-
-            if (tProductionModuleDescriptors is null)
+            foreach (var baseHitValueModifier in ammunition.HitRollRuleDescriptor.BaseHitValueModifiers)
             {
-                Debugger.Break();
-                OnCMDProviderOutput($"Unit: {unit.ClassNameForDebug} TProductionModuleDescriptor not found!");
-                return;
+                if (baseHitValueModifier.Value > 0)
+                {
+                    var additionalAccuracityPercentage = GetNumberPercentage(WarnoConstants.NatoCommonAccuracityBonusPercentage, baseHitValueModifier.Value);
+                    var newAccuracityValue = baseHitValueModifier.Value + additionalAccuracityPercentage;
+                    additionalResourceCommandPoints += ((int)additionalAccuracityPercentage) * 2;
+                    ammunition.HitRollRuleDescriptor.BaseHitValueModifiers[baseHitValueModifier.Key] = (float)Math.Round(newAccuracityValue);
+                }
             }
 
-            if (!tProductionModuleDescriptors.ProductionRessourcesNeeded.TryGetValue("~/Resource_CommandPoints", out int resourceCommandPoints))
+            if (ammunition.WeaponCursorType == WarnoConstants.ArtileryWeaponCursorType && !ammunition.EntityNDFType.Contains("SMOKE", StringComparison.InvariantCultureIgnoreCase))
             {
-                Debugger.Break();
-                OnCMDProviderOutput($"Cannot find Resource_CommandPoints for unit: {unit.ClassNameForDebug}");
-                return;
+                if (ammunition.DispersionAtMaxRange.FloatValue > 0)
+                {
+                    var additionalAccuracityValue = GetNumberPercentage(WarnoConstants.NatoArtileryAccuracityBonusPercentage, ammunition.DispersionAtMaxRange.FloatValue);
+                    var newAccuracityValue = ammunition.DispersionAtMaxRange.FloatValue - additionalAccuracityValue;
+                    additionalResourceCommandPoints += ((int)additionalAccuracityValue / 4);
+                    ammunition.DispersionAtMaxRange.FloatValue = (float)Math.Round(newAccuracityValue);
+                }
+
+                if (ammunition.DispersionAtMinRange.FloatValue > 0)
+                {
+                    var additionalAccuracityValue = GetNumberPercentage(WarnoConstants.NatoArtileryAccuracityBonusPercentage, ammunition.DispersionAtMinRange.FloatValue);
+                    var newAccuracityValue = ammunition.DispersionAtMinRange.FloatValue - additionalAccuracityValue;
+                    additionalResourceCommandPoints += ((int)additionalAccuracityValue / 4);
+                    ammunition.DispersionAtMinRange.FloatValue = (float)Math.Round(newAccuracityValue);
+                }
             }
 
-            var tTypeUnitModuleDescriptor = unit.ModulesDescriptors.OfType<TTypeUnitModuleDescriptor>().SingleOrDefault();
+            if(additionalResourceCommandPoints > 0)
+                tProductionModuleDescriptors.ProductionRessourcesNeeded["~/Resource_CommandPoints"] += additionalResourceCommandPoints;
+        }
 
-            if (tTypeUnitModuleDescriptor is null)
-            {
-                Debugger.Break();
-                OnCMDProviderOutput($"Unit: {unit.ClassNameForDebug} TTypeUnitModuleDescriptor not found!");
-                return;
-            }
+        private static bool EnsureModifiedArtileryDamage(TAmmunitionDescriptor ammunition) 
+        {
+            if (ammunition.WeaponCursorType != WarnoConstants.ArtileryWeaponCursorType && !ammunition.EntityNDFType.Contains("SMOKE", StringComparison.InvariantCultureIgnoreCase))
+                return false;
+
+            ammunition.PhysicalDamages += GetNumberPercentage(WarnoConstants.ArtileryDamagePercentage, ammunition.PhysicalDamages);
+            ammunition.RadiusSplashPhysicalDamages.FloatValue += GetNumberPercentage(WarnoConstants.ArtileryDamagePercentage, ammunition.RadiusSplashPhysicalDamages.FloatValue);
+            ammunition.SuppressDamages += GetNumberPercentage(WarnoConstants.ArtileryDamagePercentage, ammunition.SuppressDamages);
+            ammunition.RadiusSplashSuppressDamages.FloatValue += GetNumberPercentage(WarnoConstants.ArtileryDamagePercentage, ammunition.RadiusSplashSuppressDamages.FloatValue);
+
+            return true;
+        }
+
+        private static void ModifyAmunitionDistance(TProductionModuleDescriptor tProductionModuleDescriptors, TAmmunitionDescriptor ammunition, AmmoRangeDTO ammoRangeDTO, bool shouldNerf) 
+        {
+            int additionalResourceCommandPoints = 0;
 
             var realDistanceInMetersToWarnoDistance = ConvertToWarnoDistance(ammoRangeDTO.FireRangeInMeters);
 
             var unitPorteeMaximaleModificationData = new UnitModificationDataDTO(
                 ammunition.PorteeMaximale,
                 ammunition,
-                resourceCommandPoints,
+                tProductionModuleDescriptors.ProductionRessourcesNeeded["~/Resource_CommandPoints"],
                 realDistanceInMetersToWarnoDistance,
                 shouldNerf);
 
@@ -309,22 +391,8 @@ namespace WarnoModeAutomation.Logic
 
             SetNewDistanceMetre(ref unitPorteeMaximaleHAModificationData, ref additionalResourceCommandPoints);
 
-            if (!NDFTypesExtensions.IsSovUnit(tTypeUnitModuleDescriptor))
-            {
-                foreach (var baseHitValueModifier in ammunition.HitRollRuleDescriptor.BaseHitValueModifiers)
-                {
-                    if (baseHitValueModifier.Value > 0)
-                    {
-                        var additionalAccuracityPercentage = GetNumberPercentage(WarnoConstants.NatoAccuracityBuffPercentage, baseHitValueModifier.Value);
-                        var newAccuracityValue = baseHitValueModifier.Value + additionalAccuracityPercentage;
-                        additionalResourceCommandPoints += ((int)additionalAccuracityPercentage) * 2;
-                        ammunition.HitRollRuleDescriptor.BaseHitValueModifiers[baseHitValueModifier.Key] = newAccuracityValue;
-                    }
-                }
-            }
-
-            //Add additional resource command points
-            tProductionModuleDescriptors.ProductionRessourcesNeeded["~/Resource_CommandPoints"] += additionalResourceCommandPoints;
+            if(additionalResourceCommandPoints > 0)
+                tProductionModuleDescriptors.ProductionRessourcesNeeded["~/Resource_CommandPoints"] += additionalResourceCommandPoints;
         }
 
         private static void UpdateUnitVisionByAmunitionDistance(TEntityDescriptor unit, IEnumerable<TAmmunitionDescriptor> ammunitionDescriptor)
@@ -418,7 +486,7 @@ namespace WarnoModeAutomation.Logic
                 if (unitModificationDataDTO.NerfRequired)
                     unitModificationDataDTO.RealFireRangeDistance = NerfDistance(unitModificationDataDTO.RealFireRangeDistance, unitModificationDataDTO.DistanceMetre.FloatValue);
 
-                AddAdditionalResourceCommandPoints(ref additionalResourceCommandPoints, unitModificationDataDTO.OriginalResourceCommandPoints, unitModificationDataDTO.DistanceMetre.FloatValue, unitModificationDataDTO.RealFireRangeDistance);
+                AddDistanceAdditionalResourceCommandPoints(ref additionalResourceCommandPoints, unitModificationDataDTO.OriginalResourceCommandPoints, unitModificationDataDTO.DistanceMetre.FloatValue, unitModificationDataDTO.RealFireRangeDistance);
 
                 unitModificationDataDTO.DistanceMetre.FloatValue = unitModificationDataDTO.RealFireRangeDistance;
             }
@@ -432,13 +500,13 @@ namespace WarnoModeAutomation.Logic
             return distanceMetre.FloatValue > 0 && distanceMetre.FloatValue < realDistanceInMetersToWarnoDistance;
         }
 
-        private static void AddAdditionalResourceCommandPoints(ref int pointsCount, int originalPointsCount, float originalDistance, float increasedDistance)
+        private static void AddDistanceAdditionalResourceCommandPoints(ref int pointsCount, int originalPointsCount, float originalDistance, float increasedDistance)
         {
             var difference = increasedDistance - originalDistance;
 
             var increasePercentage = GetPercentageAfromB(difference, increasedDistance);
 
-            pointsCount += (int)Math.Round((increasePercentage / 8) + (originalPointsCount / 8));
+            pointsCount += (int)Math.Round((increasePercentage / 9) + (originalPointsCount / 9));
         }
 
         private static float GetNumberPercentage(int percent, float fromNumber)
@@ -467,9 +535,9 @@ namespace WarnoModeAutomation.Logic
 
             var percentageoriginalValue = GetPercentageAfromB(originalValue, newValue);
 
-            //var repcentageTotal = difference / percentageoriginalValue * 10;
+            var repcentageTotal = difference / percentageoriginalValue * 10;
 
-            var repcentageTotal = difference / percentageoriginalValue * (percentageDifference / 10);
+            //var repcentageTotal = difference / percentageoriginalValue * (percentageDifference / 10);
 
             return (float)Math.Round((double)(newValue - repcentageTotal));
 
@@ -506,7 +574,6 @@ namespace WarnoModeAutomation.Logic
         private static void OnCMDProviderOutput(string data)
         {
             OnOutput?.Invoke(data);
-            Debug.WriteLine("OnCMDProviderOutput: " + data);
         }
     }
 }

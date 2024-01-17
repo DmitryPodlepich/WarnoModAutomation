@@ -6,6 +6,7 @@ namespace WarnoModeAutomation.DTO.NDFFiles.Ammunition
     public class TAmmunitionDescriptor : Descriptor
     {
         public override Type Type => typeof(TAmmunitionDescriptor);
+        public string WeaponCursorType { get; set; }
         public float TempsEntreDeuxTirs { get; set; }
         public float TempsEntreDeuxFx { get; set; }
         public DistanceMetre PorteeMaximale { get; set; }

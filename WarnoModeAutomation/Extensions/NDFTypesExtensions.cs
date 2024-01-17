@@ -1,4 +1,5 @@
-﻿using WarnoModeAutomation.DTO.NDFFiles;
+﻿using WarnoModeAutomation.Constants;
+using WarnoModeAutomation.DTO.NDFFiles;
 
 namespace WarnoModeAutomation.Extensions
 {
@@ -9,6 +10,11 @@ namespace WarnoModeAutomation.Extensions
         public static bool IsSovUnit(this TTypeUnitModuleDescriptor typeUnitModuleDescriptor)
         {
             return _sovMotherCountries.Contains(typeUnitModuleDescriptor.MotherCountry);
+        }
+
+        public static bool IsArtileryUnit(this TTagsModuleDescriptor tagsModuleDescriptor)
+        {
+            return tagsModuleDescriptor.TagSet.Contains(WarnoConstants.ArtillerieTag);
         }
     }
 }
