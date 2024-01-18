@@ -169,7 +169,7 @@ namespace WarnoModeAutomation.Logic
 
             var unitsRelatedData = new UnitsRelatedDataDTO(amunition, weapon, units);
 
-             ModifyUnits(unitsRelatedData);
+            ModifyUnits(unitsRelatedData);
 
             buildings = ModifyBuildings(buildings);
 
@@ -182,38 +182,15 @@ namespace WarnoModeAutomation.Logic
 
         private static void ModifyUnits(UnitsRelatedDataDTO unitsRelatedData) 
         {
-            const string infanterie = "Infanterie";
+            var modifiedAmunition = new Dictionary<string, int>();
 
-            var tagsCombinationWithNerf = new[] { "Canon_AA_Standard", "Canon_AA", "Air" };
-
-            //units which will use real fire range with nerf (Aircrafts, anti air vehicles, except anti air infantry)
-            var unitsWithNerf = new List<TEntityDescriptor>();
-
-            foreach (var tEntityDescriptor in unitsRelatedData.UnitsEntityDescriptor.RootDescriptors)
+            foreach (var unit in unitsRelatedData.UnitsEntityDescriptor.RootDescriptors)
             {
-                var tagsModule = tEntityDescriptor.ModulesDescriptors.OfType<TTagsModuleDescriptor>().SingleOrDefault();
-
-                if (tagsModule.TagSet.Any(tag => tagsCombinationWithNerf.Contains(tag)) && !tagsModule.TagSet.Contains(infanterie))
-                    unitsWithNerf.Add(tEntityDescriptor);
-            }
-
-            //units which will use real fire range values without nerf (Infantry, helicopters, all ground vehicles except anti air)
-            var unitsWithoutNerf = unitsRelatedData.UnitsEntityDescriptor.RootDescriptors.Except(unitsWithNerf);
-
-            var modifiedAmunition = new HashSet<string>();
-
-            foreach (var unit in unitsWithNerf)
-            {
-                ModifyUnit(unit, unitsRelatedData, ref modifiedAmunition, true);
-            }
-
-            foreach (var unit in unitsWithoutNerf)
-            {
-                ModifyUnit(unit, unitsRelatedData, ref modifiedAmunition, false);
+                ModifyUnit(unit, unitsRelatedData, ref modifiedAmunition);
             }
         }
 
-        private static void ModifyUnit(TEntityDescriptor unit, UnitsRelatedDataDTO unitsRelatedData, ref HashSet<string> modifiedAmunition, bool shouldNerf) 
+        private static void ModifyUnit(TEntityDescriptor unit, UnitsRelatedDataDTO unitsRelatedData, ref Dictionary<string, int> modifiedAmunition) 
         {
             try
             {
@@ -270,6 +247,7 @@ namespace WarnoModeAutomation.Logic
                 if (tTypeUnitModuleDescriptor is null)
                 {
                     OnCMDProviderOutput($"Unit: {unit.ClassNameForDebug} TTypeUnitModuleDescriptor not found!");
+                    return;
                 }
 
                 var tagsModuleDescriptor = unit.ModulesDescriptors.OfType<TTagsModuleDescriptor>().SingleOrDefault();
@@ -277,20 +255,31 @@ namespace WarnoModeAutomation.Logic
                 if (tagsModuleDescriptor is null)
                 {
                     OnCMDProviderOutput($"Unit: {unit.ClassNameForDebug} TTagsModuleDescriptor not found!");
+                    return;
                 }
+
+                bool shouldNerf =
+                    tagsModuleDescriptor.TagSet.Any(tag => WarnoConstants.TagsCombinationWithNerf.Contains(tag))
+                    && !tagsModuleDescriptor.TagSet.Contains(WarnoConstants.InfanterieTag);
 
                 bool unitAmunitionsHasDistanceChanges = false;
 
+                var additionalCommandPoins = 0;
+
                 foreach (var unitAmunition in unitAmunitions)
                 {
-                    if (modifiedAmunition.Contains(unitAmunition.EntityNDFType))
+                    //If unit has the same amunition which already has been modified we need to add additional command point to that unit also for each modified amunition.
+                    if (modifiedAmunition.TryGetValue(unitAmunition.EntityNDFType, out int value))
+                    {
+                        additionalCommandPoins += value;
                         continue;
+                    }
 
                     if (EnsureModifiedArtileryDamage(unitAmunition))
                         OnCMDProviderOutput($"ArtileryDamage for: {unit.ClassNameForDebug}. unitAmunition: {unitAmunition.EntityNDFType} has been increased by {WarnoConstants.ArtileryDamagePercentage} %");
 
                     if (!NDFTypesExtensions.IsSovUnit(tTypeUnitModuleDescriptor))
-                        ModifyAmunitionAccuracity(tProductionModuleDescriptors, unitAmunition);
+                        additionalCommandPoins += ModifyAmunitionAccuracity(unitAmunition);
 
                     var realFireRange = JsonDatabase.JsonDatabase.FindAmmoRange(unitAmunition.EntityNDFType);
 
@@ -303,23 +292,33 @@ namespace WarnoModeAutomation.Logic
                         unitAmunitionsHasDistanceChanges = true;
                     }
 
-                    modifiedAmunition.Add(unitAmunition.EntityNDFType);
+                    modifiedAmunition.Add(unitAmunition.EntityNDFType, additionalCommandPoins);
 
                     OnCMDProviderOutput($"Unit: {unit.ClassNameForDebug} amunition {unitAmunition.EntityNDFType} modified!");
                 }
 
                 if (unitAmunitionsHasDistanceChanges)
                     UpdateUnitVisionByAmunitionDistance(unit, unitAmunitions);
+
+                if (additionalCommandPoins > 0)
+                    tProductionModuleDescriptors.ProductionRessourcesNeeded["~/Resource_CommandPoints"] += additionalCommandPoins;
+
             }
             catch (Exception ex)
             {
-                Debug.WriteLine(ex.Message);
+                OnCMDProviderOutput($"ModifyUnit exception: {unit.ClassNameForDebug} message {ex.Message}");
+                OnCMDProviderOutput(ex.StackTrace);
+                throw;
             }
         }
 
-        private static void ModifyAmunitionAccuracity(TProductionModuleDescriptor tProductionModuleDescriptors, TAmmunitionDescriptor ammunition) 
+        private static int ModifyAmunitionAccuracity(TAmmunitionDescriptor ammunition) 
         {
             int additionalResourceCommandPoints = 0;
+
+            if(ammunition.EntityNDFType.Contains(WarnoConstants.AmunitionNameSMOKEMarker, StringComparison.InvariantCultureIgnoreCase)
+                || ammunition.WeaponCursorType == WarnoConstants.Weapon_Cursor_MachineGun)
+                return additionalResourceCommandPoints;
 
             foreach (var baseHitValueModifier in ammunition.HitRollRuleDescriptor.BaseHitValueModifiers)
             {
@@ -332,13 +331,13 @@ namespace WarnoModeAutomation.Logic
                 }
             }
 
-            if (ammunition.WeaponCursorType == WarnoConstants.ArtileryWeaponCursorType && !ammunition.EntityNDFType.Contains("SMOKE", StringComparison.InvariantCultureIgnoreCase))
+            if (ammunition.WeaponCursorType == WarnoConstants.ArtileryWeaponCursorType)
             {
                 if (ammunition.DispersionAtMaxRange.FloatValue > 0)
                 {
                     var additionalAccuracityValue = GetNumberPercentage(WarnoConstants.NatoArtileryAccuracityBonusPercentage, ammunition.DispersionAtMaxRange.FloatValue);
                     var newAccuracityValue = ammunition.DispersionAtMaxRange.FloatValue - additionalAccuracityValue;
-                    additionalResourceCommandPoints += ((int)additionalAccuracityValue / 4);
+                    additionalResourceCommandPoints += ((int)additionalAccuracityValue / 5);
                     ammunition.DispersionAtMaxRange.FloatValue = (float)Math.Round(newAccuracityValue);
                 }
 
@@ -346,18 +345,17 @@ namespace WarnoModeAutomation.Logic
                 {
                     var additionalAccuracityValue = GetNumberPercentage(WarnoConstants.NatoArtileryAccuracityBonusPercentage, ammunition.DispersionAtMinRange.FloatValue);
                     var newAccuracityValue = ammunition.DispersionAtMinRange.FloatValue - additionalAccuracityValue;
-                    additionalResourceCommandPoints += ((int)additionalAccuracityValue / 4);
+                    additionalResourceCommandPoints += ((int)additionalAccuracityValue / 5);
                     ammunition.DispersionAtMinRange.FloatValue = (float)Math.Round(newAccuracityValue);
                 }
             }
 
-            if(additionalResourceCommandPoints > 0)
-                tProductionModuleDescriptors.ProductionRessourcesNeeded["~/Resource_CommandPoints"] += additionalResourceCommandPoints;
+            return additionalResourceCommandPoints;
         }
 
         private static bool EnsureModifiedArtileryDamage(TAmmunitionDescriptor ammunition) 
         {
-            if (ammunition.WeaponCursorType != WarnoConstants.ArtileryWeaponCursorType && !ammunition.EntityNDFType.Contains("SMOKE", StringComparison.InvariantCultureIgnoreCase))
+            if (ammunition.WeaponCursorType != WarnoConstants.ArtileryWeaponCursorType && !ammunition.EntityNDFType.Contains(WarnoConstants.AmunitionNameSMOKEMarker, StringComparison.InvariantCultureIgnoreCase))
                 return false;
 
             ammunition.PhysicalDamages += GetNumberPercentage(WarnoConstants.ArtileryDamagePercentage, ammunition.PhysicalDamages);
@@ -370,8 +368,6 @@ namespace WarnoModeAutomation.Logic
 
         private static void ModifyAmunitionDistance(TProductionModuleDescriptor tProductionModuleDescriptors, TAmmunitionDescriptor ammunition, AmmoRangeDTO ammoRangeDTO, bool shouldNerf) 
         {
-            int additionalResourceCommandPoints = 0;
-
             var realDistanceInMetersToWarnoDistance = ConvertToWarnoDistance(ammoRangeDTO.FireRangeInMeters);
 
             var unitPorteeMaximaleModificationData = new UnitModificationDataDTO(
@@ -385,14 +381,11 @@ namespace WarnoModeAutomation.Logic
 
             var unitPorteeMaximaleHAModificationData = unitPorteeMaximaleModificationData with { DistanceMetre = ammunition.PorteeMaximaleHA };
 
-            SetNewDistanceMetre(ref unitPorteeMaximaleModificationData, ref additionalResourceCommandPoints);
+            SetNewDistanceMetre(ref unitPorteeMaximaleModificationData);
 
-            SetNewDistanceMetre(ref unitPorteeMaximaleTBAModificationData, ref additionalResourceCommandPoints);
+            SetNewDistanceMetre(ref unitPorteeMaximaleTBAModificationData);
 
-            SetNewDistanceMetre(ref unitPorteeMaximaleHAModificationData, ref additionalResourceCommandPoints);
-
-            if(additionalResourceCommandPoints > 0)
-                tProductionModuleDescriptors.ProductionRessourcesNeeded["~/Resource_CommandPoints"] += additionalResourceCommandPoints;
+            SetNewDistanceMetre(ref unitPorteeMaximaleHAModificationData);
         }
 
         private static void UpdateUnitVisionByAmunitionDistance(TEntityDescriptor unit, IEnumerable<TAmmunitionDescriptor> ammunitionDescriptor)
@@ -455,7 +448,7 @@ namespace WarnoModeAutomation.Logic
         private static float CalculateUnitVisionGround(DistanceMetre amunitionDistance, bool isSovUnit)
         {
             var percentage = isSovUnit
-                ? GetNumberPercentage(WarnoConstants.SovGroundisionPercentage, amunitionDistance.FloatValue)
+                ? GetNumberPercentage(WarnoConstants.SovGroundVisionPercentage, amunitionDistance.FloatValue)
                 : GetNumberPercentage(WarnoConstants.NatoGroundVisionPercentage, amunitionDistance.FloatValue);
 
             return amunitionDistance.FloatValue - percentage;
@@ -479,14 +472,12 @@ namespace WarnoModeAutomation.Logic
             return amunitionDistance.FloatValue - percentage;
         }
 
-        private static void SetNewDistanceMetre(ref UnitModificationDataDTO unitModificationDataDTO, ref int additionalResourceCommandPoints)
+        private static void SetNewDistanceMetre(ref UnitModificationDataDTO unitModificationDataDTO)
         {
             if (IsAllowedToChangeValue(unitModificationDataDTO.DistanceMetre, unitModificationDataDTO.RealFireRangeDistance))
             {
                 if (unitModificationDataDTO.NerfRequired)
                     unitModificationDataDTO.RealFireRangeDistance = NerfDistance(unitModificationDataDTO.RealFireRangeDistance, unitModificationDataDTO.DistanceMetre.FloatValue);
-
-                AddDistanceAdditionalResourceCommandPoints(ref additionalResourceCommandPoints, unitModificationDataDTO.OriginalResourceCommandPoints, unitModificationDataDTO.DistanceMetre.FloatValue, unitModificationDataDTO.RealFireRangeDistance);
 
                 unitModificationDataDTO.DistanceMetre.FloatValue = unitModificationDataDTO.RealFireRangeDistance;
             }
@@ -498,15 +489,6 @@ namespace WarnoModeAutomation.Logic
         private static bool IsAllowedToChangeValue(DistanceMetre distanceMetre, float realDistanceInMetersToWarnoDistance)
         {
             return distanceMetre.FloatValue > 0 && distanceMetre.FloatValue < realDistanceInMetersToWarnoDistance;
-        }
-
-        private static void AddDistanceAdditionalResourceCommandPoints(ref int pointsCount, int originalPointsCount, float originalDistance, float increasedDistance)
-        {
-            var difference = increasedDistance - originalDistance;
-
-            var increasePercentage = GetPercentageAfromB(difference, increasedDistance);
-
-            pointsCount += (int)Math.Round((increasePercentage / 9) + (originalPointsCount / 9));
         }
 
         private static float GetNumberPercentage(int percent, float fromNumber)
