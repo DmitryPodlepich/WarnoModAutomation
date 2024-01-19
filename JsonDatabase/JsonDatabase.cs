@@ -5,11 +5,8 @@ namespace JsonDatabase
 {
     public static class JsonDatabase
     {
-        private const string FOLDER_NAME = "JsonDatabase";
-        private static string FolderPath => Path.Combine(AppDomain.CurrentDomain.BaseDirectory, FOLDER_NAME);
-
         private const string AMMO_FIRE_RANGE_FILE_NAME = "AmmoFireRange.json";
-        private static string AmmoFireRangeFilePath => Path.Combine(FolderPath, AMMO_FIRE_RANGE_FILE_NAME);
+        private static string AmmoFireRangeFilePath => Path.Combine(AppDomain.CurrentDomain.BaseDirectory, AMMO_FIRE_RANGE_FILE_NAME);
 
         private static readonly Lazy<List<AmmoRangeDTO>> _ammoRange = new(GetAllAmmoRange);
         public static List<AmmoRangeDTO> AmmoRange => _ammoRange.Value;
@@ -18,11 +15,6 @@ namespace JsonDatabase
 
         static JsonDatabase()
         {
-            if(!Directory.Exists(FolderPath))
-                Directory.CreateDirectory(FolderPath);
-
-            if (!File.Exists(AmmoFireRangeFilePath))
-                File.Create(AmmoFireRangeFilePath);
         }
 
         public static AmmoRangeDTO FindAmmoRange(string ammoName)

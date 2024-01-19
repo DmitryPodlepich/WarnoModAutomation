@@ -58,6 +58,10 @@
     </ItemGroup>
 
     <ItemGroup>
+      <Content Remove="Resources\Raw\AmmoFireRange.json" />
+    </ItemGroup>
+
+    <ItemGroup>
       <None Remove="Resources\Images\Loading.gif" />
     </ItemGroup>
 
@@ -76,6 +80,12 @@
     <ItemGroup>
       <ProjectReference Include="..\NDFSerialization\NDFSerialization.csproj" />
       <ProjectReference Include="..\WebSearch\WebSearch.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <MauiAsset Update="Resources\Raw\AmmoFireRange.json">
+        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      </MauiAsset>
     </ItemGroup>
 
 </Project>

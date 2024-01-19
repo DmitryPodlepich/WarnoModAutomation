@@ -1,0 +1,66 @@
+[
+	{
+		"AmmoName": "Ammo_SAM_MIM72G",
+		"FireRangeInMeters": 6000
+	},
+	{
+		"AmmoName": "Ammo_AGM_AGM65D_Maverick",
+		"FireRangeInMeters": 22000
+	},
+	{
+		"AmmoName": "Ammo_AA_AIM9M_Sidewinder",
+		"FireRangeInMeters": 9000
+	},
+	{
+		"AmmoName": "Ammo_RocketArt_M26_227mm",
+		"FireRangeInMeters": 70000
+	},
+	{
+		"AmmoName": "Ammo_RocketArt_M26_227mm_Cluster",
+		"FireRangeInMeters": 70000
+	},
+	{
+		"AmmoName": "Ammo_ATGM_BGM71D_TOW_2_x2",
+		"FireRangeInMeters": 3750
+	},
+	{
+		"AmmoName": "Ammo_ATGM_BGM71D_TOW_2_x4",
+		"FireRangeInMeters": 3750
+	},
+	{
+		"AmmoName": "Ammo_ATGM_BGM71D_TOW_2_x8",
+		"FireRangeInMeters": 3750
+	},
+	{
+		"AmmoName": "Ammo_ATGM_BGM71D_TOW_2A_x2",
+		"FireRangeInMeters": 3750
+	},
+	{
+		"AmmoName": "Ammo_AGM_BGM71_TOW_x8",
+		"FireRangeInMeters": 3750
+	},
+	{
+		"AmmoName": "Ammo_ATGM_BGM71_TOW",
+		"FireRangeInMeters": 3750
+	},
+	{
+		"AmmoName": "Ammo_ATGM_BGM71_TOW_x2",
+		"FireRangeInMeters": 3750
+	},
+	{
+		"AmmoName": "Ammo_ATGM_BGM71_TOW_x4",
+		"FireRangeInMeters": 3750
+	},
+	{
+		"AmmoName": "Ammo_ATGM_BGM71_TOW_x8",
+		"FireRangeInMeters": 3750
+	},
+	{
+		"AmmoName": "Ammo_ATGM_BGM71D_TOW_2",
+		"FireRangeInMeters": 3750
+	},
+	{
+		"AmmoName": "Ammo_AA_AIM120A_AMRAAM",
+		"FireRangeInMeters": 160000
+	}
+]
