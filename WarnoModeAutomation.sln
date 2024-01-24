@@ -7,9 +7,11 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "WarnoModeAutomation", "Warn
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NDFSerialization", "NDFSerialization\NDFSerialization.csproj", "{7D58E5F4-0C3C-4341-A16C-397F6E9C426E}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WebSearch", "WebSearch\WebSearch.csproj", "{2622A3C6-C840-46C4-A373-6F54412E3C4D}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "WebSearch", "WebSearch\WebSearch.csproj", "{2622A3C6-C840-46C4-A373-6F54412E3C4D}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "JsonDatabase", "JsonDatabase\JsonDatabase.csproj", "{777A0853-950A-44EB-B92D-1E53FB2A1087}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "JsonDatabase", "JsonDatabase\JsonDatabase.csproj", "{777A0853-950A-44EB-B92D-1E53FB2A1087}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "nUnitTests", "nUnitTests\nUnitTests.csproj", "{1F9BB650-B859-4F39-9D6F-877715353B3F}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -35,6 +37,10 @@ Global
 		{777A0853-950A-44EB-B92D-1E53FB2A1087}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{777A0853-950A-44EB-B92D-1E53FB2A1087}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{777A0853-950A-44EB-B92D-1E53FB2A1087}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1F9BB650-B859-4F39-9D6F-877715353B3F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1F9BB650-B859-4F39-9D6F-877715353B3F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1F9BB650-B859-4F39-9D6F-877715353B3F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1F9BB650-B859-4F39-9D6F-877715353B3F}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

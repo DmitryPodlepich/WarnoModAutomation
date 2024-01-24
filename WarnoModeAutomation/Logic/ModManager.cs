@@ -4,6 +4,7 @@ using NDFSerialization.Models;
 using NDFSerialization.NDFDataTypes.Primitive;
 using System.ComponentModel;
 using System.Diagnostics;
+using System.Runtime.CompilerServices;
 using WarnoModeAutomation.Constants;
 using WarnoModeAutomation.DTO;
 using WarnoModeAutomation.DTO.NDFFiles;
@@ -13,6 +14,7 @@ using WarnoModeAutomation.DTO.NDFFiles.Weapon.Interfaces;
 using WarnoModeAutomation.Extensions;
 using WebSearch;
 
+[assembly: InternalsVisibleTo("nUnitTests")]
 namespace WarnoModeAutomation.Logic
 {
     public static class ModManager
@@ -301,7 +303,7 @@ namespace WarnoModeAutomation.Logic
                     UpdateUnitVisionByAmunitionDistance(unit, unitAmunitions);
 
                 if (additionalCommandPoins > 0)
-                    tProductionModuleDescriptors.ProductionRessourcesNeeded["~/Resource_CommandPoints"] += additionalCommandPoins;
+                    tProductionModuleDescriptors.ProductionRessourcesNeeded["~/Resource_CommandPoints"] += additionalCommandPoins.RoundOff();
 
             }
             catch (Exception ex)
@@ -477,7 +479,7 @@ namespace WarnoModeAutomation.Logic
             if (IsAllowedToChangeValue(unitModificationDataDTO.DistanceMetre, unitModificationDataDTO.RealFireRangeDistance))
             {
                 if (unitModificationDataDTO.NerfRequired)
-                    unitModificationDataDTO.RealFireRangeDistance = NerfDistance(unitModificationDataDTO.RealFireRangeDistance, unitModificationDataDTO.DistanceMetre.FloatValue);
+                    unitModificationDataDTO.RealFireRangeDistance = NerfDistanceV2(unitModificationDataDTO.RealFireRangeDistance, unitModificationDataDTO.DistanceMetre.FloatValue);
 
                 unitModificationDataDTO.DistanceMetre.FloatValue = unitModificationDataDTO.RealFireRangeDistance;
             }
@@ -506,10 +508,24 @@ namespace WarnoModeAutomation.Logic
             return value / 1000 * 2830;
         }
 
-        private static float NerfDistance(float newValue, float originalValue)
+        //internal static float NerfDistance(float newValue, float originalValue)
+        //{
+        //    if (newValue <= originalValue)
+        //        return originalValue;
+
+        //    var difference = newValue - originalValue;
+
+        //    var percentageoriginalValue = GetPercentageAfromB(originalValue, newValue);
+
+        //    var repcentageTotal = difference / percentageoriginalValue;
+
+        //    return (float)Math.Round((double)(newValue - repcentageTotal));
+        //}
+
+        internal static float NerfDistanceV2(float newValue, float originalValue)
         {
-            if((originalValue * 2) >= newValue)
-                return (int)newValue;
+            if (newValue <= originalValue)
+                return originalValue;
 
             var difference = newValue - originalValue;
 
@@ -517,16 +533,12 @@ namespace WarnoModeAutomation.Logic
 
             var percentageoriginalValue = GetPercentageAfromB(originalValue, newValue);
 
-            var repcentageTotal = difference / percentageoriginalValue * 10;
+            var pcentageTotal = difference / percentageoriginalValue;
 
-            //var repcentageTotal = difference / percentageoriginalValue * (percentageDifference / 10);
+            var result = (newValue - pcentageTotal) / Math.Max(percentageDifference / percentageoriginalValue / 2.5, 1);
 
-            return (float)Math.Round((double)(newValue - repcentageTotal));
-
-            // ThunderBold agm65d maveric
-            //result = 62260
-            //original = 8915
-            //62260 bigger than 8915 on 698%
+            //return (float)Math.Round((double)(newValue - repcentageTotal));
+            return (float)Math.Round((double)result);
         }
 
         private static float ConvertToWarnoDistance(int valueToConvert)
