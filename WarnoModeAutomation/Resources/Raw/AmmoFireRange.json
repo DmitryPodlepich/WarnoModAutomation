@@ -3,22 +3,27 @@
 		"AmmoName": "Ammo_SAM_MIM72G",
 		"FireRangeInMeters": 6000
 	},
+
 	{
 		"AmmoName": "Ammo_AGM_AGM65D_Maverick",
 		"FireRangeInMeters": 22000
 	},
+
 	{
 		"AmmoName": "Ammo_AA_AIM9M_Sidewinder",
 		"FireRangeInMeters": 9000
 	},
+
 	{
 		"AmmoName": "Ammo_RocketArt_M26_227mm",
 		"FireRangeInMeters": 70000
 	},
+
 	{
 		"AmmoName": "Ammo_RocketArt_M26_227mm_Cluster",
 		"FireRangeInMeters": 70000
 	},
+
 	{
 		"AmmoName": "Ammo_ATGM_BGM71D_TOW_2_x2",
 		"FireRangeInMeters": 3750
@@ -59,8 +64,102 @@
 		"AmmoName": "Ammo_ATGM_BGM71D_TOW_2",
 		"FireRangeInMeters": 3750
 	},
+
 	{
 		"AmmoName": "Ammo_AA_AIM120A_AMRAAM",
 		"FireRangeInMeters": 160000
+	},
+
+	{
+		"AmmoName": "Ammo_SAM_9M336_x3",
+		"FireRangeInMeters": 22000
+	},
+
+	{
+		"AmmoName": "Ammo_SAM_9M38M1_x4",
+		"FireRangeInMeters": 50000
+	},
+
+	{
+		"AmmoName": "Ammo_SAM_Strela1_x4",
+		"FireRangeInMeters" : 5000
+	},
+	{
+		"AmmoName": "Ammo_SAM_Strela10_x4",
+		"FireRangeInMeters" : 5000
+	},
+	{
+		"AmmoName": "Ammo_SAM_Strela10_x4_FASTA",
+		"FireRangeInMeters" : 5000
+	},
+	{
+		"AmmoName": "Ammo_SAM_Strela10M3_x4",
+		"FireRangeInMeters" : 5000
+	},
+	{
+		"AmmoName": "Ammo_SAM_Strela2_x12",
+		"FireRangeInMeters" : 5000
+	},
+	{
+		"AmmoName": "Ammo_SAM_Strela2_x2",
+		"FireRangeInMeters" : 5000
+	},
+	{
+		"AmmoName": "Ammo_SAM_Strela2_x4",
+		"FireRangeInMeters" : 5000
+	},
+
+	{
+		"AmmoName": "Ammo_SAM_9M330_Tor_x8",
+		"FireRangeInMeters" : 12000
+	},
+
+	{
+		"AmmoName": "Ammo_SAM_ROLAND_2",
+		"FireRangeInMeters" : 6300
+	},
+	{
+		"AmmoName": "Ammo_SAM_ROLAND_2_x2",
+		"FireRangeInMeters" : 6300
+	},
+
+	{
+		"AmmoName": "Ammo_AGM_AGM114A",
+		"FireRangeInMeters" : 11000
+	},
+	{
+		"AmmoName": "Ammo_AGM_AGM114A_x16",
+		"FireRangeInMeters" : 11000
+	},
+	{
+		"AmmoName": "Ammo_AGM_AGM114A_x2_salve",
+		"FireRangeInMeters" : 11000
+	},
+	{
+		"AmmoName": "Ammo_AGM_AGM114A_x4",
+		"FireRangeInMeters" : 11000
+	},
+	{
+		"AmmoName": "Ammo_AGM_AGM114A_x8",
+		"FireRangeInMeters" : 11000
+	},
+
+	{
+		"AmmoName": "Ammo_SAM_I_Hawk",
+		"FireRangeInMeters" : 50000
+	},
+	{
+		"AmmoName": "Ammo_SAM_I_Hawk_x3",
+		"FireRangeInMeters" : 50000
+	},
+
+	{
+		"AmmoName": "Ammo_ATGM_9K111_Fagot",
+		"FireRangeInMeters" : 2500
+	},
+
+	{
+		"AmmoName": "Ammo_ATGM_9M128_Agona",
+		"FireRangeInMeters" : 4000
 	}
 ]

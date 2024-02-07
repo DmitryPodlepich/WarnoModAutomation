@@ -281,7 +281,13 @@ namespace WarnoModeAutomation.Logic
                         OnCMDProviderOutput($"ArtileryDamage for: {unit.ClassNameForDebug}. unitAmunition: {unitAmunition.EntityNDFType} has been increased by {WarnoConstants.ArtileryDamagePercentage} %");
 
                     if (!NDFTypesExtensions.IsSovUnit(tTypeUnitModuleDescriptor))
-                        additionalCommandPoins += ModifyAmunitionAccuracity(unitAmunition);
+                    {
+                        var accuracityAdditionalCommandPoins = ModifyAmunitionAccuracity(unitAmunition);
+
+                        modifiedAmunition.Add(unitAmunition.EntityNDFType, accuracityAdditionalCommandPoins);
+
+                        additionalCommandPoins += accuracityAdditionalCommandPoins;
+                    }
 
                     var realFireRange = JsonDatabase.JsonDatabase.FindAmmoRange(unitAmunition.EntityNDFType);
 
@@ -293,8 +299,6 @@ namespace WarnoModeAutomation.Logic
 
                         unitAmunitionsHasDistanceChanges = true;
                     }
-
-                    modifiedAmunition.Add(unitAmunition.EntityNDFType, additionalCommandPoins);
 
                     OnCMDProviderOutput($"Unit: {unit.ClassNameForDebug} amunition {unitAmunition.EntityNDFType} modified!");
                 }
