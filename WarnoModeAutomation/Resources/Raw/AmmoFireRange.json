@@ -10,10 +10,25 @@
 	},
 
 	{
-		"AmmoName": "Ammo_AA_AIM9M_Sidewinder",
-		"FireRangeInMeters": 9000
+		"AmmoName": "Ammo_AA_AIM9P_Sidewinder_x2",
+		"FireRangeInMeters": 16000
 	},
-
+	{
+		"AmmoName": "Ammo_AA_AIM9P_Sidewinder",
+		"FireRangeInMeters": 16000
+	},
+	{
+		"AmmoName": "Ammo_AA_AIM9M_Sidewinder",
+		"FireRangeInMeters": 16000
+	},
+	{
+		"AmmoName": "Ammo_AA_AIM9J_Sidewinder",
+		"FireRangeInMeters": 12000
+	},
+	{
+		"AmmoName": "Ammo_AA_AIM9L_Sidewinder",
+		"FireRangeInMeters": 10000
+	},
 	{
 		"AmmoName": "Ammo_RocketArt_M26_227mm",
 		"FireRangeInMeters": 70000
@@ -71,6 +86,15 @@
 	},
 
 	{
+		"AmmoName": "Ammo_AA_AIM7F_Sparrow",
+		"FireRangeInMeters": 70000
+	},
+	{
+		"AmmoName": "Ammo_AA_AIM7M_Sparrow",
+		"FireRangeInMeters": 60000
+	},
+
+	{
 		"AmmoName": "Ammo_SAM_9M336_x3",
 		"FireRangeInMeters": 22000
 	},
@@ -82,84 +106,221 @@
 
 	{
 		"AmmoName": "Ammo_SAM_Strela1_x4",
-		"FireRangeInMeters" : 5000
+		"FireRangeInMeters": 5000
 	},
 	{
 		"AmmoName": "Ammo_SAM_Strela10_x4",
-		"FireRangeInMeters" : 5000
+		"FireRangeInMeters": 5000
 	},
 	{
 		"AmmoName": "Ammo_SAM_Strela10_x4_FASTA",
-		"FireRangeInMeters" : 5000
+		"FireRangeInMeters": 5000
 	},
 	{
 		"AmmoName": "Ammo_SAM_Strela10M3_x4",
-		"FireRangeInMeters" : 5000
+		"FireRangeInMeters": 5000
 	},
 	{
 		"AmmoName": "Ammo_SAM_Strela2_x12",
-		"FireRangeInMeters" : 5000
+		"FireRangeInMeters": 5000
 	},
 	{
 		"AmmoName": "Ammo_SAM_Strela2_x2",
-		"FireRangeInMeters" : 5000
+		"FireRangeInMeters": 5000
 	},
 	{
 		"AmmoName": "Ammo_SAM_Strela2_x4",
-		"FireRangeInMeters" : 5000
+		"FireRangeInMeters": 5000
 	},
 
 	{
 		"AmmoName": "Ammo_SAM_9M330_Tor_x8",
-		"FireRangeInMeters" : 12000
+		"FireRangeInMeters": 12000
 	},
 
 	{
 		"AmmoName": "Ammo_SAM_ROLAND_2",
-		"FireRangeInMeters" : 6300
+		"FireRangeInMeters": 6300
 	},
 	{
 		"AmmoName": "Ammo_SAM_ROLAND_2_x2",
-		"FireRangeInMeters" : 6300
+		"FireRangeInMeters": 6300
 	},
 
 	{
 		"AmmoName": "Ammo_AGM_AGM114A",
-		"FireRangeInMeters" : 11000
+		"FireRangeInMeters": 11000
 	},
 	{
 		"AmmoName": "Ammo_AGM_AGM114A_x16",
-		"FireRangeInMeters" : 11000
+		"FireRangeInMeters": 11000
 	},
 	{
 		"AmmoName": "Ammo_AGM_AGM114A_x2_salve",
-		"FireRangeInMeters" : 11000
+		"FireRangeInMeters": 11000
 	},
 	{
 		"AmmoName": "Ammo_AGM_AGM114A_x4",
-		"FireRangeInMeters" : 11000
+		"FireRangeInMeters": 11000
 	},
 	{
 		"AmmoName": "Ammo_AGM_AGM114A_x8",
-		"FireRangeInMeters" : 11000
+		"FireRangeInMeters": 11000
 	},
 
 	{
 		"AmmoName": "Ammo_SAM_I_Hawk",
-		"FireRangeInMeters" : 50000
+		"FireRangeInMeters": 50000
 	},
 	{
 		"AmmoName": "Ammo_SAM_I_Hawk_x3",
-		"FireRangeInMeters" : 50000
+		"FireRangeInMeters": 50000
 	},
 
 	{
 		"AmmoName": "Ammo_ATGM_9K111_Fagot",
-		"FireRangeInMeters" : 2500
+		"FireRangeInMeters": 2500
+	},
+
+	{
+		"AmmoName": "Ammo_AA_R23R_Vympel",
+		"FireRangeInMeters": 10000
+	},
+
+	{
+		"AmmoName": "Ammo_ATGM_9M114M_KokonM",
+		"FireRangeInMeters": 4000
+	},
+	{
+		"AmmoName": "Ammo_AGM_9M114M_KokonM_x16",
+		"FireRangeInMeters": 4000
+	},
+	{
+		"AmmoName": "Ammo_AGM_9M114M_KokonM_x2",
+		"FireRangeInMeters": 4000
+	},
+	{
+		"AmmoName": "Ammo_AGM_9M114M_KokonM_x4",
+		"FireRangeInMeters": 4000
+	},
+	{
+		"AmmoName": "Ammo_AGM_9M114M_KokonM_x6",
+		"FireRangeInMeters": 4000
+	},
+
+	{
+		"AmmoName": "Ammo_AGM_9K121_Vikhr",
+		"FireRangeInMeters": 10000
+	},
+	{
+		"AmmoName": "Ammo_AGM_9K121_Vikhr_x12",
+		"FireRangeInMeters": 10000
+	},
+	{
+		"AmmoName": "Ammo_AGM_9K121_Vikhr_x16",
+		"FireRangeInMeters": 10000
+	},
+
+	{
+		"AmmoName": "Ammo_MANPAD_igla",
+		"FireRangeInMeters": 4000
+	},
+	{
+		"AmmoName": "Ammo_SAM_Igla",
+		"FireRangeInMeters": 4500
+	},
+	{
+		"AmmoName": "Ammo_SAM_Igla1M",
+		"FireRangeInMeters": 4500
+	},
+	{
+		"AmmoName": "Ammo_SAM_IglaV",
+		"FireRangeInMeters": 5000
+	},
+	{
+		"AmmoName": "Ammo_SAM_IglaV_x4",
+		"FireRangeInMeters": 5000
+	},
+
+	{
+		"AmmoName": "Ammo_AA_R60M_Vympel",
+		"FireRangeInMeters": 10000
+	},
+	{
+		"AmmoName": "Ammo_AA_R73_Vympel",
+		"FireRangeInMeters": 30000
+	},
+	{
+		"AmmoName": "Ammo_AA_R27R_Vympel",
+		"FireRangeInMeters": 100000
+	},
+
+	{
+		"AmmoName": "Ammo_SAM_RAPIER",
+		"FireRangeInMeters": 6800
+	},
+	{
+		"AmmoName": "Ammo_SAM_RAPIER_x4",
+		"FireRangeInMeters": 6800
+	},
+	{
+		"AmmoName": "Ammo_SAM_RAPIER_x8",
+		"FireRangeInMeters": 6800
+	},
+	{
+		"AmmoName": "Ammo_SAM_RAPIER_DARKFIRE_x6",
+		"FireRangeInMeters": 7800
+	},
+	{
+		"AmmoName": "Ammo_SAM_RAPIER_FSA_x4",
+		"FireRangeInMeters": 7800
+	},
+
+	{
+		"AmmoName": "Ammo_ATGM_MILAN",
+		"FireRangeInMeters": 2000
+	},
+	{
+		"AmmoName": "Ammo_ATGM_MILAN_2",
+		"FireRangeInMeters": 2000
+	},
+	{
+		"AmmoName": "Ammo_ATGM_MILAN_2_x2",
+		"FireRangeInMeters": 2000
+	},
+
+	{
+		"AmmoName": "Ammo_AGM_BGM71C_ITOW_x8",
+		"FireRangeInMeters": 3800
+	},
+	{
+		"AmmoName": "Ammo_ATGM_BGM71C_ITOW",
+		"FireRangeInMeters": 3800
+	},
+	{
+		"AmmoName": "Ammo_ATGM_BGM71C_ITOW_x2",
+		"FireRangeInMeters": 3800
+	},
+	{
+		"AmmoName": "Ammo_ATGM_BGM71C_ITOW_x4",
+		"FireRangeInMeters": 3800
+	},
+	{
+		"AmmoName": "Ammo_ATGM_BGM71C_ITOW_x8",
+		"FireRangeInMeters": 3800
+	},
+
+	{
+		"AmmoName": "Ammo_AA_Skyflash",
+		"FireRangeInMeters": 45000
+	},
+	{
+		"AmmoName": "Ammo_AA_Skyflash_SuperTEMP",
+		"FireRangeInMeters": 50000
 	},
 
 	{
 		"AmmoName": "Ammo_ATGM_9M128_Agona",
-		"FireRangeInMeters" : 4000
+		"FireRangeInMeters": 4000
 	}
 ]

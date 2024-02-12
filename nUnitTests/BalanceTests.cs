@@ -2,7 +2,7 @@ using WarnoModeAutomation.Logic;
 
 namespace nUnitTests
 {
-    public class Tests
+    public class BalanceTests
     {
         [SetUp]
         public void Setup()
