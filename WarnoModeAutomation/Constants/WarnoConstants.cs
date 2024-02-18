@@ -22,19 +22,19 @@
 
         public const string ArtillerieTag = "Artillerie";
         public const string ArtileryWeaponCursorType = "Weapon_Cursor_CorrectedArtillery";
-        public const int NatoCommonAccuracityBonusPercentage = 15;
+        public const int NatoCommonAccuracityBonusPercentage = 20;
 
         public const int SovMinOpticalStrength = 20;
         public const int NatoMinOpticalStrength = 40;
 
-        public const int SovGroundVisionPercentage = 15;
+        public const int SovGroundVisionPercentage = 20;
         public const int NatoGroundVisionPercentage = 10;
 
         public const int SovTBAVisionPercentage = 30;
-        public const int NatoTBAVisionPercentage = 20;
+        public const int NatoTBAVisionPercentage = 10;
 
         public const int SovHAVisionPercentage = 50;
-        public const int NatoHAVisionPercentage = 30;
+        public const int NatoHAVisionPercentage = 25;
 
         public const int TBAAndHADetectionPercentage = 20;
         public const int GroudDetectionPercentage = 10;

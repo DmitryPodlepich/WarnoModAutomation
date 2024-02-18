@@ -192,7 +192,7 @@ namespace WarnoModeAutomation.Logic
             }
         }
 
-        private static void ModifyUnit(TEntityDescriptor unit, UnitsRelatedDataDTO unitsRelatedData, ref Dictionary<string, int> modifiedAmunition) 
+        private static void ModifyUnit(TEntityDescriptor unit, UnitsRelatedDataDTO unitsRelatedData, ref Dictionary<string, int> modifiedAmunition)
         {
             try
             {
@@ -219,10 +219,10 @@ namespace WarnoModeAutomation.Logic
                 var unitAmunitionNames = weaponManagerModule
                     .TurretDescriptorList.OfType<ITTurretDescriptor>()
                     .SelectMany(d => d.MountedWeaponDescriptorList.OfType<TMountedWeaponDescriptor>())
-                    .Select(w => w.Ammunition.Replace("~/", ""));
+                    .Select(w => w.Ammunition.Split('/').Last().Trim());
 
                 var unitAmunitions = unitsRelatedData.AmmunitionDescriptor.RootDescriptors
-                    .Where(d => unitAmunitionNames.Contains(d.EntityNDFType));
+                    .Where(d => unitAmunitionNames.Contains(d.EntityNDFType.Trim()));
 
                 if (!unitAmunitions.Any())
                 {
@@ -238,7 +238,9 @@ namespace WarnoModeAutomation.Logic
                     return;
                 }
 
-                if (!tProductionModuleDescriptors.ProductionRessourcesNeeded.TryGetValue("~/Resource_CommandPoints", out int resourceCommandPoints))
+                var resourceCommandPointsKey = tProductionModuleDescriptors.ProductionRessourcesNeeded.Keys.SingleOrDefault(x => x.Contains("Resource_CommandPoints", StringComparison.OrdinalIgnoreCase));
+
+                if (resourceCommandPointsKey == null || !tProductionModuleDescriptors.ProductionRessourcesNeeded.TryGetValue(resourceCommandPointsKey, out int resourceCommandPoints))
                 {
                     OnCMDProviderOutput($"Cannot find Resource_CommandPoints for unit: {unit.ClassNameForDebug}");
                     return;
@@ -293,7 +295,7 @@ namespace WarnoModeAutomation.Logic
 
                     if (realFireRange is not null)
                     {
-                        ModifyAmunitionDistance(tProductionModuleDescriptors, unitAmunition, realFireRange, shouldNerf);
+                        ModifyAmunitionDistance(resourceCommandPoints, unitAmunition, realFireRange, shouldNerf);
 
                         OnCMDProviderOutput($"Fire range for unit: {unit.ClassNameForDebug}. unitAmunition: {unitAmunition.EntityNDFType} has been changed!");
 
@@ -307,7 +309,7 @@ namespace WarnoModeAutomation.Logic
                     UpdateUnitVisionByAmunitionDistance(unit, unitAmunitions);
 
                 if (additionalCommandPoins > 0)
-                    tProductionModuleDescriptors.ProductionRessourcesNeeded["~/Resource_CommandPoints"] += additionalCommandPoins.RoundOff();
+                    tProductionModuleDescriptors.ProductionRessourcesNeeded[resourceCommandPointsKey] += additionalCommandPoins.RoundOff();
 
             }
             catch (Exception ex)
@@ -372,14 +374,14 @@ namespace WarnoModeAutomation.Logic
             return true;
         }
 
-        private static void ModifyAmunitionDistance(TProductionModuleDescriptor tProductionModuleDescriptors, TAmmunitionDescriptor ammunition, AmmoRangeDTO ammoRangeDTO, bool shouldNerf) 
+        private static void ModifyAmunitionDistance(int originalResourceCommandPoints, TAmmunitionDescriptor ammunition, AmmoRangeDTO ammoRangeDTO, bool shouldNerf) 
         {
             var realDistanceInMetersToWarnoDistance = ConvertToWarnoDistance(ammoRangeDTO.FireRangeInMeters);
 
             var unitPorteeMaximaleModificationData = new UnitModificationDataDTO(
                 ammunition.PorteeMaximale,
                 ammunition,
-                tProductionModuleDescriptors.ProductionRessourcesNeeded["~/Resource_CommandPoints"],
+                originalResourceCommandPoints,
                 realDistanceInMetersToWarnoDistance,
                 shouldNerf);
 
@@ -560,10 +562,11 @@ namespace WarnoModeAutomation.Logic
 
                 var tProductionModuleDescriptors = entityDescriptor.ModulesDescriptors.OfType<TProductionModuleDescriptor>().SingleOrDefault();
 
-                if (tProductionModuleDescriptors.ProductionRessourcesNeeded.ContainsKey("~/Resource_CommandPoints"))
-                {
-                    tProductionModuleDescriptors.ProductionRessourcesNeeded["~/Resource_CommandPoints"] = 225;
-                }
+                //ToDo: change to contains in keys as we did with amunition.
+                //if (tProductionModuleDescriptors.ProductionRessourcesNeeded.ContainsKey("~/Resource_CommandPoints"))
+                //{
+                //    tProductionModuleDescriptors.ProductionRessourcesNeeded["~/Resource_CommandPoints"] = 225;
+                //}
             }
 
             return buildingsFileDescriptor;
