@@ -54,13 +54,6 @@
 
                         <hr>
 
-                        @*  <Button Loading="@(_currentOperation == OperationType.FillDatabase)" LoadingText="Filling..." Disabled="@(_currentOperation != OperationType.Idle)" Class="btn btn-primary ms-2" @onclick="FillDatabase">
-                            <i class="bi bi-download"></i>
-                            Fill database
-                        </Button>
-
-                        <hr> *@
-
                         <Button Loading="@(_currentOperation == OperationType.Modify)" LoadingText="Modifying..." Disabled="@(_currentOperation != OperationType.Idle)" Class="btn btn-primary ms-2" @onclick="Modify">
                             <i class="bi bi-download"></i>
                             Modify
@@ -90,12 +83,6 @@
     </div>
 
 </section>
-
-<script>
-    function scrollHeight(textarea) {
-        textarea.scrollTop = textarea.scrollHeight;
-    }
-</script>
 
 @code {
     InputTextArea TextAreaRef;
@@ -136,7 +123,8 @@
             _stringBuilder.AppendLine(Environment.NewLine);
             _stringBuilder.AppendLine(data);
             StateHasChanged();
-            await JS.InvokeVoidAsync("scrollHeight", TextAreaRef.Element);
+
+            await JS.InvokeVoidAsync("scrollHeight", TextAreaRef?.Element);
         });
     }
 

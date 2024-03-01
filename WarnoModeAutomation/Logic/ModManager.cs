@@ -2,7 +2,6 @@
 using JsonDatabase.DTO;
 using NDFSerialization.Models;
 using NDFSerialization.NDFDataTypes.Primitive;
-using System.ComponentModel;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using WarnoModeAutomation.Constants;
@@ -43,7 +42,6 @@ namespace WarnoModeAutomation.Logic
             return await cmdProvier.PerformCMDCommand($"{_createNewModBatFileName} {Storage.ModeSettings.ModName}");
         }
 
-        //ToDo: Not tested yet!
         public static bool DeleteMod() 
         {
             var modDirectory = Path.Combine(Storage.ModeSettings.ModsDirectory, Storage.ModeSettings.ModName);
@@ -334,7 +332,7 @@ namespace WarnoModeAutomation.Logic
                 {
                     var additionalAccuracityPercentage = GetNumberPercentage(WarnoConstants.NatoCommonAccuracityBonusPercentage, baseHitValueModifier.Value);
                     var newAccuracityValue = baseHitValueModifier.Value + additionalAccuracityPercentage;
-                    additionalResourceCommandPoints += ((int)additionalAccuracityPercentage) * 2;
+                    additionalResourceCommandPoints += (int)Math.Round(additionalAccuracityPercentage * WarnoConstants.AdditionalPointsCoefficientMultiplier);
                     ammunition.HitRollRuleDescriptor.BaseHitValueModifiers[baseHitValueModifier.Key] = (float)Math.Round(newAccuracityValue);
                 }
             }
@@ -345,7 +343,7 @@ namespace WarnoModeAutomation.Logic
                 {
                     var additionalAccuracityValue = GetNumberPercentage(WarnoConstants.NatoArtileryAccuracityBonusPercentage, ammunition.DispersionAtMaxRange.FloatValue);
                     var newAccuracityValue = ammunition.DispersionAtMaxRange.FloatValue - additionalAccuracityValue;
-                    additionalResourceCommandPoints += ((int)additionalAccuracityValue / 5);
+                    additionalResourceCommandPoints += (int)Math.Round(additionalAccuracityValue / WarnoConstants.AdditionalPointsArtileryCoefficientDivider);
                     ammunition.DispersionAtMaxRange.FloatValue = (float)Math.Round(newAccuracityValue);
                 }
 
@@ -353,7 +351,7 @@ namespace WarnoModeAutomation.Logic
                 {
                     var additionalAccuracityValue = GetNumberPercentage(WarnoConstants.NatoArtileryAccuracityBonusPercentage, ammunition.DispersionAtMinRange.FloatValue);
                     var newAccuracityValue = ammunition.DispersionAtMinRange.FloatValue - additionalAccuracityValue;
-                    additionalResourceCommandPoints += ((int)additionalAccuracityValue / 5);
+                    additionalResourceCommandPoints += (int)Math.Round(additionalAccuracityValue / WarnoConstants.AdditionalPointsArtileryCoefficientDivider);
                     ammunition.DispersionAtMinRange.FloatValue = (float)Math.Round(newAccuracityValue);
                 }
             }
@@ -485,7 +483,7 @@ namespace WarnoModeAutomation.Logic
             if (IsAllowedToChangeValue(unitModificationDataDTO.DistanceMetre, unitModificationDataDTO.RealFireRangeDistance))
             {
                 if (unitModificationDataDTO.NerfRequired)
-                    unitModificationDataDTO.RealFireRangeDistance = NerfDistanceV2(unitModificationDataDTO.RealFireRangeDistance, unitModificationDataDTO.DistanceMetre.FloatValue);
+                    unitModificationDataDTO.RealFireRangeDistance = NerfDistance(unitModificationDataDTO.RealFireRangeDistance, unitModificationDataDTO.DistanceMetre.FloatValue);
 
                 unitModificationDataDTO.DistanceMetre.FloatValue = unitModificationDataDTO.RealFireRangeDistance;
             }
@@ -511,24 +509,10 @@ namespace WarnoModeAutomation.Logic
 
         private static float ConverToWarnoDistance(float value)
         {
-            return value / 1000 * 2830;
+            return value / 1000 * WarnoConstants.WarnoMetters;
         }
 
-        //internal static float NerfDistance(float newValue, float originalValue)
-        //{
-        //    if (newValue <= originalValue)
-        //        return originalValue;
-
-        //    var difference = newValue - originalValue;
-
-        //    var percentageoriginalValue = GetPercentageAfromB(originalValue, newValue);
-
-        //    var repcentageTotal = difference / percentageoriginalValue;
-
-        //    return (float)Math.Round((double)(newValue - repcentageTotal));
-        //}
-
-        internal static float NerfDistanceV2(float newValue, float originalValue)
+        internal static float NerfDistance(float newValue, float originalValue)
         {
             if (newValue <= originalValue)
                 return originalValue;
@@ -541,15 +525,14 @@ namespace WarnoModeAutomation.Logic
 
             var pcentageTotal = difference / percentageoriginalValue;
 
-            var result = (newValue - pcentageTotal) / Math.Max(percentageDifference / percentageoriginalValue / 2.5, 1);
+            var result = (newValue - pcentageTotal) / Math.Max(percentageDifference / percentageoriginalValue / WarnoConstants.NerfDistanceCoefficientDivider, 1);
 
-            //return (float)Math.Round((double)(newValue - repcentageTotal));
             return (float)Math.Round((double)result);
         }
 
         private static float ConvertToWarnoDistance(int valueToConvert)
         {
-            return valueToConvert / 1000 * 2830;
+            return valueToConvert / 1000 * WarnoConstants.WarnoMetters;
         }
 
         private static FileDescriptor<TEntityDescriptor> ModifyBuildings(FileDescriptor<TEntityDescriptor> buildingsFileDescriptor)
@@ -559,14 +542,6 @@ namespace WarnoModeAutomation.Logic
                 var tSupplyModuleDescriptor = entityDescriptor.ModulesDescriptors.OfType<TSupplyModuleDescriptor>().SingleOrDefault();
 
                 tSupplyModuleDescriptor.SupplyCapacity = 46000;
-
-                var tProductionModuleDescriptors = entityDescriptor.ModulesDescriptors.OfType<TProductionModuleDescriptor>().SingleOrDefault();
-
-                //ToDo: change to contains in keys as we did with amunition.
-                //if (tProductionModuleDescriptors.ProductionRessourcesNeeded.ContainsKey("~/Resource_CommandPoints"))
-                //{
-                //    tProductionModuleDescriptors.ProductionRessourcesNeeded["~/Resource_CommandPoints"] = 225;
-                //}
             }
 
             return buildingsFileDescriptor;

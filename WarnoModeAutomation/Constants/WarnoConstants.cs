@@ -22,12 +22,19 @@
 
         public const string ArtillerieTag = "Artillerie";
         public const string ArtileryWeaponCursorType = "Weapon_Cursor_CorrectedArtillery";
-        public const int NatoCommonAccuracityBonusPercentage = 20;
 
-        public const int SovMinOpticalStrength = 20;
-        public const int NatoMinOpticalStrength = 40;
+        //Move to appSettings or user interface
+        public const double AdditionalPointsCoefficientMultiplier = 1.2;
+        public const double AdditionalPointsArtileryCoefficientDivider = 6;
+        public const double NerfDistanceCoefficientDivider = 2.5;
+        public const int WarnoMetters = 2830;
 
-        public const int SovGroundVisionPercentage = 20;
+        public const int NatoCommonAccuracityBonusPercentage = 25;
+
+        public const int SovMinOpticalStrength = 10;
+        public const int NatoMinOpticalStrength = 50;
+
+        public const int SovGroundVisionPercentage = 30;
         public const int NatoGroundVisionPercentage = 10;
 
         public const int SovTBAVisionPercentage = 30;
@@ -40,6 +47,6 @@
         public const int GroudDetectionPercentage = 10;
 
         public const int ArtileryDamagePercentage = 50;
-        public const int NatoArtileryAccuracityBonusPercentage = 40;
+        public const int NatoArtileryAccuracityBonusPercentage = 50;
     }
 }

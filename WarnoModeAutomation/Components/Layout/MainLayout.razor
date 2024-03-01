@@ -1,5 +1,12 @@
 ﻿@inherits LayoutComponentBase
 
+<script>
+    function scrollHeight(textarea) {
+        if (textarea)
+            textarea.scrollTop = textarea.scrollHeight;
+    }
+</script>
+
 <div class="page">
     <div class="sidebar">
         <NavMenu />
