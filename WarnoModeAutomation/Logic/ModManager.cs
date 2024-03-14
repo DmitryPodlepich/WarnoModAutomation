@@ -128,7 +128,7 @@ namespace WarnoModeAutomation.Logic
             await WebSearchEngine.FillDatabaseWithMilitaryTodayAsync(cancellationTokenSource);
         }
 
-        public static async Task Modify()
+        public static async Task Modify(bool enableFullLog)
         {
             var amunitionFilePath = FileManager.NDFFilesPaths.SingleOrDefault(f => f.FileName == WarnoConstants.AmmunitionDescriptorsFileName);
             var weaponFilePath = FileManager.NDFFilesPaths.SingleOrDefault(f => f.FileName == WarnoConstants.WeaponDescriptorDescriptorsFileName);
@@ -145,23 +145,31 @@ namespace WarnoModeAutomation.Logic
             [
                 Task.Run(() =>
                 {
-                    amunition = NDFSerializer.Deserialize<TAmmunitionDescriptor>(amunitionFilePath.FilePath);
-                    OnCMDProviderOutput($"{amunitionFilePath.FileName} desirialized!");
+                    amunition = NDFSerializer.Deserialize<TAmmunitionDescriptor>(amunitionFilePath.FilePath, OnCMDProviderOutput);
+                    
+                    if(enableFullLog)
+                        OnCMDProviderOutput($"{amunitionFilePath.FileName} desirialized!");
                 }),
                 Task.Run(() =>
                 {
-                    weapon = NDFSerializer.Deserialize<TWeaponManagerModuleDescriptor>(weaponFilePath.FilePath);
-                    OnCMDProviderOutput($"{weaponFilePath.FileName} desirialized!");
+                    weapon = NDFSerializer.Deserialize<TWeaponManagerModuleDescriptor>(weaponFilePath.FilePath, OnCMDProviderOutput);
+
+                    if (enableFullLog)
+                        OnCMDProviderOutput($"{weaponFilePath.FileName} desirialized!");
                 }),
                 Task.Run(() =>
                 {
-                    units = NDFSerializer.Deserialize<TEntityDescriptor>(unitsFilePath.FilePath);
-                    OnCMDProviderOutput($"{unitsFilePath.FileName} desirialized!");
+                    units = NDFSerializer.Deserialize<TEntityDescriptor>(unitsFilePath.FilePath, OnCMDProviderOutput);
+
+                    if (enableFullLog)
+                        OnCMDProviderOutput($"{unitsFilePath.FileName} desirialized!");
                 }),
                 Task.Run(() =>
                 {
-                    buildings = NDFSerializer.Deserialize<TEntityDescriptor>(buildingsFilePath.FilePath);
-                    OnCMDProviderOutput($"{buildingsFilePath.FileName} desirialized!");
+                    buildings = NDFSerializer.Deserialize<TEntityDescriptor>(buildingsFilePath.FilePath, OnCMDProviderOutput);
+
+                    if (enableFullLog)
+                        OnCMDProviderOutput($"{buildingsFilePath.FileName} desirialized!");
                 }),
             ];
 
@@ -169,7 +177,7 @@ namespace WarnoModeAutomation.Logic
 
             var unitsRelatedData = new UnitsRelatedDataDTO(amunition, weapon, units);
 
-            ModifyUnits(unitsRelatedData);
+            ModifyUnits(unitsRelatedData, enableFullLog);
 
             buildings = ModifyBuildings(buildings);
 
@@ -178,19 +186,21 @@ namespace WarnoModeAutomation.Logic
             await File.WriteAllTextAsync(amunitionFilePath.FilePath, NDFSerializer.Serialize(amunition));
             await File.WriteAllTextAsync(weaponFilePath.FilePath, NDFSerializer.Serialize(weapon));
             await File.WriteAllTextAsync(buildingsFilePath.FilePath, NDFSerializer.Serialize(buildings));
+
+            OnCMDProviderOutput("Modification successfully completed!");
         }
 
-        private static void ModifyUnits(UnitsRelatedDataDTO unitsRelatedData) 
+        private static void ModifyUnits(UnitsRelatedDataDTO unitsRelatedData, bool enableFullLog = false) 
         {
             var modifiedAmunition = new Dictionary<string, int>();
 
             foreach (var unit in unitsRelatedData.UnitsEntityDescriptor.RootDescriptors)
             {
-                ModifyUnit(unit, unitsRelatedData, ref modifiedAmunition);
+                ModifyUnit(unit, unitsRelatedData, ref modifiedAmunition, enableFullLog);
             }
         }
 
-        private static void ModifyUnit(TEntityDescriptor unit, UnitsRelatedDataDTO unitsRelatedData, ref Dictionary<string, int> modifiedAmunition)
+        private static void ModifyUnit(TEntityDescriptor unit, UnitsRelatedDataDTO unitsRelatedData, ref Dictionary<string, int> modifiedAmunition, bool enableFullLog = false)
         {
             try
             {
@@ -236,11 +246,11 @@ namespace WarnoModeAutomation.Logic
                     return;
                 }
 
-                var resourceCommandPointsKey = tProductionModuleDescriptors.ProductionRessourcesNeeded.Keys.SingleOrDefault(x => x.Contains("Resource_CommandPoints", StringComparison.OrdinalIgnoreCase));
+                var resourceCommandPointsKey = tProductionModuleDescriptors.ProductionRessourcesNeeded.Keys.SingleOrDefault(x => x.Contains(WarnoConstants.ResourceCommandPoints, StringComparison.OrdinalIgnoreCase));
 
                 if (resourceCommandPointsKey == null || !tProductionModuleDescriptors.ProductionRessourcesNeeded.TryGetValue(resourceCommandPointsKey, out int resourceCommandPoints))
                 {
-                    OnCMDProviderOutput($"Cannot find Resource_CommandPoints for unit: {unit.ClassNameForDebug}");
+                    OnCMDProviderOutput($"Cannot find {WarnoConstants.ResourceCommandPoints} for unit: {unit.ClassNameForDebug}");
                     return;
                 }
 
@@ -270,14 +280,13 @@ namespace WarnoModeAutomation.Logic
 
                 foreach (var unitAmunition in unitAmunitions)
                 {
-                    //If unit has the same amunition which already has been modified we need to add additional command point to that unit also for each modified amunition.
                     if (modifiedAmunition.TryGetValue(unitAmunition.EntityNDFType, out int value))
                     {
                         additionalCommandPoins += value;
                         continue;
                     }
 
-                    if (EnsureModifiedArtileryDamage(unitAmunition))
+                    if (EnsureModifiedArtileryDamage(unitAmunition) && enableFullLog)
                         OnCMDProviderOutput($"ArtileryDamage for: {unit.ClassNameForDebug}. unitAmunition: {unitAmunition.EntityNDFType} has been increased by {WarnoConstants.ArtileryDamagePercentage} %");
 
                     if (!NDFTypesExtensions.IsSovUnit(tTypeUnitModuleDescriptor))
@@ -295,12 +304,14 @@ namespace WarnoModeAutomation.Logic
                     {
                         ModifyAmunitionDistance(resourceCommandPoints, unitAmunition, realFireRange, shouldNerf);
 
-                        OnCMDProviderOutput($"Fire range for unit: {unit.ClassNameForDebug}. unitAmunition: {unitAmunition.EntityNDFType} has been changed!");
+                        if(enableFullLog)
+                            OnCMDProviderOutput($"Fire range for unit: {unit.ClassNameForDebug}. unitAmunition: {unitAmunition.EntityNDFType} has been changed!");
 
                         unitAmunitionsHasDistanceChanges = true;
                     }
 
-                    OnCMDProviderOutput($"Unit: {unit.ClassNameForDebug} amunition {unitAmunition.EntityNDFType} modified!");
+                    if(enableFullLog)
+                        OnCMDProviderOutput($"Unit: {unit.ClassNameForDebug} amunition {unitAmunition.EntityNDFType} modified!");
                 }
 
                 if (unitAmunitionsHasDistanceChanges)
@@ -446,7 +457,7 @@ namespace WarnoModeAutomation.Logic
 
         private static float CalculateUnitDetectionTBAAndHA(float visionDistance) 
         {
-            var percentage = GetNumberPercentage(WarnoConstants.TBAAndHADetectionPercentage ,visionDistance);
+            var percentage = GetNumberPercentage(WarnoConstants.TBAAndHADetectionPercentageFromVisionDistance ,visionDistance);
 
             return visionDistance - percentage;
         }
@@ -454,8 +465,8 @@ namespace WarnoModeAutomation.Logic
         private static float CalculateUnitVisionGround(DistanceMetre amunitionDistance, bool isSovUnit)
         {
             var percentage = isSovUnit
-                ? GetNumberPercentage(WarnoConstants.SovGroundVisionPercentage, amunitionDistance.FloatValue)
-                : GetNumberPercentage(WarnoConstants.NatoGroundVisionPercentage, amunitionDistance.FloatValue);
+                ? GetNumberPercentage(WarnoConstants.SovGroundVisionPercentageFromAmunitionDistance, amunitionDistance.FloatValue)
+                : GetNumberPercentage(WarnoConstants.NatoGroundVisionPercentageFromAmunitionDistance, amunitionDistance.FloatValue);
 
             return amunitionDistance.FloatValue - percentage;
         }
@@ -463,8 +474,8 @@ namespace WarnoModeAutomation.Logic
         private static float CalculateUnitVisionTBA(DistanceMetre amunitionDistance, bool isSovUnit)
         {
             var percentage = isSovUnit 
-                ? GetNumberPercentage(WarnoConstants.SovTBAVisionPercentage, amunitionDistance.FloatValue) 
-                : GetNumberPercentage(WarnoConstants.NatoTBAVisionPercentage, amunitionDistance.FloatValue);
+                ? GetNumberPercentage(WarnoConstants.SovTBAVisionPercentageFromAmunitionDistance, amunitionDistance.FloatValue) 
+                : GetNumberPercentage(WarnoConstants.NatoTBAVisionPercentageFromAmunitionDistance, amunitionDistance.FloatValue);
 
             return amunitionDistance.FloatValue - percentage;
         }
@@ -472,8 +483,8 @@ namespace WarnoModeAutomation.Logic
         private static float CalculateUnitVisionHA(DistanceMetre amunitionDistance, bool isSovUnit)
         {
             var percentage = isSovUnit
-                ? GetNumberPercentage(WarnoConstants.SovHAVisionPercentage, amunitionDistance.FloatValue)
-                : GetNumberPercentage(WarnoConstants.NatoHAVisionPercentage, amunitionDistance.FloatValue);
+                ? GetNumberPercentage(WarnoConstants.SovHAVisionPercentageFromAmunitionDistance, amunitionDistance.FloatValue)
+                : GetNumberPercentage(WarnoConstants.NatoHAVisionPercentageFromAmunitionDistance, amunitionDistance.FloatValue);
 
             return amunitionDistance.FloatValue - percentage;
         }

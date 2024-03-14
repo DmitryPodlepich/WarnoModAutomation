@@ -1,9 +1,12 @@
 ﻿@page "/settings"
+@using BlazorBootstrap
+@using WarnoModeAutomation.Constants
 @using WarnoModeAutomation.Logic
+@using JsonDatabase.DTO
 
 <section class="p-3">
 
-    <h3 class="fw-bold" >Warno mod settings</h3>
+    <h4 class="fw-bold">Warno mod settings</h4>
 
     <div class="input-group mb-3">
         <div class="input-group-prepend">
@@ -19,13 +22,229 @@
         <input @bind="Storage.ModeSettings.ModName" type="text" class="form-control" aria-label="Default" aria-describedby="inputGroup-sizing-default">
     </div>
 
-    <button @onclick="Set" class="btn btn-primary" >Save</button>
+    <h5 class="text-center">
+        Balance settings <i style="font-size: 18px !important;" class="bi bi-bar-chart fs-3 text-primary"></i>
+    </h5>
+    <hr />
+
+    <div class="mb-3 d-flex align-items-center">
+        <span class="input-group-text">@nameof(settingsDTO.WarnoMetters):</span>
+        <NumberInput Class="form-control" TValue="int" @bind-Value="settingsDTO.WarnoMetters" Placeholder="Enter amount" />
+    </div>
+
+    <div class="mb-3 d-flex align-items-center">
+        <span class="input-group-text">@nameof(settingsDTO.NerfDistanceCoefficientDivider):</span>
+        <input class="form-control" @bind="settingsDTO.NerfDistanceCoefficientDivider" placeholder="Enter amount" />
+    </div>
+
+    <div class="mb-3 d-flex align-items-center">
+        <span class="input-group-text">@nameof(settingsDTO.AdditionalPointsCoefficientMultiplier):</span>
+        <input class="form-control" @bind="settingsDTO.AdditionalPointsCoefficientMultiplier" placeholder="Enter amount" />
+    </div>
+
+    <div class="mb-3 d-flex align-items-center">
+        <span class="input-group-text">@nameof(settingsDTO.AdditionalPointsArtileryCoefficientDivider):</span>
+        <input class="form-control" @bind="settingsDTO.AdditionalPointsArtileryCoefficientDivider" placeholder="Enter amount" />
+    </div>
+
+    <div class="mb-3 d-flex align-items-center">
+        <span class="input-group-text">@nameof(settingsDTO.NatoCommonAccuracityBonusPercentage):</span>
+        <NumberInput Class="form-control" TValue="int" @bind-Value="settingsDTO.NatoCommonAccuracityBonusPercentage" Placeholder="Enter amount" />
+    </div>
+
+    <div class="mb-3 d-flex align-items-center">
+        <span class="input-group-text">@nameof(settingsDTO.NatoArtileryAccuracityBonusPercentage):</span>
+        <NumberInput Class="form-control" TValue="int" @bind-Value="settingsDTO.NatoArtileryAccuracityBonusPercentage" Placeholder="Enter amount" />
+    </div>
+
+    <div class="mb-3 d-flex align-items-center">
+        <span class="input-group-text">@nameof(settingsDTO.SovMinOpticalStrength):</span>
+        <NumberInput Class="form-control" TValue="int" @bind-Value="settingsDTO.SovMinOpticalStrength" Placeholder="Enter amount" />
+    </div>
+
+    <div class="mb-3 d-flex align-items-center">
+        <span class="input-group-text">@nameof(settingsDTO.NatoMinOpticalStrength):</span>
+        <NumberInput Class="form-control" TValue="int" @bind-Value="settingsDTO.NatoMinOpticalStrength" Placeholder="Enter amount" />
+    </div>
+
+    <div class="mb-3 d-flex align-items-center">
+        <span class="input-group-text">@nameof(settingsDTO.SovGroundVisionPercentageFromAmunitionDistance):</span>
+        <NumberInput Class="form-control" TValue="int" @bind-Value="settingsDTO.SovGroundVisionPercentageFromAmunitionDistance" Placeholder="Enter amount" />
+    </div>
+
+    <div class="mb-3 d-flex align-items-center">
+        <span class="input-group-text">@nameof(settingsDTO.NatoGroundVisionPercentageFromAmunitionDistance):</span>
+        <NumberInput Class="form-control" TValue="int" @bind-Value="settingsDTO.NatoGroundVisionPercentageFromAmunitionDistance" Placeholder="Enter amount" />
+    </div>
+
+    <div class="mb-3 d-flex align-items-center">
+        <span class="input-group-text">@nameof(settingsDTO.SovTBAVisionPercentageFromAmunitionDistance):</span>
+        <NumberInput Class="form-control" TValue="int" @bind-Value="settingsDTO.SovTBAVisionPercentageFromAmunitionDistance" Placeholder="Enter amount" />
+    </div>
+
+    <div class="mb-3 d-flex align-items-center">
+        <span class="input-group-text">@nameof(settingsDTO.NatoTBAVisionPercentageFromAmunitionDistance):</span>
+        <NumberInput Class="form-control" TValue="int" @bind-Value="settingsDTO.NatoTBAVisionPercentageFromAmunitionDistance" Placeholder="Enter amount" />
+    </div>
+
+    <div class="mb-3 d-flex align-items-center">
+        <span class="input-group-text">@nameof(settingsDTO.SovHAVisionPercentageFromAmunitionDistance):</span>
+        <NumberInput Class="form-control" TValue="int" @bind-Value="settingsDTO.SovHAVisionPercentageFromAmunitionDistance" Placeholder="Enter amount" />
+    </div>
+
+    <div class="mb-3 d-flex align-items-center">
+        <span class="input-group-text">@nameof(settingsDTO.NatoHAVisionPercentageFromAmunitionDistance):</span>
+        <NumberInput Class="form-control" TValue="int" @bind-Value="settingsDTO.NatoHAVisionPercentageFromAmunitionDistance" Placeholder="Enter amount" />
+    </div>
+
+    <div class="mb-3 d-flex align-items-center">
+        <span class="input-group-text">@nameof(settingsDTO.TBAAndHADetectionPercentageFromVisionDistance):</span>
+        <NumberInput Class="form-control" TValue="int" @bind-Value="settingsDTO.TBAAndHADetectionPercentageFromVisionDistance" Placeholder="Enter amount" />
+    </div>
+
+    <div class="mb-3 d-flex align-items-center">
+        <span class="input-group-text">@nameof(settingsDTO.GroudDetectionPercentageFromVisionDistance):</span>
+        <NumberInput Class="form-control" TValue="int" @bind-Value="settingsDTO.GroudDetectionPercentageFromVisionDistance" Placeholder="Enter amount" />
+    </div>
+
+    <div class="mb-3 d-flex align-items-center">
+        <span class="input-group-text">@nameof(settingsDTO.ArtileryDamagePercentage):</span>
+        <NumberInput Class="form-control" TValue="int" @bind-Value="settingsDTO.ArtileryDamagePercentage" Placeholder="Enter amount" />
+    </div>
+
+    <h5 class="text-center">Serialization settings <i style="font-size: 18px !important;" class="bi bi-bounding-box fs-3 text-primary"></i></h5>
+    <hr />
+
+    <div class="mb-3 d-flex align-items-center">
+        <span class="input-group-text">@nameof(settingsDTO.ConfigFileName):</span>
+        <input class="form-control" @bind="settingsDTO.ConfigFileName" Placeholder="Enter amount" />
+    </div>
+
+    <div class="mb-3 d-flex align-items-center">
+        <span class="input-group-text">@nameof(settingsDTO.BuildingDescriptorsFileName):</span>
+        <input class="form-control" @bind="settingsDTO.BuildingDescriptorsFileName" Placeholder="Enter amount" />
+    </div>
+
+    <div class="mb-3 d-flex align-items-center">
+        <span class="input-group-text">@nameof(settingsDTO.UniteDescriptorFileName):</span>
+        <input class="form-control" @bind="settingsDTO.UniteDescriptorFileName" Placeholder="Enter amount" />
+    </div>
+
+    <div class="mb-3 d-flex align-items-center">
+        <span class="input-group-text">@nameof(settingsDTO.WeaponDescriptorDescriptorsFileName):</span>
+        <input class="form-control" @bind="settingsDTO.WeaponDescriptorDescriptorsFileName" Placeholder="Enter amount" />
+    </div>
+
+    <div class="mb-3 d-flex align-items-center">
+        <span class="input-group-text">@nameof(settingsDTO.AmmunitionDescriptorsFileName):</span>
+        <input class="form-control" @bind="settingsDTO.AmmunitionDescriptorsFileName" Placeholder="Enter amount" />
+    </div>
+
+    <div class="mb-3 d-flex align-items-center">
+        <span class="input-group-text">@nameof(settingsDTO.ResourceCommandPoints):</span>
+        <input class="form-control" @bind="settingsDTO.ResourceCommandPoints" Placeholder="Enter amount" />
+    </div>
+
+    <div class="mb-3 d-flex align-items-center">
+        <span class="input-group-text">@nameof(settingsDTO.AmunitionNameSMOKEMarker):</span>
+        <input class="form-control" @bind="settingsDTO.AmunitionNameSMOKEMarker" Placeholder="Enter amount" />
+    </div>
+
+    <div class="mb-3 d-flex align-items-center">
+        <span class="input-group-text">@nameof(settingsDTO.InfanterieTag):</span>
+        <input class="form-control" @bind="settingsDTO.InfanterieTag" Placeholder="Enter amount" />
+    </div>
+
+    <div class="mb-3 d-flex align-items-center">
+        <span class="input-group-text">@nameof(settingsDTO.Canon_AA_StandardTag):</span>
+        <input class="form-control" @bind="settingsDTO.Canon_AA_StandardTag" Placeholder="Enter amount" />
+    </div>
+
+    <div class="mb-3 d-flex align-items-center">
+        <span class="input-group-text">@nameof(settingsDTO.Canon_AATag):</span>
+        <input class="form-control" @bind="settingsDTO.Canon_AATag" Placeholder="Enter amount" />
+    </div>
+
+    <div class="mb-3 d-flex align-items-center">
+        <span class="input-group-text">@nameof(settingsDTO.AirTag):</span>
+        <input class="form-control" @bind="settingsDTO.AirTag" Placeholder="Enter amount" />
+    </div>
+
+    <div class="mb-3 d-flex align-items-center">
+        <span class="input-group-text">@nameof(settingsDTO.Weapon_Cursor_MachineGun):</span>
+        <input class="form-control" @bind="settingsDTO.Weapon_Cursor_MachineGun" Placeholder="Enter amount" />
+    </div>
+
+    <div class="mb-3 d-flex align-items-center">
+        <span class="input-group-text">@nameof(settingsDTO.ArtillerieTag):</span>
+        <input class="form-control" @bind="settingsDTO.ArtillerieTag" Placeholder="Enter amount" />
+    </div>
+
+    <div class="mb-3 d-flex align-items-center">
+        <span class="input-group-text">@nameof(settingsDTO.ArtileryWeaponCursorType):</span>
+        <input class="form-control" @bind="settingsDTO.ArtileryWeaponCursorType" Placeholder="Enter amount" />
+    </div>
+
+    <div class="d-flex justify-content-end">
+        <button @onclick="Save" class="me-3 btn btn-primary" >Save</button>
+
+        <button @onclick="RestoreDefaults" class="btn btn-secondary">Restore defaults</button>
+    </div>
 
 </section>
 @code
 {
-    void Set()
+    private SettingsDTO settingsDTO = JsonDatabase.JsonDatabase.LoadSettings();
+
+    protected override Task OnInitializedAsync()
     {
-        
+        //Read and show settings
+        //settingsDTO = JsonDatabase.JsonDatabase.LoadSettings();
+
+        return base.OnInitializedAsync();
+    }
+
+    private async Task Save()
+    {
+        await JsonDatabase.JsonDatabase.SaveSettings(settingsDTO);
+    }
+
+    private void RestoreDefaults() 
+    {
+        settingsDTO = new SettingsDTO(
+            Storage.ModeSettings.ModsDirectory,
+            Storage.ModeSettings.ModName,
+            WarnoConstants.WarnoMetters,
+            WarnoConstants.NerfDistanceCoefficientDivider,
+            WarnoConstants.AdditionalPointsCoefficientMultiplier,
+            WarnoConstants.AdditionalPointsArtileryCoefficientDivider,
+            WarnoConstants.NatoCommonAccuracityBonusPercentage,
+            WarnoConstants.NatoArtileryAccuracityBonusPercentage,
+            WarnoConstants.SovMinOpticalStrength,
+            WarnoConstants.NatoMinOpticalStrength,
+            WarnoConstants.SovGroundVisionPercentageFromAmunitionDistance,
+            WarnoConstants.NatoGroundVisionPercentageFromAmunitionDistance,
+            WarnoConstants.SovTBAVisionPercentageFromAmunitionDistance,
+            WarnoConstants.NatoTBAVisionPercentageFromAmunitionDistance,
+            WarnoConstants.SovHAVisionPercentageFromAmunitionDistance,
+            WarnoConstants.NatoHAVisionPercentageFromAmunitionDistance,
+            WarnoConstants.TBAAndHADetectionPercentageFromVisionDistance,
+            WarnoConstants.GroudDetectionPercentageFromVisionDistance,
+            WarnoConstants.ArtileryDamagePercentage,
+            WarnoConstants.ConfigFileName,
+            WarnoConstants.BuildingDescriptorsFileName,
+            WarnoConstants.UniteDescriptorFileName,
+            WarnoConstants.WeaponDescriptorDescriptorsFileName,
+            WarnoConstants.AmmunitionDescriptorsFileName,
+            WarnoConstants.ResourceCommandPoints,
+            WarnoConstants.AmunitionNameSMOKEMarker,
+            WarnoConstants.InfanterieTag,
+            WarnoConstants.Canon_AA_StandardTag,
+            WarnoConstants.Canon_AATag,
+            WarnoConstants.AirTag,
+            WarnoConstants.Weapon_Cursor_MachineGun,
+            WarnoConstants.ArtillerieTag,
+            WarnoConstants.ArtileryWeaponCursorType
+        );
     }
 }

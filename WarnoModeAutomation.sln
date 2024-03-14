@@ -11,7 +11,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "WebSearch", "WebSearch\WebS
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "JsonDatabase", "JsonDatabase\JsonDatabase.csproj", "{777A0853-950A-44EB-B92D-1E53FB2A1087}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "nUnitTests", "nUnitTests\nUnitTests.csproj", "{1F9BB650-B859-4F39-9D6F-877715353B3F}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "nUnitTests", "nUnitTests\nUnitTests.csproj", "{1F9BB650-B859-4F39-9D6F-877715353B3F}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

@@ -87,7 +87,7 @@ namespace WebSearch
                     });
                 }
 
-                await JsonDatabase.JsonDatabase.SaveAsync();
+                await JsonDatabase.JsonDatabase.SaveAmmoAsync();
             }
             catch (Exception ex)
             {
