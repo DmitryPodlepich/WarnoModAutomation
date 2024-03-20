@@ -25,6 +25,13 @@ namespace WarnoModeAutomation.Logic
         public delegate void Outputter(string data);
         public static event Outputter OnOutput;
 
+        public static readonly SettingsDTO _settings;
+
+        static ModManager()
+        {
+            _settings = JsonDatabase.JsonDatabase.LoadSettings();
+        }
+
         public static async Task<bool> CreateModAsync()
         {
             var batFullPath = Path.Combine(Storage.ModeSettings.ModsDirectory, _createNewModBatFileName);
@@ -48,7 +55,7 @@ namespace WarnoModeAutomation.Logic
 
             var modSavedGamesDirectory = Path.Combine(FileManager.SavedGamesEugenSystemsModPath, Storage.ModeSettings.ModName);
 
-            var savedGamesConfigFilePath = Path.Combine(FileManager.SavedGamesEugenSystemsModPath, WarnoConstants.ConfigFileName);
+            var savedGamesConfigFilePath = Path.Combine(FileManager.SavedGamesEugenSystemsModPath, _settings.ConfigFileName);
 
             if (!File.Exists(savedGamesConfigFilePath))
             {
@@ -130,10 +137,10 @@ namespace WarnoModeAutomation.Logic
 
         public static async Task Modify(bool enableFullLog)
         {
-            var amunitionFilePath = FileManager.NDFFilesPaths.SingleOrDefault(f => f.FileName == WarnoConstants.AmmunitionDescriptorsFileName);
-            var weaponFilePath = FileManager.NDFFilesPaths.SingleOrDefault(f => f.FileName == WarnoConstants.WeaponDescriptorDescriptorsFileName);
-            var unitsFilePath = FileManager.NDFFilesPaths.SingleOrDefault(f => f.FileName == WarnoConstants.UniteDescriptorFileName);
-            var buildingsFilePath = FileManager.NDFFilesPaths.SingleOrDefault(f => f.FileName == WarnoConstants.BuildingDescriptorsFileName);
+            var amunitionFilePath = FileManager.NDFFilesPaths.SingleOrDefault(f => f.FileName == _settings.AmmunitionDescriptorsFileName);
+            var weaponFilePath = FileManager.NDFFilesPaths.SingleOrDefault(f => f.FileName == _settings.WeaponDescriptorDescriptorsFileName);
+            var unitsFilePath = FileManager.NDFFilesPaths.SingleOrDefault(f => f.FileName == _settings.UniteDescriptorFileName);
+            var buildingsFilePath = FileManager.NDFFilesPaths.SingleOrDefault(f => f.FileName == _settings.BuildingDescriptorsFileName);
 
 
             FileDescriptor<TAmmunitionDescriptor> amunition = null;
@@ -246,11 +253,11 @@ namespace WarnoModeAutomation.Logic
                     return;
                 }
 
-                var resourceCommandPointsKey = tProductionModuleDescriptors.ProductionRessourcesNeeded.Keys.SingleOrDefault(x => x.Contains(WarnoConstants.ResourceCommandPoints, StringComparison.OrdinalIgnoreCase));
+                var resourceCommandPointsKey = tProductionModuleDescriptors.ProductionRessourcesNeeded.Keys.SingleOrDefault(x => x.Contains(_settings.ResourceCommandPoints, StringComparison.OrdinalIgnoreCase));
 
                 if (resourceCommandPointsKey == null || !tProductionModuleDescriptors.ProductionRessourcesNeeded.TryGetValue(resourceCommandPointsKey, out int resourceCommandPoints))
                 {
-                    OnCMDProviderOutput($"Cannot find {WarnoConstants.ResourceCommandPoints} for unit: {unit.ClassNameForDebug}");
+                    OnCMDProviderOutput($"Cannot find {_settings.ResourceCommandPoints} for unit: {unit.ClassNameForDebug}");
                     return;
                 }
 
@@ -271,8 +278,8 @@ namespace WarnoModeAutomation.Logic
                 }
 
                 bool shouldNerf =
-                    tagsModuleDescriptor.TagSet.Any(tag => WarnoConstants.TagsCombinationWithNerf.Contains(tag))
-                    && !tagsModuleDescriptor.TagSet.Contains(WarnoConstants.InfanterieTag);
+                    tagsModuleDescriptor.TagSet.Any(tag => _settings.TagsCombinationWithNerf.Contains(tag))
+                    && !tagsModuleDescriptor.TagSet.Contains(_settings.InfanterieTag);
 
                 bool unitAmunitionsHasDistanceChanges = false;
 
@@ -287,7 +294,7 @@ namespace WarnoModeAutomation.Logic
                     }
 
                     if (EnsureModifiedArtileryDamage(unitAmunition) && enableFullLog)
-                        OnCMDProviderOutput($"ArtileryDamage for: {unit.ClassNameForDebug}. unitAmunition: {unitAmunition.EntityNDFType} has been increased by {WarnoConstants.ArtileryDamagePercentage} %");
+                        OnCMDProviderOutput($"ArtileryDamage for: {unit.ClassNameForDebug}. unitAmunition: {unitAmunition.EntityNDFType} has been increased by {_settings.ArtileryDamagePercentage} %");
 
                     if (!NDFTypesExtensions.IsSovUnit(tTypeUnitModuleDescriptor))
                     {
@@ -333,36 +340,36 @@ namespace WarnoModeAutomation.Logic
         {
             int additionalResourceCommandPoints = 0;
 
-            if(ammunition.EntityNDFType.Contains(WarnoConstants.AmunitionNameSMOKEMarker, StringComparison.InvariantCultureIgnoreCase)
-                || ammunition.WeaponCursorType == WarnoConstants.Weapon_Cursor_MachineGun)
+            if(ammunition.EntityNDFType.Contains(_settings.AmunitionNameSMOKEMarker, StringComparison.InvariantCultureIgnoreCase)
+                || ammunition.WeaponCursorType == _settings.Weapon_Cursor_MachineGun)
                 return additionalResourceCommandPoints;
 
             foreach (var baseHitValueModifier in ammunition.HitRollRuleDescriptor.BaseHitValueModifiers)
             {
                 if (baseHitValueModifier.Value > 0)
                 {
-                    var additionalAccuracityPercentage = GetNumberPercentage(WarnoConstants.NatoCommonAccuracityBonusPercentage, baseHitValueModifier.Value);
+                    var additionalAccuracityPercentage = GetNumberPercentage(_settings.NatoCommonAccuracityBonusPercentage, baseHitValueModifier.Value);
                     var newAccuracityValue = baseHitValueModifier.Value + additionalAccuracityPercentage;
-                    additionalResourceCommandPoints += (int)Math.Round(additionalAccuracityPercentage * WarnoConstants.AdditionalPointsCoefficientMultiplier);
+                    additionalResourceCommandPoints += (int)Math.Round(additionalAccuracityPercentage * _settings.AdditionalPointsCoefficientMultiplier);
                     ammunition.HitRollRuleDescriptor.BaseHitValueModifiers[baseHitValueModifier.Key] = (float)Math.Round(newAccuracityValue);
                 }
             }
 
-            if (ammunition.WeaponCursorType == WarnoConstants.ArtileryWeaponCursorType)
+            if (ammunition.WeaponCursorType == _settings.ArtileryWeaponCursorType)
             {
                 if (ammunition.DispersionAtMaxRange.FloatValue > 0)
                 {
-                    var additionalAccuracityValue = GetNumberPercentage(WarnoConstants.NatoArtileryAccuracityBonusPercentage, ammunition.DispersionAtMaxRange.FloatValue);
+                    var additionalAccuracityValue = GetNumberPercentage(_settings.NatoArtileryAccuracityBonusPercentage, ammunition.DispersionAtMaxRange.FloatValue);
                     var newAccuracityValue = ammunition.DispersionAtMaxRange.FloatValue - additionalAccuracityValue;
-                    additionalResourceCommandPoints += (int)Math.Round(additionalAccuracityValue / WarnoConstants.AdditionalPointsArtileryCoefficientDivider);
+                    additionalResourceCommandPoints += (int)Math.Round(additionalAccuracityValue / _settings.AdditionalPointsArtileryCoefficientDivider);
                     ammunition.DispersionAtMaxRange.FloatValue = (float)Math.Round(newAccuracityValue);
                 }
 
                 if (ammunition.DispersionAtMinRange.FloatValue > 0)
                 {
-                    var additionalAccuracityValue = GetNumberPercentage(WarnoConstants.NatoArtileryAccuracityBonusPercentage, ammunition.DispersionAtMinRange.FloatValue);
+                    var additionalAccuracityValue = GetNumberPercentage(_settings.NatoArtileryAccuracityBonusPercentage, ammunition.DispersionAtMinRange.FloatValue);
                     var newAccuracityValue = ammunition.DispersionAtMinRange.FloatValue - additionalAccuracityValue;
-                    additionalResourceCommandPoints += (int)Math.Round(additionalAccuracityValue / WarnoConstants.AdditionalPointsArtileryCoefficientDivider);
+                    additionalResourceCommandPoints += (int)Math.Round(additionalAccuracityValue / _settings.AdditionalPointsArtileryCoefficientDivider);
                     ammunition.DispersionAtMinRange.FloatValue = (float)Math.Round(newAccuracityValue);
                 }
             }
@@ -372,13 +379,13 @@ namespace WarnoModeAutomation.Logic
 
         private static bool EnsureModifiedArtileryDamage(TAmmunitionDescriptor ammunition) 
         {
-            if (ammunition.WeaponCursorType != WarnoConstants.ArtileryWeaponCursorType && !ammunition.EntityNDFType.Contains(WarnoConstants.AmunitionNameSMOKEMarker, StringComparison.InvariantCultureIgnoreCase))
+            if (ammunition.WeaponCursorType != _settings.ArtileryWeaponCursorType && !ammunition.EntityNDFType.Contains(_settings.AmunitionNameSMOKEMarker, StringComparison.InvariantCultureIgnoreCase))
                 return false;
 
-            ammunition.PhysicalDamages += GetNumberPercentage(WarnoConstants.ArtileryDamagePercentage, ammunition.PhysicalDamages);
-            ammunition.RadiusSplashPhysicalDamages.FloatValue += GetNumberPercentage(WarnoConstants.ArtileryDamagePercentage, ammunition.RadiusSplashPhysicalDamages.FloatValue);
-            ammunition.SuppressDamages += GetNumberPercentage(WarnoConstants.ArtileryDamagePercentage, ammunition.SuppressDamages);
-            ammunition.RadiusSplashSuppressDamages.FloatValue += GetNumberPercentage(WarnoConstants.ArtileryDamagePercentage, ammunition.RadiusSplashSuppressDamages.FloatValue);
+            ammunition.PhysicalDamages += GetNumberPercentage(_settings.ArtileryDamagePercentage, ammunition.PhysicalDamages);
+            ammunition.RadiusSplashPhysicalDamages.FloatValue += GetNumberPercentage(_settings.ArtileryDamagePercentage, ammunition.RadiusSplashPhysicalDamages.FloatValue);
+            ammunition.SuppressDamages += GetNumberPercentage(_settings.ArtileryDamagePercentage, ammunition.SuppressDamages);
+            ammunition.RadiusSplashSuppressDamages.FloatValue += GetNumberPercentage(_settings.ArtileryDamagePercentage, ammunition.RadiusSplashSuppressDamages.FloatValue);
 
             return true;
         }
@@ -429,7 +436,7 @@ namespace WarnoModeAutomation.Logic
 
             if (scannerConfigurationDescriptor.OpticalStrength == 0)
             {
-                scannerConfigurationDescriptor.OpticalStrength = isSovUnit ? WarnoConstants.SovMinOpticalStrength : WarnoConstants.NatoMinOpticalStrength;
+                scannerConfigurationDescriptor.OpticalStrength = isSovUnit ? _settings.SovMinOpticalStrength : _settings.NatoMinOpticalStrength;
             }
 
             var longestGroundAmunitionRange = ammunitionDescriptor.Select(x => x.PorteeMaximale).MaxBy(x => x.FloatValue);
@@ -457,7 +464,7 @@ namespace WarnoModeAutomation.Logic
 
         private static float CalculateUnitDetectionTBAAndHA(float visionDistance) 
         {
-            var percentage = GetNumberPercentage(WarnoConstants.TBAAndHADetectionPercentageFromVisionDistance ,visionDistance);
+            var percentage = GetNumberPercentage(_settings.TBAAndHADetectionPercentageFromVisionDistance ,visionDistance);
 
             return visionDistance - percentage;
         }
@@ -465,8 +472,8 @@ namespace WarnoModeAutomation.Logic
         private static float CalculateUnitVisionGround(DistanceMetre amunitionDistance, bool isSovUnit)
         {
             var percentage = isSovUnit
-                ? GetNumberPercentage(WarnoConstants.SovGroundVisionPercentageFromAmunitionDistance, amunitionDistance.FloatValue)
-                : GetNumberPercentage(WarnoConstants.NatoGroundVisionPercentageFromAmunitionDistance, amunitionDistance.FloatValue);
+                ? GetNumberPercentage(_settings.SovGroundVisionPercentageFromAmunitionDistance, amunitionDistance.FloatValue)
+                : GetNumberPercentage(_settings.NatoGroundVisionPercentageFromAmunitionDistance, amunitionDistance.FloatValue);
 
             return amunitionDistance.FloatValue - percentage;
         }
@@ -474,8 +481,8 @@ namespace WarnoModeAutomation.Logic
         private static float CalculateUnitVisionTBA(DistanceMetre amunitionDistance, bool isSovUnit)
         {
             var percentage = isSovUnit 
-                ? GetNumberPercentage(WarnoConstants.SovTBAVisionPercentageFromAmunitionDistance, amunitionDistance.FloatValue) 
-                : GetNumberPercentage(WarnoConstants.NatoTBAVisionPercentageFromAmunitionDistance, amunitionDistance.FloatValue);
+                ? GetNumberPercentage(_settings.SovTBAVisionPercentageFromAmunitionDistance, amunitionDistance.FloatValue) 
+                : GetNumberPercentage(_settings.NatoTBAVisionPercentageFromAmunitionDistance, amunitionDistance.FloatValue);
 
             return amunitionDistance.FloatValue - percentage;
         }
@@ -483,8 +490,8 @@ namespace WarnoModeAutomation.Logic
         private static float CalculateUnitVisionHA(DistanceMetre amunitionDistance, bool isSovUnit)
         {
             var percentage = isSovUnit
-                ? GetNumberPercentage(WarnoConstants.SovHAVisionPercentageFromAmunitionDistance, amunitionDistance.FloatValue)
-                : GetNumberPercentage(WarnoConstants.NatoHAVisionPercentageFromAmunitionDistance, amunitionDistance.FloatValue);
+                ? GetNumberPercentage(_settings.SovHAVisionPercentageFromAmunitionDistance, amunitionDistance.FloatValue)
+                : GetNumberPercentage(_settings.NatoHAVisionPercentageFromAmunitionDistance, amunitionDistance.FloatValue);
 
             return amunitionDistance.FloatValue - percentage;
         }
@@ -520,7 +527,7 @@ namespace WarnoModeAutomation.Logic
 
         private static float ConverToWarnoDistance(float value)
         {
-            return value / 1000 * WarnoConstants.WarnoMetters;
+            return value / 1000 * _settings.WarnoMetters;
         }
 
         internal static float NerfDistance(float newValue, float originalValue)
@@ -536,14 +543,14 @@ namespace WarnoModeAutomation.Logic
 
             var pcentageTotal = difference / percentageoriginalValue;
 
-            var result = (newValue - pcentageTotal) / Math.Max(percentageDifference / percentageoriginalValue / WarnoConstants.NerfDistanceCoefficientDivider, 1);
+            var result = (newValue - pcentageTotal) / Math.Max(percentageDifference / percentageoriginalValue / _settings.NerfDistanceCoefficientDivider, 1);
 
             return (float)Math.Round((double)result);
         }
 
         private static float ConvertToWarnoDistance(int valueToConvert)
         {
-            return valueToConvert / 1000 * WarnoConstants.WarnoMetters;
+            return valueToConvert / 1000 * _settings.WarnoMetters;
         }
 
         private static FileDescriptor<TEntityDescriptor> ModifyBuildings(FileDescriptor<TEntityDescriptor> buildingsFileDescriptor)

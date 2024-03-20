@@ -196,14 +196,6 @@
 {
     private SettingsDTO settingsDTO = JsonDatabase.JsonDatabase.LoadSettings();
 
-    protected override Task OnInitializedAsync()
-    {
-        //Read and show settings
-        //settingsDTO = JsonDatabase.JsonDatabase.LoadSettings();
-
-        return base.OnInitializedAsync();
-    }
-
     private async Task Save()
     {
         await JsonDatabase.JsonDatabase.SaveSettings(settingsDTO);
