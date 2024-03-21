@@ -102,10 +102,10 @@ namespace WarnoModeAutomation.Logic
             return sb.ToString();
         }
 
-        public static FileDescriptor<T> Deserialize<T>(string filePath) where T : Descriptor
+        public static FileDescriptor<T> Deserialize<T>(string filePath, Action<string> outputLogs = null) where T : Descriptor
         {
             if (!File.Exists(filePath))
-                throw new FileNotFoundException(filePath);
+                outputLogs?.Invoke($"File not found by path: {filePath}");
 
             var fileDescriptior = new FileDescriptor<T>(filePath);
             var descriptorsStack = new Stack<Descriptor>();
@@ -182,8 +182,9 @@ namespace WarnoModeAutomation.Logic
                         }
                     }
                     catch (Exception ex)
-                    { 
-                        Debug.WriteLine(ex.Message);
+                    {
+                        outputLogs?.Invoke($"Deserialization error: {ex.Message}");
+                        outputLogs?.Invoke(ex.StackTrace);
                     }
                 }
             }

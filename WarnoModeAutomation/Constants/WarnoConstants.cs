@@ -9,7 +9,7 @@
         public const string WeaponDescriptorDescriptorsFileName = "WeaponDescriptor.ndf";
         public const string AmmunitionDescriptorsFileName = "Ammunition.ndf";
 
-        //ToDo: move to configuration
+        public const string ResourceCommandPoints = "Resource_CommandPoints";
         public const string AmunitionNameSMOKEMarker = "SMOKE";
         public const string InfanterieTag = "Infanterie";
         public const string Canon_AA_StandardTag = "Canon_AA_Standard";
@@ -22,24 +22,30 @@
 
         public const string ArtillerieTag = "Artillerie";
         public const string ArtileryWeaponCursorType = "Weapon_Cursor_CorrectedArtillery";
-        public const int NatoCommonAccuracityBonusPercentage = 15;
 
-        public const int SovMinOpticalStrength = 20;
-        public const int NatoMinOpticalStrength = 40;
+        public const double NerfDistanceCoefficientDivider = 2.5;
+        public const int WarnoMetters = 2830;
 
-        public const int SovGroundVisionPercentage = 15;
-        public const int NatoGroundVisionPercentage = 10;
+        public const double AdditionalPointsCoefficientMultiplier = 1.1;
+        public const double AdditionalPointsArtileryCoefficientDivider = 6;
+        public const int NatoCommonAccuracityBonusPercentage = 25;
+        public const int NatoArtileryAccuracityBonusPercentage = 50;
 
-        public const int SovTBAVisionPercentage = 30;
-        public const int NatoTBAVisionPercentage = 20;
+        public const int SovMinOpticalStrength = 5;
+        public const int NatoMinOpticalStrength = 50;
 
-        public const int SovHAVisionPercentage = 50;
-        public const int NatoHAVisionPercentage = 30;
+        public const int SovGroundVisionPercentageFromAmunitionDistance = 35;
+        public const int NatoGroundVisionPercentageFromAmunitionDistance = 5;
 
-        public const int TBAAndHADetectionPercentage = 20;
-        public const int GroudDetectionPercentage = 10;
+        public const int SovTBAVisionPercentageFromAmunitionDistance = 35;
+        public const int NatoTBAVisionPercentageFromAmunitionDistance = 5;
 
-        public const int ArtileryDamagePercentage = 50;
-        public const int NatoArtileryAccuracityBonusPercentage = 40;
+        public const int SovHAVisionPercentageFromAmunitionDistance = 35;
+        public const int NatoHAVisionPercentageFromAmunitionDistance = 5;
+
+        public const int TBAAndHADetectionPercentageFromVisionDistance = 20;
+        public const int GroudDetectionPercentageFromVisionDistance = 10;
+
+        public const int ArtileryDamagePercentage = 40;
     }
 }

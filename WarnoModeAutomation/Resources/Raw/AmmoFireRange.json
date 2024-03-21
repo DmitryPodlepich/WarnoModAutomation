@@ -320,6 +320,53 @@
 	},
 
 	{
+		"AmmoName": "Ammo_Bomb_GBU_27_x1",
+		"FireRangeInMeters": 14000
+	},
+	{
+		"AmmoName": "Ammo_Bomb_GBU_27_x2",
+		"FireRangeInMeters": 14000
+	},
+
+	{
+		"AmmoName": "Ammo_AA_R24R_Vympel",
+		"FireRangeInMeters": 50000
+	},
+	{
+		"AmmoName": "Ammo_AA_R33_Vympel",
+		"FireRangeInMeters": 150000
+	},
+
+	{
+		"AmmoName": "Ammo_SAM_9M311_Tunguska_x8",
+		"FireRangeInMeters": 10000
+	},
+	{
+		"AmmoName": "Ammo_SAM_9M33M2_x6",
+		"FireRangeInMeters": 5000
+	},
+
+	{
+		"AmmoName": "Ammo_ATGM_9K115_Metis_M",
+		"FireRangeInMeters": 2000
+	},
+
+	{
+		"AmmoName": "Ammo_AGM_ALARM",
+		"FireRangeInMeters": 8000
+	},
+
+	{
+		"AmmoName": "Ammo_AGM_AGM65B_Maverick",
+		"FireRangeInMeters": 22000
+	},
+
+	{
+		"AmmoName": "Ammo_DCA_2_canons_Oerlikon_GDF_002_35mm",
+		"FireRangeInMeters": 4000
+	},
+
+	{
 		"AmmoName": "Ammo_ATGM_9M128_Agona",
 		"FireRangeInMeters": 4000
 	}

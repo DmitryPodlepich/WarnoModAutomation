@@ -54,15 +54,8 @@
 
                         <hr>
 
-                        @*  <Button Loading="@(_currentOperation == OperationType.FillDatabase)" LoadingText="Filling..." Disabled="@(_currentOperation != OperationType.Idle)" Class="btn btn-primary ms-2" @onclick="FillDatabase">
-                            <i class="bi bi-download"></i>
-                            Fill database
-                        </Button>
-
-                        <hr> *@
-
                         <Button Loading="@(_currentOperation == OperationType.Modify)" LoadingText="Modifying..." Disabled="@(_currentOperation != OperationType.Idle)" Class="btn btn-primary ms-2" @onclick="Modify">
-                            <i class="bi bi-download"></i>
+                            <i class="bi bi-cpu"></i>
                             Modify
                         </Button>
 
@@ -74,6 +67,13 @@
                         </Button>
 
                     </div>
+
+                    <div class="mt-3" >
+                        <Switch @bind-Value="_enableFullLog" Label="Enable full log" />
+
+                        <p class="text-muted"> If enabled will show detailed logs in a log text area below. Otherwise will show only warnings and errors. </p>
+                    </div>
+
                 </Content>
             </AccordionItem>
         </Accordion>
@@ -91,12 +91,6 @@
 
 </section>
 
-<script>
-    function scrollHeight(textarea) {
-        textarea.scrollTop = textarea.scrollHeight;
-    }
-</script>
-
 @code {
     InputTextArea TextAreaRef;
 
@@ -111,6 +105,8 @@
         FillDatabase
     }
 
+
+    private bool _enableFullLog = false;
     private OperationType _currentOperation = OperationType.Idle;
 
     private string ModManagerOutput { get => _stringBuilder.ToString(); set => _stringBuilder = new StringBuilder(value); }
@@ -136,7 +132,8 @@
             _stringBuilder.AppendLine(Environment.NewLine);
             _stringBuilder.AppendLine(data);
             StateHasChanged();
-            await JS.InvokeVoidAsync("scrollHeight", TextAreaRef.Element);
+
+            await JS.InvokeVoidAsync("scrollHeight", TextAreaRef?.Element);
         });
     }
 
@@ -180,7 +177,7 @@
 
     public async Task Modify()
     {
-        await Perform(OperationType.Modify, async () => await ModManager.Modify());
+        await Perform(OperationType.Modify, async () => await ModManager.Modify(_enableFullLog));
 
     }
 
