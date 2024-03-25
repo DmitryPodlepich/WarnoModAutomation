@@ -1,5 +1,7 @@
 ﻿@page "/settings"
 @using BlazorBootstrap
+@using System.Diagnostics
+@using WarnoModeAutomation.Components.Components
 @using WarnoModeAutomation.Constants
 @using WarnoModeAutomation.Logic
 @using JsonDatabase.DTO
@@ -27,10 +29,12 @@
     </h5>
     <hr />
 
-    <div class="mb-3 d-flex align-items-center">
-        <span class="input-group-text">@nameof(settingsDTO.WarnoMetters):</span>
-        <NumberInput Class="form-control" TValue="int" @bind-Value="settingsDTO.WarnoMetters" Placeholder="Enter WarnoMetters" />
-    </div>
+    <ModSettingSection PropertyName="@nameof(settingsDTO.WarnoMetters)" TValue="int" @bind-PropertyValue="settingsDTO.WarnoMetters">
+        <p class="text-muted">
+            The constant value which determinants distance measuring. Has been defined experimental way when we took value from UI and from resource files and compare it. 
+            Strongly recommended to leave as is.
+        </p>
+    </ModSettingSection>
 
     <div class="mb-3 d-flex align-items-center">
         <span class="input-group-text">@nameof(settingsDTO.NerfDistanceCoefficientDivider):</span>

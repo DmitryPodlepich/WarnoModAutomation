@@ -320,12 +320,100 @@
 	},
 
 	{
+		"AmmoName": "Ammo_Mistral",
+		"FireRangeInMeters": 8000
+	},
+	{
+		"AmmoName": "Ammo_Mistral_Celtic_x4",
+		"FireRangeInMeters": 8000
+	},
+	{
+		"AmmoName": "Ammo_SAM_Mistral",
+		"FireRangeInMeters": 8000
+	},
+
+	{
+		"AmmoName": "Ammo_AGM_HOT1",
+		"FireRangeInMeters": 4300
+	},
+	{
+		"AmmoName": "Ammo_AGM_HOT1_x4",
+		"FireRangeInMeters": 4300
+	},
+	{
+		"AmmoName": "Ammo_AGM_HOT2",
+		"FireRangeInMeters": 4300
+	},
+	{
+		"AmmoName": "Ammo_AGM_HOT2_x4",
+		"FireRangeInMeters": 4300
+	},
+
+	{
+		"AmmoName": "Ammo_AA_R550_Magic",
+		"FireRangeInMeters": 10000
+	},
+	{
+		"AmmoName": "Ammo_AA_R550_Magic_II",
+		"FireRangeInMeters": 20000
+	},
+
+	{
 		"AmmoName": "Ammo_Bomb_GBU_27_x1",
 		"FireRangeInMeters": 14000
 	},
 	{
 		"AmmoName": "Ammo_Bomb_GBU_27_x2",
 		"FireRangeInMeters": 14000
+	},
+
+	{
+		"AmmoName": "Ammo_AA_Matra_Super_530D",
+		"FireRangeInMeters": 40000
+	},
+	{
+		"AmmoName": "Ammo_AA_Matra_Super_530F",
+		"FireRangeInMeters": 40000
+	},
+
+	{
+		"AmmoName": "Ammo_AGM_ARMAT",
+		"FireRangeInMeters": 120000
+	},
+
+	{
+		"AmmoName": "Ammo_AGM_AS30L",
+		"FireRangeInMeters": 11000
+	},
+
+	{
+		"AmmoName": "Ammo_AGM_AS37_Martel",
+		"FireRangeInMeters": 60000
+	},
+	{
+		"AmmoName": "Ammo_AGM_AS37_Martel_x2",
+		"FireRangeInMeters": 60000
+	},
+
+	{
+		"AmmoName": "Ammo_SAM_ROLAND",
+		"FireRangeInMeters": 6300
+	},
+	{
+		"AmmoName": "Ammo_SAM_ROLAND_1",
+		"FireRangeInMeters": 6300
+	},
+	{
+		"AmmoName": "Ammo_SAM_ROLAND_1_x2",
+		"FireRangeInMeters": 6300
+	},
+	{
+		"AmmoName": "Ammo_SAM_ROLAND_3",
+		"FireRangeInMeters": 6300
+	},
+	{
+		"AmmoName": "Ammo_SAM_ROLAND_3_x2",
+		"FireRangeInMeters": 6300
 	},
 
 	{

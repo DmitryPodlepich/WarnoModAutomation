@@ -23,6 +23,7 @@
         public const string ArtillerieTag = "Artillerie";
         public const string ArtileryWeaponCursorType = "Weapon_Cursor_CorrectedArtillery";
 
+        public const int MaxAccuracity = 98;
         public const double NerfDistanceCoefficientDivider = 2.5;
         public const int WarnoMetters = 2830;
 

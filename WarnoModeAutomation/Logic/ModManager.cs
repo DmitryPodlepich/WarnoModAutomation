@@ -137,11 +137,25 @@ namespace WarnoModeAutomation.Logic
 
         public static async Task Modify(bool enableFullLog)
         {
+            var duplicatedAmmoNames = JsonDatabase.JsonDatabase.GetDuplicatedAmmoNames();
+
+            if (duplicatedAmmoNames.Length > 0)
+            {
+                OnCMDProviderOutput("Modification validation error!");
+                OnCMDProviderOutput("Amunition names duplicated detected:");
+
+                foreach (var item in duplicatedAmmoNames)
+                {
+                    OnCMDProviderOutput(item);
+                }
+
+                return;
+            }
+
             var amunitionFilePath = FileManager.NDFFilesPaths.SingleOrDefault(f => f.FileName == _settings.AmmunitionDescriptorsFileName);
             var weaponFilePath = FileManager.NDFFilesPaths.SingleOrDefault(f => f.FileName == _settings.WeaponDescriptorDescriptorsFileName);
             var unitsFilePath = FileManager.NDFFilesPaths.SingleOrDefault(f => f.FileName == _settings.UniteDescriptorFileName);
             var buildingsFilePath = FileManager.NDFFilesPaths.SingleOrDefault(f => f.FileName == _settings.BuildingDescriptorsFileName);
-
 
             FileDescriptor<TAmmunitionDescriptor> amunition = null;
             FileDescriptor<TWeaponManagerModuleDescriptor> weapon = null;
@@ -349,7 +363,7 @@ namespace WarnoModeAutomation.Logic
                 if (baseHitValueModifier.Value > 0)
                 {
                     var additionalAccuracityPercentage = GetNumberPercentage(_settings.NatoCommonAccuracityBonusPercentage, baseHitValueModifier.Value);
-                    var newAccuracityValue = baseHitValueModifier.Value + additionalAccuracityPercentage;
+                    var newAccuracityValue = Math.Min(baseHitValueModifier.Value + additionalAccuracityPercentage, WarnoConstants.MaxAccuracity);
                     additionalResourceCommandPoints += (int)Math.Round(additionalAccuracityPercentage * _settings.AdditionalPointsCoefficientMultiplier);
                     ammunition.HitRollRuleDescriptor.BaseHitValueModifiers[baseHitValueModifier.Key] = (float)Math.Round(newAccuracityValue);
                 }

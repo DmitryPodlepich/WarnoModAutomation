@@ -21,6 +21,14 @@ namespace JsonDatabase
         {
         }
 
+        public static string[] GetDuplicatedAmmoNames() 
+        {
+            return AmmoRange
+                .GroupBy(x => x.AmmoName)
+                .Where(g => g.Count() > 1)
+                .Select(g => g.Key).ToArray();
+        }
+
         public static AmmoRangeDTO FindAmmoRange(string ammoName)
         {
             if (ammoName.Contains("~/"))

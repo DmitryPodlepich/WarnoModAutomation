@@ -1,0 +1,48 @@
+﻿@using BlazorBootstrap
+@using System.Diagnostics
+@using WarnoModeAutomation.Constants
+@using WarnoModeAutomation.Logic
+@using JsonDatabase.DTO
+
+@typeparam TValue
+
+<div class="mb-3 row">
+    
+    <div class="col-12 d-flex" >
+        <span class="input-group-text">@PropertyName</span>
+        <NumberInput Class="form-control" TValue="TValue" @bind-Value="@PropertyValue" Placeholder="Enter WarnoMetters" />
+        <Button Color="ButtonColor.Link" Class="p-0 m-0 ms-2" @onclick='async () => await collapse.ToggleAsync()'>
+            <i class="bi bi-arrow-down-circle fs-3"></i>
+        </Button>
+    </div>
+
+    <Collapse @ref="collapse">
+        @ChildContent
+    </Collapse>
+
+</div>
+
+@code {
+    [Parameter] public string PropertyName { get; set; }
+    
+    [Parameter] public RenderFragment ChildContent { get; set; }
+
+    private Collapse collapse = default!;
+
+    private TValue _propertyValue;
+
+    [Parameter]
+    public TValue PropertyValue
+    {
+        get => _propertyValue;
+        set
+        {
+            if (_propertyValue.Equals(value)) return;
+            _propertyValue = value;
+            PropertyValueChanged.InvokeAsync(value);
+        }
+    }
+
+    [Parameter]
+    public EventCallback<TValue> PropertyValueChanged { get; set; }
+}
