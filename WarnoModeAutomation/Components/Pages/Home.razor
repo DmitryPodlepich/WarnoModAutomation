@@ -6,7 +6,7 @@
 @using Microsoft.JSInterop
 @inject IJSRuntime JS
 
-<section>
+<section class="d-flex flex-column h-100">
 
     <div>
         <Accordion AlwaysOpen="true">
@@ -79,14 +79,14 @@
         </Accordion>
     </div>
 
-    <div class="d-flex flex-column p-3">
+    <div class="flex-grow-1 d-flex flex-column p-3">
 
         <div class="d-flex flex-row justify-content-between align-items-center mb-2">
             <p class="m-0"><strong>Mod manager log: </strong></p>
             <Button @onclick="ModManagerOutputClear" Class="btn btn-warning"><i class="bi bi-eraser-fill"></i> Clear</Button>
         </div>
 
-       <InputTextArea @ref=TextAreaRef style="min-height: 35vh; font-size: 14px;"  @bind-Value="@ModManagerOutput"></InputTextArea>
+        <InputTextArea @ref=TextAreaRef class="flex-grow-1" style="font-size: 14px;" @bind-Value="@ModManagerOutput"></InputTextArea>
     </div>
 
 </section>
