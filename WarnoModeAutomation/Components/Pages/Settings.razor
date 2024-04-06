@@ -145,6 +145,11 @@
     </div>
 
     <div class="mb-3 d-flex align-items-center">
+        <span class="input-group-text">@nameof(settingsDTO.AmmunitionMissilesDescriptorsFileName):</span>
+        <input class="form-control" @bind="settingsDTO.AmmunitionMissilesDescriptorsFileName" Placeholder="Enter AmmunitionMissilesDescriptorsFileName" />
+    </div>
+
+    <div class="mb-3 d-flex align-items-center">
         <span class="input-group-text">@nameof(settingsDTO.ResourceCommandPoints):</span>
         <input class="form-control" @bind="settingsDTO.ResourceCommandPoints" Placeholder="Enter ResourceCommandPoints" />
     </div>
@@ -255,6 +260,7 @@
             WarnoConstants.UniteDescriptorFileName,
             WarnoConstants.WeaponDescriptorDescriptorsFileName,
             WarnoConstants.AmmunitionDescriptorsFileName,
+            WarnoConstants.AmmunitionMissilesDescriptorsFileName,
             WarnoConstants.ResourceCommandPoints,
             WarnoConstants.AmunitionNameSMOKEMarker,
             WarnoConstants.InfanterieTag,

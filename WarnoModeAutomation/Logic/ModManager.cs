@@ -21,6 +21,8 @@ namespace WarnoModeAutomation.Logic
         private const string _createNewModBatFileName = "CreateNewMod.bat";
         private const string _generateModBatFileName = "GenerateMod.bat";
         private const string _updateModBatFileName = "UpdateMod.bat";
+        private const string _gitInitializationCommand = "git init && git add . && git commit -m \"Initial commit\"";
+
 
         public delegate void Outputter(string data);
         public static event Outputter OnOutput;
@@ -53,7 +55,7 @@ namespace WarnoModeAutomation.Logic
 
             var modFullPath = Path.Combine(Storage.ModeSettings.ModsDirectory, Storage.ModeSettings.ModName);
 
-            return await cmdProvier.PerformCMDCommand("git init && git add . && git commit -m \"Initial commit\"", modFullPath);
+            return await cmdProvier.PerformCMDCommand(_gitInitializationCommand, modFullPath);
         }
 
         public static bool DeleteMod() 
@@ -157,10 +159,12 @@ namespace WarnoModeAutomation.Logic
             }
 
             var amunitionFilePath = FileManager.NDFFilesPaths.SingleOrDefault(f => f.FileName == _settings.AmmunitionDescriptorsFileName);
+            var amunitionMissilesFilePath = FileManager.NDFFilesPaths.SingleOrDefault(f => f.FileName == _settings.AmmunitionMissilesDescriptorsFileName);
             var weaponFilePath = FileManager.NDFFilesPaths.SingleOrDefault(f => f.FileName == _settings.WeaponDescriptorDescriptorsFileName);
             var unitsFilePath = FileManager.NDFFilesPaths.SingleOrDefault(f => f.FileName == _settings.UniteDescriptorFileName);
             var buildingsFilePath = FileManager.NDFFilesPaths.SingleOrDefault(f => f.FileName == _settings.BuildingDescriptorsFileName);
 
+            FileDescriptor<TAmmunitionDescriptor> amunitionMissiles = null;
             FileDescriptor<TAmmunitionDescriptor> amunition = null;
             FileDescriptor<TWeaponManagerModuleDescriptor> weapon = null;
             FileDescriptor<TEntityDescriptor> units = null;
@@ -168,6 +172,13 @@ namespace WarnoModeAutomation.Logic
 
             Task[] tasks =
             [
+                Task.Run(() =>
+                {
+                    amunitionMissiles = NDFSerializer.Deserialize<TAmmunitionDescriptor>(amunitionMissilesFilePath.FilePath, OnCMDProviderOutput);
+
+                    if (enableFullLog)
+                        OnCMDProviderOutput($"{amunitionFilePath.FileName} desirialized!");
+                }),
                 Task.Run(() =>
                 {
                     amunition = NDFSerializer.Deserialize<TAmmunitionDescriptor>(amunitionFilePath.FilePath, OnCMDProviderOutput);
@@ -200,7 +211,7 @@ namespace WarnoModeAutomation.Logic
 
             await Task.WhenAll(tasks);
 
-            var unitsRelatedData = new UnitsRelatedDataDTO(amunition, weapon, units);
+            var unitsRelatedData = new UnitsRelatedDataDTO(amunitionMissiles, amunition, weapon, units);
 
             ModifyUnits(unitsRelatedData, enableFullLog);
 
@@ -208,6 +219,7 @@ namespace WarnoModeAutomation.Logic
 
             //Serialize all descriptors here back to ndf files
             await File.WriteAllTextAsync(unitsFilePath.FilePath, NDFSerializer.Serialize(units));
+            await File.WriteAllTextAsync(amunitionMissiles.FilePath, NDFSerializer.Serialize(amunitionMissiles));
             await File.WriteAllTextAsync(amunitionFilePath.FilePath, NDFSerializer.Serialize(amunition));
             await File.WriteAllTextAsync(weaponFilePath.FilePath, NDFSerializer.Serialize(weapon));
             await File.WriteAllTextAsync(buildingsFilePath.FilePath, NDFSerializer.Serialize(buildings));
@@ -256,6 +268,11 @@ namespace WarnoModeAutomation.Logic
 
                 var unitAmunitions = unitsRelatedData.AmmunitionDescriptor.RootDescriptors
                     .Where(d => unitAmunitionNames.Contains(d.EntityNDFType.Trim()));
+
+                var unitMissilesAmunition = unitsRelatedData.AmmunitionMissilesDescriptor.RootDescriptors
+                    .Where(d => unitAmunitionNames.Contains(d.EntityNDFType.Trim()));
+
+                unitAmunitions = unitAmunitions.Union(unitMissilesAmunition);
 
                 if (!unitAmunitions.Any())
                 {

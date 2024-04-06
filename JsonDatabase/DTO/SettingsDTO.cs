@@ -25,6 +25,7 @@
         string UniteDescriptorFileName,
         string WeaponDescriptorDescriptorsFileName,
         string AmmunitionDescriptorsFileName,
+        string AmmunitionMissilesDescriptorsFileName,
         string ResourceCommandPoints,
         string AmunitionNameSMOKEMarker,
         string InfanterieTag,
@@ -66,6 +67,7 @@
         public string UniteDescriptorFileName { get; set; } = UniteDescriptorFileName;
         public string WeaponDescriptorDescriptorsFileName { get; set; } = WeaponDescriptorDescriptorsFileName;
         public string AmmunitionDescriptorsFileName { get; set; } = AmmunitionDescriptorsFileName;
+        public string AmmunitionMissilesDescriptorsFileName { get; set; } = AmmunitionMissilesDescriptorsFileName;
 
         public string ResourceCommandPoints { get; set; } = ResourceCommandPoints;
         public string AmunitionNameSMOKEMarker { get; set; } = AmunitionNameSMOKEMarker;

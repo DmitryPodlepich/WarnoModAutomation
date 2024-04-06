@@ -23,6 +23,7 @@
 	"UniteDescriptorFileName": "UniteDescriptor.ndf",
 	"WeaponDescriptorDescriptorsFileName": "WeaponDescriptor.ndf",
 	"AmmunitionDescriptorsFileName": "Ammunition.ndf",
+	"AmmunitionMissilesDescriptorsFileName": "AmmunitionMissiles.ndf",
 	"ResourceCommandPoints": "Resource_CommandPoints",
 	"AmunitionNameSMOKEMarker": "SMOKE",
 	"InfanterieTag": "Infanterie",
