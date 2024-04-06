@@ -8,6 +8,8 @@
 
 <section class="d-flex flex-column h-100">
 
+    <ConfirmDialog @ref="dialog" />
+
     <div>
         <Accordion AlwaysOpen="true">
             <AccordionItem Title="Status" IsActive="true">
@@ -61,7 +63,7 @@
 
                         <hr>
 
-                        <Button Loading="@(_currentOperation == OperationType.Deletion)" LoadingText="Deleting..." Disabled="@(_currentOperation != OperationType.Idle)" Class="btn btn-danger ms-2" @onclick="DeleteMod">
+                        <Button Loading="@(_currentOperation == OperationType.Deletion)" LoadingText="Deleting..." Disabled="@(_currentOperation != OperationType.Idle)" Class="btn btn-danger ms-2" @onclick="ShowDeleteModConfirmationAsync">
                             <i class="bi bi-trash-fill"></i>
                             Delete
                         </Button>
@@ -86,13 +88,15 @@
             <Button @onclick="ModManagerOutputClear" Class="btn btn-warning"><i class="bi bi-eraser-fill"></i> Clear</Button>
         </div>
 
-        <InputTextArea @ref=TextAreaRef class="flex-grow-1" style="font-size: 14px;" @bind-Value="@ModManagerOutput"></InputTextArea>
+        <InputTextArea @ref=textAreaRef class="flex-grow-1" style="font-size: 14px;" @bind-Value="@ModManagerOutput"></InputTextArea>
     </div>
 
 </section>
 
 @code {
-    InputTextArea TextAreaRef;
+
+    private ConfirmDialog dialog = default!;
+    private InputTextArea textAreaRef;
 
     private enum OperationType
     {
@@ -133,7 +137,7 @@
             _stringBuilder.AppendLine(data);
             StateHasChanged();
 
-            await JS.InvokeVoidAsync("scrollHeight", TextAreaRef?.Element);
+            await JS.InvokeVoidAsync("scrollHeight", textAreaRef?.Element);
         });
     }
 
@@ -146,7 +150,26 @@
         });
     }
 
-    //ToDo: add alert!
+    private async Task ShowDeleteModConfirmationAsync()
+    {
+        var options = new ConfirmDialogOptions
+            {
+                YesButtonText = "Ok",
+                YesButtonColor = ButtonColor.Danger,
+                NoButtonText = "Cancel",
+                NoButtonColor = ButtonColor.Secondary
+            };
+
+        var confirmation = await dialog.ShowAsync(
+            title: "Are you sure you want to delete current mod?",
+            message1: "This will delete the mod. Once deleted can not be rolled back.",
+            message2: "Do you want to proceed?",
+            options);
+
+        if (confirmation)
+            await DeleteMod();
+    }
+
     public async Task DeleteMod()
     {
         await Perform(OperationType.Deletion, async () =>

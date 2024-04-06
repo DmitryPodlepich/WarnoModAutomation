@@ -22,9 +22,9 @@ namespace WarnoModeAutomation.Logic
             _workingDirectory = workingDirectory;
         }
 
-        public async Task<bool> PerformCMDCommand(string command) 
+        public async Task<bool> PerformCMDCommand(string command, string workingDirectory = null) 
         {
-            using (_cancellationTokenSource = new CancellationTokenSource())
+            using (_cancellationTokenSource = new CancellationTokenSource(TimeSpan.FromSeconds(30)))
             using (_process = new Process())
             {
                 _process.StartInfo.UseShellExecute = false;
@@ -32,7 +32,7 @@ namespace WarnoModeAutomation.Logic
                 _process.StartInfo.RedirectStandardError = true;
                 _process.StartInfo.CreateNoWindow = true;
                 _process.StartInfo.RedirectStandardInput = true;
-                _process.StartInfo.WorkingDirectory = _workingDirectory;
+                _process.StartInfo.WorkingDirectory = workingDirectory ?? _workingDirectory;
                 _process.StartInfo.FileName = Path.Combine(Environment.SystemDirectory, "cmd.exe");
 
                 _process.OutputDataReceived += ProcessOutputDataHandler;
@@ -48,6 +48,10 @@ namespace WarnoModeAutomation.Logic
 
                     await _process.WaitForExitAsync(_cancellationTokenSource.Token);
                 }
+                catch (TaskCanceledException)
+                {}
+                catch(OperationCanceledException)
+                {}
                 catch (Exception ex)
                 {
                     OnOutput?.Invoke(ex.Message);

@@ -46,7 +46,14 @@ namespace WarnoModeAutomation.Logic
 
             cmdProvier.OnOutput += OnCMDProviderOutput;
 
-            return await cmdProvier.PerformCMDCommand($"{_createNewModBatFileName} {Storage.ModeSettings.ModName}");
+            var creationResult = await cmdProvier.PerformCMDCommand($"{_createNewModBatFileName} {Storage.ModeSettings.ModName}");
+
+            if (!creationResult)
+                return creationResult;
+
+            var modFullPath = Path.Combine(Storage.ModeSettings.ModsDirectory, Storage.ModeSettings.ModName);
+
+            return await cmdProvier.PerformCMDCommand("git init && git add . && git commit -m \"Initial commit\"", modFullPath);
         }
 
         public static bool DeleteMod() 
@@ -60,7 +67,6 @@ namespace WarnoModeAutomation.Logic
             if (!File.Exists(savedGamesConfigFilePath))
             {
                 OnOutput?.Invoke($"{savedGamesConfigFilePath} not found!");
-                return false;
             }
 
             if (!Directory.Exists(modDirectory))
@@ -78,13 +84,11 @@ namespace WarnoModeAutomation.Logic
             if (!FileManager.TryDeleteDirectoryWithFiles(modSavedGamesDirectory, out string modSavedGamesDirectoryErrors))
             {
                 OnOutput?.Invoke(modSavedGamesDirectoryErrors);
-                return false;
             }
 
             if (!FileManager.TryDeleteFile(savedGamesConfigFilePath, out string savedGamesConfigFilePathErrors))
             {
                 OnOutput?.Invoke(savedGamesConfigFilePathErrors);
-                return false;
             }
 
             OnOutput?.Invoke($"{Storage.ModeSettings.ModName} mod has been deleted.");

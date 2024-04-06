@@ -66,9 +66,11 @@
 
     <ItemGroup>
       <None Remove="Resources\Images\Loading.gif" />
+      <None Remove="Resources\Images\Warno.jpeg" />
     </ItemGroup>
 
     <ItemGroup>
+      <MauiImage Include="wwwroot\warno.jpeg" />
       <MauiImage Include="wwwroot\loading.gif" />
     </ItemGroup>
 
