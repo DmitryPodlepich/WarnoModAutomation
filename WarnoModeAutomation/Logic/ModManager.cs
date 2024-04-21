@@ -27,9 +27,14 @@ namespace WarnoModeAutomation.Logic
         public delegate void Outputter(string data);
         public static event Outputter OnOutput;
 
-        public static readonly SettingsDTO _settings;
+        private static SettingsDTO _settings;
 
         static ModManager()
+        {
+            LoadSettings();
+        }
+
+        public static void LoadSettings() 
         {
             _settings = JsonDatabase.JsonDatabase.LoadSettings();
         }
@@ -182,8 +187,8 @@ namespace WarnoModeAutomation.Logic
                 Task.Run(() =>
                 {
                     amunition = NDFSerializer.Deserialize<TAmmunitionDescriptor>(amunitionFilePath.FilePath, OnCMDProviderOutput);
-                    
-                    if(enableFullLog)
+
+                    if (enableFullLog)
                         OnCMDProviderOutput($"{amunitionFilePath.FileName} desirialized!");
                 }),
                 Task.Run(() =>
@@ -213,9 +218,20 @@ namespace WarnoModeAutomation.Logic
 
             var unitsRelatedData = new UnitsRelatedDataDTO(amunitionMissiles, amunition, weapon, units);
 
-            ModifyUnits(unitsRelatedData, enableFullLog);
+            tasks =
+            [
+                Task.Run(() =>
+                {
 
-            buildings = ModifyBuildings(buildings);
+                    ModifyUnits(unitsRelatedData, enableFullLog);
+                }),
+                Task.Run(() =>
+                {
+                    buildings = ModifyBuildings(buildings);
+                })
+            ];
+
+            await Task.WhenAll(tasks);
 
             //Serialize all descriptors here back to ndf files
             await File.WriteAllTextAsync(unitsFilePath.FilePath, NDFSerializer.Serialize(units));
@@ -480,17 +496,19 @@ namespace WarnoModeAutomation.Logic
 
             var longestHAAmunitionRange = ammunitionDescriptor.Select(x => x.PorteeMaximaleHA).MaxBy(x => x.FloatValue);
 
+            var minVisionDistance = isSovUnit ? _settings.SovMinVisionDistance : _settings.NatoMinVisionDistance;
+
             var newTBAVisionValue = Math.Max(CalculateUnitVisionTBA(longestTBAAmunitionRange, isSovUnit), CalculateUnitVisionHA(longestHAAmunitionRange, isSovUnit));
 
-            scannerConfigurationDescriptor.PorteeVisionTBA.FloatValue = Math.Max(scannerConfigurationDescriptor.PorteeVisionTBA.FloatValue, newTBAVisionValue);
+            scannerConfigurationDescriptor.PorteeVisionTBA.FloatValue = Math.Max(minVisionDistance, newTBAVisionValue);
 
             var newDetectionValue = CalculateUnitDetectionTBAAndHA(scannerConfigurationDescriptor.PorteeVisionTBA.FloatValue);
 
-            scannerConfigurationDescriptor.DetectionTBA.FloatValue = Math.Max(scannerConfigurationDescriptor.DetectionTBA.FloatValue, newDetectionValue);
+            scannerConfigurationDescriptor.DetectionTBA.FloatValue = Math.Max(minVisionDistance, newDetectionValue);
 
             var newGroundVisionValue = Math.Max(scannerConfigurationDescriptor.PorteeVision.FloatValue, CalculateUnitVisionGround(longestGroundAmunitionRange, isSovUnit));
 
-            scannerConfigurationDescriptor.PorteeVision.FloatValue = Math.Max(scannerConfigurationDescriptor.PorteeVision.FloatValue, newGroundVisionValue);
+            scannerConfigurationDescriptor.PorteeVision.FloatValue = Math.Max(minVisionDistance, newGroundVisionValue);
 
             //ToDo: change unit vison according to a new fire range
             //-For Scout unit: vision - 2 %;

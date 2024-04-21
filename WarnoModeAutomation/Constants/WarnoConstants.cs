@@ -45,6 +45,9 @@
         public const int SovHAVisionPercentageFromAmunitionDistance = 35;
         public const int NatoHAVisionPercentageFromAmunitionDistance = 5;
 
+        public const int SovMinVisionDistance = 10000;
+        public const int NatoMinVisionDistance = 14000;
+
         public const int TBAAndHADetectionPercentageFromVisionDistance = 20;
         public const int GroudDetectionPercentageFromVisionDistance = 10;
 

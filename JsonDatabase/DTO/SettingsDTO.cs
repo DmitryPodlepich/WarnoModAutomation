@@ -17,6 +17,8 @@
         int NatoTBAVisionPercentageFromAmunitionDistance,
         int SovHAVisionPercentageFromAmunitionDistance,
         int NatoHAVisionPercentageFromAmunitionDistance,
+        int SovMinVisionDistance,
+        int NatoMinVisionDistance,
         int TBAAndHADetectionPercentageFromVisionDistance,
         int GroudDetectionPercentageFromVisionDistance,
         int ArtileryDamagePercentage,
@@ -54,6 +56,8 @@
         public int NatoTBAVisionPercentageFromAmunitionDistance { get; set; } = NatoTBAVisionPercentageFromAmunitionDistance;
         public int SovHAVisionPercentageFromAmunitionDistance { get; set; } = SovHAVisionPercentageFromAmunitionDistance;
         public int NatoHAVisionPercentageFromAmunitionDistance { get; set; } = NatoHAVisionPercentageFromAmunitionDistance;
+        public int SovMinVisionDistance { get; set; } = SovMinVisionDistance;
+        public int NatoMinVisionDistance { get; set; } = NatoMinVisionDistance;
         public int TBAAndHADetectionPercentageFromVisionDistance { get; set; } = TBAAndHADetectionPercentageFromVisionDistance;
         public int GroudDetectionPercentageFromVisionDistance { get; set; } = GroudDetectionPercentageFromVisionDistance;
         public int ArtileryDamagePercentage { get; set; } = ArtileryDamagePercentage;
