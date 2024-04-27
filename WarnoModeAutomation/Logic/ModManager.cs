@@ -233,7 +233,7 @@ namespace WarnoModeAutomation.Logic
 
             await Task.WhenAll(tasks);
 
-            //Serialize all descriptors here back to ndf files
+            //Serialize all descriptors back to ndf files
             await File.WriteAllTextAsync(unitsFilePath.FilePath, NDFSerializer.Serialize(units));
             await File.WriteAllTextAsync(amunitionMissiles.FilePath, NDFSerializer.Serialize(amunitionMissiles));
             await File.WriteAllTextAsync(amunitionFilePath.FilePath, NDFSerializer.Serialize(amunition));

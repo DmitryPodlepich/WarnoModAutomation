@@ -30,108 +30,122 @@
     <hr />
 
     <ModSettingSection PropertyName="@nameof(_settingsDTO.WarnoMetters)" TValue="int" @bind-PropertyValue="_settingsDTO.WarnoMetters">
-        <p class="text-muted">
+        <p class="text-muted mb-0">
             The constant value which determinants distance measuring. Has been defined experimental way when we took value from UI and from resource files and compare it. 
             Strongly recommended to leave as is.
         </p>
     </ModSettingSection>
 
-    <ModSettingSection PropertyName="@nameof(_settingsDTO.NerfDistanceCoefficientDivider)" TValue="int" @bind-PropertyValue="_settingsDTO.NerfDistanceCoefficientDivider">
-        <p class="text-muted">
+    <ModSettingSection PropertyName="@nameof(_settingsDTO.NerfDistanceCoefficientDivider)" TValue="double" @bind-PropertyValue="_settingsDTO.NerfDistanceCoefficientDivider">
+        <p class="text-muted mb-0">
             There is a special formula which will update distance value. The more is a difference between original and new distance value the more this new value will be reduced in order to save game balance.
             The more this value the more new distance value will be reduced.
         </p>
     </ModSettingSection>
 
-@*     <div class="mb-3 d-flex align-items-center">
-        <span class="input-group-text">@nameof(_settingsDTO.NerfDistanceCoefficientDivider):</span>
-        <input class="form-control" @bind="_settingsDTO.NerfDistanceCoefficientDivider" placeholder="Enter NerfDistanceCoefficientDivider" />
-    </div> *@
+    <ModSettingSection PropertyName="@nameof(_settingsDTO.AdditionalPointsCoefficientMultiplier)" TValue="double" @bind-PropertyValue="_settingsDTO.AdditionalPointsCoefficientMultiplier">
+        <p class="text-muted mb-0">
+            This coefficient is a multiplier value for the added ammunition accuracy value. <br>
+            The higher this value, the more production points will be added to a unit's cost, based on the sum of increased unit ammunition accuracy.
+        </p>
+    </ModSettingSection>
 
-    <div class="mb-3 d-flex align-items-center">
-        <span class="input-group-text">@nameof(_settingsDTO.AdditionalPointsCoefficientMultiplier):</span>
-        <input class="form-control" @bind="_settingsDTO.AdditionalPointsCoefficientMultiplier" placeholder="Enter AdditionalPointsCoefficientMultiplier" />
-    </div>
+    <ModSettingSection PropertyName="@nameof(_settingsDTO.AdditionalPointsArtileryCoefficientDivider)" TValue="double" @bind-PropertyValue="_settingsDTO.AdditionalPointsArtileryCoefficientDivider">
+        <p class="text-muted mb-0">
+            This value is used to divide points for added accuracy for artillery. <br>
+            The higher this value, the fewer production points will be added to the artillery unit cost.
+        </p>
+    </ModSettingSection>
 
-    <div class="mb-3 d-flex align-items-center">
-        <span class="input-group-text">@nameof(_settingsDTO.AdditionalPointsArtileryCoefficientDivider):</span>
-        <input class="form-control" @bind="_settingsDTO.AdditionalPointsArtileryCoefficientDivider" placeholder="Enter AdditionalPointsArtileryCoefficientDivider" />
-    </div>
+    <ModSettingSection PropertyName="@nameof(_settingsDTO.NatoCommonAccuracityBonusPercentage)" TValue="int" @bind-PropertyValue="_settingsDTO.NatoCommonAccuracityBonusPercentage">
+        <p class="text-muted mb-0">
+            This value represents a percentage by which accuracy for NATO will be increased. <br>
+            The higher this value, the more accurate NATO ammunition will be overall, but it will also increase the cost of the unit.
+        </p>
+    </ModSettingSection>
 
-    <div class="mb-3 d-flex align-items-center">
-        <span class="input-group-text">@nameof(_settingsDTO.NatoCommonAccuracityBonusPercentage):</span>
-        <NumberInput Class="form-control" TValue="int" @bind-Value="_settingsDTO.NatoCommonAccuracityBonusPercentage" Placeholder="Enter NatoCommonAccuracityBonusPercentage" />
-    </div>
+    <ModSettingSection PropertyName="@nameof(_settingsDTO.NatoArtileryAccuracityBonusPercentage)" TValue="int" @bind-PropertyValue="_settingsDTO.NatoArtileryAccuracityBonusPercentage">
+        <p class="text-muted mb-0">
+            This value represents a percentage by which accuracy for NATO Artilery will be increased.<br>
+            The higher this value, the more accurate NATO Artilery ammunition will be overall, but it will also increase the cost of the unit.
+        </p>
+    </ModSettingSection>
 
-    <div class="mb-3 d-flex align-items-center">
-        <span class="input-group-text">@nameof(_settingsDTO.NatoArtileryAccuracityBonusPercentage):</span>
-        <NumberInput Class="form-control" TValue="int" @bind-Value="_settingsDTO.NatoArtileryAccuracityBonusPercentage" Placeholder="Enter NatoArtileryAccuracityBonusPercentage" />
-    </div>
+    <ModSettingSection PropertyName="@nameof(_settingsDTO.SovMinOpticalStrength)" TValue="int" @bind-PropertyValue="_settingsDTO.SovMinOpticalStrength">
+        <p class="text-muted mb-0">Minimum optical streight of Soviet units.</p>
+    </ModSettingSection>
 
-    <div class="mb-3 d-flex align-items-center">
-        <span class="input-group-text">@nameof(_settingsDTO.SovMinOpticalStrength):</span>
-        <NumberInput Class="form-control" TValue="int" @bind-Value="_settingsDTO.SovMinOpticalStrength" Placeholder="Enter SovMinOpticalStrength" />
-    </div>
+    <ModSettingSection PropertyName="@nameof(_settingsDTO.NatoMinOpticalStrength)" TValue="int" @bind-PropertyValue="_settingsDTO.NatoMinOpticalStrength">
+        <p class="text-muted mb-0">Minimum optical streight of Nato units.</p>
+    </ModSettingSection>
 
-    <div class="mb-3 d-flex align-items-center">
-        <span class="input-group-text">@nameof(_settingsDTO.NatoMinOpticalStrength):</span>
-        <NumberInput Class="form-control" TValue="int" @bind-Value="_settingsDTO.NatoMinOpticalStrength" Placeholder="Enter NatoMinOpticalStrength" />
-    </div>
+    <ModSettingSection PropertyName="@nameof(_settingsDTO.SovGroundVisionPercentageFromAmunitionDistance)" TValue="int" @bind-PropertyValue="_settingsDTO.SovGroundVisionPercentageFromAmunitionDistance">
+        <p class="text-muted mb-0">
+            This value is a percentage of the unit's ammunition distance that will be subtracted from the unit's vision. <br>
+            The higher this value, the shorter the unit's vision distance will be but not less than MinVisionDistance.
+        </p>
+    </ModSettingSection>
 
-    <div class="mb-3 d-flex align-items-center">
-        <span class="input-group-text">@nameof(_settingsDTO.SovGroundVisionPercentageFromAmunitionDistance):</span>
-        <NumberInput Class="form-control" TValue="int" @bind-Value="_settingsDTO.SovGroundVisionPercentageFromAmunitionDistance" Placeholder="Enter SovGroundVisionPercentageFromAmunitionDistance" />
-    </div>
+    <ModSettingSection PropertyName="@nameof(_settingsDTO.NatoGroundVisionPercentageFromAmunitionDistance)" TValue="int" @bind-PropertyValue="_settingsDTO.NatoGroundVisionPercentageFromAmunitionDistance">
+        <p class="text-muted mb-0">
+            This value is a percentage of the unit's ammunition distance that will be subtracted from the unit's vision.<br>
+            The higher this value, the shorter the unit's vision distance will be but not less than MinVisionDistance.
+        </p>
+    </ModSettingSection>
 
-    <div class="mb-3 d-flex align-items-center">
-        <span class="input-group-text">@nameof(_settingsDTO.NatoGroundVisionPercentageFromAmunitionDistance):</span>
-        <NumberInput Class="form-control" TValue="int" @bind-Value="_settingsDTO.NatoGroundVisionPercentageFromAmunitionDistance" Placeholder="Enter NatoGroundVisionPercentageFromAmunitionDistance" />
-    </div>
+    <ModSettingSection PropertyName="@nameof(_settingsDTO.SovTBAVisionPercentageFromAmunitionDistance)" TValue="int" @bind-PropertyValue="_settingsDTO.SovTBAVisionPercentageFromAmunitionDistance">
+        <p class="text-muted mb-0">
+            This value is a percentage of the unit's ammunition distance that will be subtracted from the unit's vision.<br>
+            The higher this value, the shorter the unit's vision distance will be but not less than MinVisionDistance.
+        </p>
+    </ModSettingSection>
 
-    <div class="mb-3 d-flex align-items-center">
-        <span class="input-group-text">@nameof(_settingsDTO.SovTBAVisionPercentageFromAmunitionDistance):</span>
-        <NumberInput Class="form-control" TValue="int" @bind-Value="_settingsDTO.SovTBAVisionPercentageFromAmunitionDistance" Placeholder="Enter SovTBAVisionPercentageFromAmunitionDistance" />
-    </div>
+    <ModSettingSection PropertyName="@nameof(_settingsDTO.NatoTBAVisionPercentageFromAmunitionDistance)" TValue="int" @bind-PropertyValue="_settingsDTO.NatoTBAVisionPercentageFromAmunitionDistance">
+        <p class="text-muted mb-0">
+            This value is a percentage of the unit's ammunition distance that will be subtracted from the unit's vision.<br>
+            The higher this value, the shorter the unit's vision distance will be but not less than MinVisionDistance.
+        </p>
+    </ModSettingSection>
 
-    <div class="mb-3 d-flex align-items-center">
-        <span class="input-group-text">@nameof(_settingsDTO.NatoTBAVisionPercentageFromAmunitionDistance):</span>
-        <NumberInput Class="form-control" TValue="int" @bind-Value="_settingsDTO.NatoTBAVisionPercentageFromAmunitionDistance" Placeholder="Enter amoNatoTBAVisionPercentageFromAmunitionDistanceunt" />
-    </div>
+    <ModSettingSection PropertyName="@nameof(_settingsDTO.SovHAVisionPercentageFromAmunitionDistance)" TValue="int" @bind-PropertyValue="_settingsDTO.SovHAVisionPercentageFromAmunitionDistance">
+        <p class="text-muted mb-0">
+            This value is a percentage of the unit's ammunition distance that will be subtracted from the unit's vision.<br>
+            The higher this value, the shorter the unit's vision distance will be but not less than MinVisionDistance.
+        </p>
+    </ModSettingSection>
 
-    <div class="mb-3 d-flex align-items-center">
-        <span class="input-group-text">@nameof(_settingsDTO.SovHAVisionPercentageFromAmunitionDistance):</span>
-        <NumberInput Class="form-control" TValue="int" @bind-Value="_settingsDTO.SovHAVisionPercentageFromAmunitionDistance" Placeholder="Enter SovHAVisionPercentageFromAmunitionDistance" />
-    </div>
+    <ModSettingSection PropertyName="@nameof(_settingsDTO.NatoHAVisionPercentageFromAmunitionDistance)" TValue="int" @bind-PropertyValue="_settingsDTO.NatoHAVisionPercentageFromAmunitionDistance">
+        <p class="text-muted mb-0">
+            This value is a percentage of the unit's ammunition distance that will be subtracted from the unit's vision.<br>
+            The higher this value, the shorter the unit's vision distance will be but not less than MinVisionDistance.
+        </p>
+    </ModSettingSection>
 
-    <div class="mb-3 d-flex align-items-center">
-        <span class="input-group-text">@nameof(_settingsDTO.NatoHAVisionPercentageFromAmunitionDistance):</span>
-        <NumberInput Class="form-control" TValue="int" @bind-Value="_settingsDTO.NatoHAVisionPercentageFromAmunitionDistance" Placeholder="Enter NatoHAVisionPercentageFromAmunitionDistance" />
-    </div>
+    <ModSettingSection PropertyName="@nameof(_settingsDTO.SovMinVisionDistance)" TValue="int" @bind-PropertyValue="_settingsDTO.SovMinVisionDistance">
+        <p class="text-muted mb-0">When unit vision is calculated this value will be used as minimum threshold.</p>
+    </ModSettingSection>
 
-    <div class="mb-3 d-flex align-items-center">
-        <span class="input-group-text">@nameof(_settingsDTO.SovMinVisionDistance):</span>
-        <NumberInput Class="form-control" TValue="int" @bind-Value="_settingsDTO.SovMinVisionDistance" Placeholder="Enter SovMinVisionDistance" />
-    </div>
+    <ModSettingSection PropertyName="@nameof(_settingsDTO.NatoMinVisionDistance)" TValue="int" @bind-PropertyValue="_settingsDTO.NatoMinVisionDistance">
+        <p class="text-muted mb-0">When unit vision is calculated this value will be used as maximum threshold.</p>
+    </ModSettingSection>
 
-    <div class="mb-3 d-flex align-items-center">
-        <span class="input-group-text">@nameof(_settingsDTO.NatoMinVisionDistance):</span>
-        <NumberInput Class="form-control" TValue="int" @bind-Value="_settingsDTO.NatoMinVisionDistance" Placeholder="Enter NatoMinVisionDistance" />
-    </div>
+    <ModSettingSection PropertyName="@nameof(_settingsDTO.TBAAndHADetectionPercentageFromVisionDistance)" TValue="int" @bind-PropertyValue="_settingsDTO.TBAAndHADetectionPercentageFromVisionDistance">
+        <p class="text-muted mb-0">
+            Detection is a process in which a unit can be precisely identified. This value represents a percentage of the unit's vision. <br>
+            This percentage will be subtracted from the unit's vision, and the resulting value will be used as the detection distance for helicopters and planes.
+        </p>
+    </ModSettingSection>
 
-    <div class="mb-3 d-flex align-items-center">
-        <span class="input-group-text">@nameof(_settingsDTO.TBAAndHADetectionPercentageFromVisionDistance):</span>
-        <NumberInput Class="form-control" TValue="int" @bind-Value="_settingsDTO.TBAAndHADetectionPercentageFromVisionDistance" Placeholder="Enter TBAAndHADetectionPercentageFromVisionDistance" />
-    </div>
+    <ModSettingSection PropertyName="@nameof(_settingsDTO.GroudDetectionPercentageFromVisionDistance)" TValue="int" @bind-PropertyValue="_settingsDTO.GroudDetectionPercentageFromVisionDistance">
+        <p class="text-muted mb-0">
+            Detection is a process in which a unit can be precisely identified. This value represents a percentage of the unit's vision.<br>
+            This percentage will be subtracted from the unit's vision, and the resulting value will be used as the detection distance for ground units.
+        </p>
+    </ModSettingSection>
 
-    <div class="mb-3 d-flex align-items-center">
-        <span class="input-group-text">@nameof(_settingsDTO.GroudDetectionPercentageFromVisionDistance):</span>
-        <NumberInput Class="form-control" TValue="int" @bind-Value="_settingsDTO.GroudDetectionPercentageFromVisionDistance" Placeholder="Enter GroudDetectionPercentageFromVisionDistance" />
-    </div>
-
-    <div class="mb-3 d-flex align-items-center">
-        <span class="input-group-text">@nameof(_settingsDTO.ArtileryDamagePercentage):</span>
-        <NumberInput Class="form-control" TValue="int" @bind-Value="_settingsDTO.ArtileryDamagePercentage" Placeholder="Enter ArtileryDamagePercentage" />
-    </div>
+    <ModSettingSection PropertyName="@nameof(_settingsDTO.ArtileryDamagePercentage)" TValue="int" @bind-PropertyValue="_settingsDTO.ArtileryDamagePercentage">
+        <p class="text-muted mb-0">This value is a percentage by which all artillery damage will be increased.</p>
+    </ModSettingSection>
 
     <h5 class="text-center">Serialization settings <i style="font-size: 18px !important;" class="bi bi-bounding-box fs-3 text-primary"></i></h5>
     <hr />

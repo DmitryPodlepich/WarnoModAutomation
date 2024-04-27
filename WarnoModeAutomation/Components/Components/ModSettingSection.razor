@@ -10,7 +10,8 @@
     
     <div class="col-12 d-flex" >
         <span class="input-group-text">@PropertyName</span>
-        <NumberInput Class="form-control" TValue="TValue" @bind-Value="@PropertyValue" Placeholder="Enter WarnoMetters" />
+        @* <NumberInput TValue="TValue" @bind-Value="@PropertyValue" Step="0.1" Placeholder="@PropertyName" /> *@
+        <input class="form-control" type="number" @bind-value="@PropertyValue" Step="@_step" Placeholder="@PropertyName" />
         <Button Color="ButtonColor.Link" Class="p-0 m-0 ms-2" @onclick='async () => await collapse.ToggleAsync()'>
             <i class="bi bi-arrow-down-circle fs-3"></i>
         </Button>
@@ -24,12 +25,14 @@
 
 @code {
     [Parameter] public string PropertyName { get; set; }
-    
+
     [Parameter] public RenderFragment ChildContent { get; set; }
 
     private Collapse collapse = default!;
 
     private TValue _propertyValue;
+
+    private string _step => typeof(TValue) == typeof(int) ? "0" : "0.1";
 
     [Parameter]
     public TValue PropertyValue
