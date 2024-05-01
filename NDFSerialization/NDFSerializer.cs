@@ -102,7 +102,7 @@ namespace WarnoModeAutomation.Logic
             return sb.ToString();
         }
 
-        public static FileDescriptor<T> Deserialize<T>(string filePath, Action<string> outputLogs = null) where T : Descriptor
+        public static FileDescriptor<T> Deserialize<T>(string filePath, CancellationToken cancellationToken, Action<string> outputLogs = null) where T : Descriptor
         {
             if (!File.Exists(filePath))
                 outputLogs?.Invoke($"File not found by path: {filePath}");
@@ -120,17 +120,14 @@ namespace WarnoModeAutomation.Logic
                 {
                     try
                     {
+                        cancellationToken.ThrowIfCancellationRequested();
+
                         var rawLineKey = Guid.NewGuid();
 
                         fileDescriptior.RawLines.Add(rawLineKey, line);
                         i++;
 
                         _ = descriptorsStack.TryPeek(out var currentDescriptor);
-
-                        //if (i == 34)
-                        //{
-                        //    Debugger.Break();
-                        //}
 
                         if (line.Trim().Equals(")") || line.Trim().Equals("),"))
                         {
@@ -147,7 +144,7 @@ namespace WarnoModeAutomation.Logic
                             continue;
                         }
 
-                        if (line.Trim().Equals("]") 
+                        if (line.Trim().Equals("]")
                             && (currentDescriptor?.LastSettedProperyNDFType == NDFPropertyTypes.Vector || currentDescriptor?.LastSettedProperyNDFType == NDFPropertyTypes.VectorGeneric))
                         {
                             currentDescriptor.LastSettedPropery = null;
@@ -180,6 +177,10 @@ namespace WarnoModeAutomation.Logic
                             SetVectorItem(fileDescriptior, currentDescriptor, rawLineKey, line);
                             continue;
                         }
+                    }
+                    catch (OperationCanceledException)
+                    {
+                        throw;
                     }
                     catch (Exception ex)
                     {

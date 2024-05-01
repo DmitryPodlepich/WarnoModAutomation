@@ -4,6 +4,7 @@ using NDFSerialization.Models;
 using NDFSerialization.NDFDataTypes.Primitive;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
+using System.Threading;
 using WarnoModeAutomation.Constants;
 using WarnoModeAutomation.DTO;
 using WarnoModeAutomation.DTO.NDFFiles;
@@ -39,7 +40,7 @@ namespace WarnoModeAutomation.Logic
             _settings = JsonDatabase.JsonDatabase.LoadSettings();
         }
 
-        public static async Task<bool> CreateModAsync()
+        public static async Task<bool> CreateModAsync(CancellationToken cancellationToken)
         {
             var batFullPath = Path.Combine(Storage.ModeSettings.ModsDirectory, _createNewModBatFileName);
 
@@ -53,14 +54,14 @@ namespace WarnoModeAutomation.Logic
 
             cmdProvier.OnOutput += OnCMDProviderOutput;
 
-            var creationResult = await cmdProvier.PerformCMDCommand($"{_createNewModBatFileName} {Storage.ModeSettings.ModName}");
+            var creationResult = await cmdProvier.PerformCMDCommand($"{_createNewModBatFileName} {Storage.ModeSettings.ModName}", cancellationToken);
 
             if (!creationResult)
                 return creationResult;
 
             var modFullPath = Path.Combine(Storage.ModeSettings.ModsDirectory, Storage.ModeSettings.ModName);
 
-            return await cmdProvier.PerformCMDCommand(_gitInitializationCommand, modFullPath);
+            return await cmdProvier.PerformCMDCommand(_gitInitializationCommand, cancellationToken, modFullPath);
         }
 
         public static bool DeleteMod() 
@@ -103,7 +104,7 @@ namespace WarnoModeAutomation.Logic
             return true;
         }
 
-        public static async Task<bool> GenerateModAsync() 
+        public static async Task<bool> GenerateModAsync(CancellationToken cancellationToken) 
         {
             var batFullPath = Path.Combine(Storage.ModeSettings.ModsDirectory, Storage.ModeSettings.ModName, _generateModBatFileName);
 
@@ -119,10 +120,10 @@ namespace WarnoModeAutomation.Logic
 
             cmdProvier.OnOutput += OnCMDProviderOutput;
 
-            return await cmdProvier.PerformCMDCommand(_generateModBatFileName);
+            return await cmdProvier.PerformCMDCommand(_generateModBatFileName, cancellationToken);
         }
 
-        public static async Task UpdateModAsync() 
+        public static async Task UpdateModAsync(CancellationToken cancellationToken) 
         {
             var batFullPath = Path.Combine(Storage.ModeSettings.ModsDirectory, Storage.ModeSettings.ModName, _updateModBatFileName);
 
@@ -137,7 +138,7 @@ namespace WarnoModeAutomation.Logic
 
             cmdProvier.OnOutput += OnCMDProviderOutput;
 
-            _ = await cmdProvier.PerformCMDCommand(_generateModBatFileName);
+            _ = await cmdProvier.PerformCMDCommand(_generateModBatFileName, cancellationToken);
         }
 
         public static async Task FillDatabaseAsync(CancellationTokenSource cancellationTokenSource) 
@@ -146,7 +147,7 @@ namespace WarnoModeAutomation.Logic
             await WebSearchEngine.FillDatabaseWithMilitaryTodayAsync(cancellationTokenSource);
         }
 
-        public static async Task Modify(bool enableFullLog)
+        public static async Task Modify(bool enableFullLog, CancellationToken cancellationToken)
         {
             var duplicatedAmmoNames = JsonDatabase.JsonDatabase.GetDuplicatedAmmoNames();
 
@@ -179,39 +180,39 @@ namespace WarnoModeAutomation.Logic
             [
                 Task.Run(() =>
                 {
-                    amunitionMissiles = NDFSerializer.Deserialize<TAmmunitionDescriptor>(amunitionMissilesFilePath.FilePath, OnCMDProviderOutput);
+                    amunitionMissiles = NDFSerializer.Deserialize<TAmmunitionDescriptor>(amunitionMissilesFilePath.FilePath, cancellationToken, OnCMDProviderOutput);
+
+                    if (enableFullLog)
+                        OnCMDProviderOutput($"{amunitionMissilesFilePath.FileName} desirialized!");
+                }, cancellationToken),
+                Task.Run(() =>
+                {
+                    amunition = NDFSerializer.Deserialize<TAmmunitionDescriptor>(amunitionFilePath.FilePath, cancellationToken, OnCMDProviderOutput);
 
                     if (enableFullLog)
                         OnCMDProviderOutput($"{amunitionFilePath.FileName} desirialized!");
-                }),
+                }, cancellationToken),
                 Task.Run(() =>
                 {
-                    amunition = NDFSerializer.Deserialize<TAmmunitionDescriptor>(amunitionFilePath.FilePath, OnCMDProviderOutput);
-
-                    if (enableFullLog)
-                        OnCMDProviderOutput($"{amunitionFilePath.FileName} desirialized!");
-                }),
-                Task.Run(() =>
-                {
-                    weapon = NDFSerializer.Deserialize<TWeaponManagerModuleDescriptor>(weaponFilePath.FilePath, OnCMDProviderOutput);
+                    weapon = NDFSerializer.Deserialize<TWeaponManagerModuleDescriptor>(weaponFilePath.FilePath, cancellationToken, OnCMDProviderOutput);
 
                     if (enableFullLog)
                         OnCMDProviderOutput($"{weaponFilePath.FileName} desirialized!");
-                }),
+                }, cancellationToken),
                 Task.Run(() =>
                 {
-                    units = NDFSerializer.Deserialize<TEntityDescriptor>(unitsFilePath.FilePath, OnCMDProviderOutput);
+                    units = NDFSerializer.Deserialize<TEntityDescriptor>(unitsFilePath.FilePath, cancellationToken, OnCMDProviderOutput);
 
                     if (enableFullLog)
                         OnCMDProviderOutput($"{unitsFilePath.FileName} desirialized!");
-                }),
+                }, cancellationToken),
                 Task.Run(() =>
                 {
-                    buildings = NDFSerializer.Deserialize<TEntityDescriptor>(buildingsFilePath.FilePath, OnCMDProviderOutput);
+                    buildings = NDFSerializer.Deserialize<TEntityDescriptor>(buildingsFilePath.FilePath, cancellationToken, OnCMDProviderOutput);
 
                     if (enableFullLog)
                         OnCMDProviderOutput($"{buildingsFilePath.FileName} desirialized!");
-                }),
+                }, cancellationToken),
             ];
 
             await Task.WhenAll(tasks);
@@ -222,38 +223,43 @@ namespace WarnoModeAutomation.Logic
             [
                 Task.Run(() =>
                 {
-
-                    ModifyUnits(unitsRelatedData, enableFullLog);
-                }),
+                    ModifyUnits(unitsRelatedData, cancellationToken, enableFullLog);
+                }, cancellationToken),
                 Task.Run(() =>
                 {
-                    buildings = ModifyBuildings(buildings);
-                })
+                    buildings = ModifyBuildings(buildings, cancellationToken);
+                }, cancellationToken)
             ];
 
             await Task.WhenAll(tasks);
 
-            //Serialize all descriptors back to ndf files
-            await File.WriteAllTextAsync(unitsFilePath.FilePath, NDFSerializer.Serialize(units));
-            await File.WriteAllTextAsync(amunitionMissiles.FilePath, NDFSerializer.Serialize(amunitionMissiles));
-            await File.WriteAllTextAsync(amunitionFilePath.FilePath, NDFSerializer.Serialize(amunition));
-            await File.WriteAllTextAsync(weaponFilePath.FilePath, NDFSerializer.Serialize(weapon));
-            await File.WriteAllTextAsync(buildingsFilePath.FilePath, NDFSerializer.Serialize(buildings));
+            tasks =
+            [
+                Task.Run(async () => await File.WriteAllTextAsync(unitsFilePath.FilePath, NDFSerializer.Serialize(units), cancellationToken), cancellationToken),
+                Task.Run(async () => await File.WriteAllTextAsync(amunitionMissiles.FilePath, NDFSerializer.Serialize(amunitionMissiles), cancellationToken), cancellationToken),
+                Task.Run(async () => await File.WriteAllTextAsync(amunitionFilePath.FilePath, NDFSerializer.Serialize(amunition), cancellationToken), cancellationToken),
+                Task.Run(async () => await File.WriteAllTextAsync(weaponFilePath.FilePath, NDFSerializer.Serialize(weapon), cancellationToken), cancellationToken),
+                Task.Run(async () => await File.WriteAllTextAsync(buildingsFilePath.FilePath, NDFSerializer.Serialize(buildings), cancellationToken), cancellationToken)
+            ];
+
+            await Task.WhenAll(tasks);
 
             OnCMDProviderOutput("Modification successfully completed!");
         }
 
-        private static void ModifyUnits(UnitsRelatedDataDTO unitsRelatedData, bool enableFullLog = false) 
+        private static void ModifyUnits(UnitsRelatedDataDTO unitsRelatedData, CancellationToken cancellationToken, bool enableFullLog = false) 
         {
             var modifiedAmunition = new Dictionary<string, int>();
 
             foreach (var unit in unitsRelatedData.UnitsEntityDescriptor.RootDescriptors)
             {
-                ModifyUnit(unit, unitsRelatedData, ref modifiedAmunition, enableFullLog);
+                cancellationToken.ThrowIfCancellationRequested();
+
+                ModifyUnit(unit, unitsRelatedData, ref modifiedAmunition, cancellationToken, enableFullLog);
             }
         }
 
-        private static void ModifyUnit(TEntityDescriptor unit, UnitsRelatedDataDTO unitsRelatedData, ref Dictionary<string, int> modifiedAmunition, bool enableFullLog = false)
+        private static void ModifyUnit(TEntityDescriptor unit, UnitsRelatedDataDTO unitsRelatedData, ref Dictionary<string, int> modifiedAmunition, CancellationToken cancellationToken, bool enableFullLog = false)
         {
             try
             {
@@ -338,6 +344,8 @@ namespace WarnoModeAutomation.Logic
 
                 foreach (var unitAmunition in unitAmunitions)
                 {
+                    cancellationToken.ThrowIfCancellationRequested();
+
                     if (modifiedAmunition.TryGetValue(unitAmunition.EntityNDFType, out int value))
                     {
                         additionalCommandPoins += value;
@@ -362,13 +370,13 @@ namespace WarnoModeAutomation.Logic
                     {
                         ModifyAmunitionDistance(resourceCommandPoints, unitAmunition, realFireRange, shouldNerf);
 
-                        if(enableFullLog)
+                        if (enableFullLog)
                             OnCMDProviderOutput($"Fire range for unit: {unit.ClassNameForDebug}. unitAmunition: {unitAmunition.EntityNDFType} has been changed!");
 
                         unitAmunitionsHasDistanceChanges = true;
                     }
 
-                    if(enableFullLog)
+                    if (enableFullLog)
                         OnCMDProviderOutput($"Unit: {unit.ClassNameForDebug} amunition {unitAmunition.EntityNDFType} modified!");
                 }
 
@@ -378,6 +386,10 @@ namespace WarnoModeAutomation.Logic
                 if (additionalCommandPoins > 0)
                     tProductionModuleDescriptors.ProductionRessourcesNeeded[resourceCommandPointsKey] += additionalCommandPoins.RoundOff();
 
+            }
+            catch (OperationCanceledException)
+            {
+                throw;
             }
             catch (Exception ex)
             {
@@ -606,10 +618,12 @@ namespace WarnoModeAutomation.Logic
             return valueToConvert / 1000 * _settings.WarnoMetters;
         }
 
-        private static FileDescriptor<TEntityDescriptor> ModifyBuildings(FileDescriptor<TEntityDescriptor> buildingsFileDescriptor)
+        private static FileDescriptor<TEntityDescriptor> ModifyBuildings(FileDescriptor<TEntityDescriptor> buildingsFileDescriptor, CancellationToken cancellationToken)
         {
             foreach (var entityDescriptor in buildingsFileDescriptor.RootDescriptors)
             {
+                cancellationToken.ThrowIfCancellationRequested();
+
                 var tSupplyModuleDescriptor = entityDescriptor.ModulesDescriptors.OfType<TSupplyModuleDescriptor>().SingleOrDefault();
 
                 tSupplyModuleDescriptor.SupplyCapacity = 46000;

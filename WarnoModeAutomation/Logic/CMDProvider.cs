@@ -22,9 +22,8 @@ namespace WarnoModeAutomation.Logic
             _workingDirectory = workingDirectory;
         }
 
-        public async Task<bool> PerformCMDCommand(string command, string workingDirectory = null) 
+        public async Task<bool> PerformCMDCommand(string command, CancellationToken cancellationToken, string workingDirectory = null) 
         {
-            using (_cancellationTokenSource = new CancellationTokenSource(TimeSpan.FromSeconds(30)))
             using (_process = new Process())
             {
                 _process.StartInfo.UseShellExecute = false;
@@ -46,12 +45,16 @@ namespace WarnoModeAutomation.Logic
 
                     _process.StandardInput.WriteLine(command);
 
-                    await _process.WaitForExitAsync(_cancellationTokenSource.Token);
+                    await _process.WaitForExitAsync(cancellationToken);
                 }
                 catch (TaskCanceledException)
-                {}
+                {
+                    return false;
+                }
                 catch(OperationCanceledException)
-                {}
+                {
+                    throw;
+                }
                 catch (Exception ex)
                 {
                     OnOutput?.Invoke(ex.Message);

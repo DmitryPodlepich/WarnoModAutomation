@@ -92,7 +92,7 @@
         <CopyToOutputDirectory>Always</CopyToOutputDirectory>
       </MauiAsset>
       <MauiAsset Update="Resources\Raw\Settings.json">
-        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </MauiAsset>
     </ItemGroup>
 

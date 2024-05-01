@@ -1,5 +1,6 @@
 ﻿@using BlazorBootstrap
 @using System.Diagnostics
+@using System.Numerics
 @using WarnoModeAutomation.Constants
 @using WarnoModeAutomation.Logic
 @using JsonDatabase.DTO
@@ -32,7 +33,7 @@
 
     private TValue _propertyValue;
 
-    private string _step => typeof(TValue) == typeof(int) ? "0" : "0.1";
+    private string _step => IsIntegerType(typeof(TValue)) ? "0" : "0.1";
 
     [Parameter]
     public TValue PropertyValue
@@ -48,4 +49,9 @@
 
     [Parameter]
     public EventCallback<TValue> PropertyValueChanged { get; set; }
+
+    private static bool IsIntegerType(Type type)
+    {
+        return type.GetInterfaces().Any(i => i.Name.Contains("IBinaryInteger"));
+    }
 }

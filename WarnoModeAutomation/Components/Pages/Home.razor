@@ -4,6 +4,7 @@
 @using WarnoModeAutomation.Logic;
 @using BlazorBootstrap;
 @using Microsoft.JSInterop
+@using System.Collections.Concurrent;
 @inject IJSRuntime JS
 
 <section class="d-flex flex-column h-100">
@@ -68,6 +69,11 @@
                             Delete
                         </Button>
 
+                        <Button Loading="@(_currentOperation == OperationType.Cancelation)" LoadingText="Cancelation..." Disabled="@(_currentOperation == OperationType.Cancelation || _currentOperation == OperationType.Idle)" Class="btn btn-danger ms-auto" @onclick="ShowCancelationModConfirmationAsync">
+                            <i class="bi bi-trash-fill"></i>
+                            Cancel
+                        </Button>
+
                     </div>
 
                     <div class="mt-3" >
@@ -106,45 +112,52 @@
         Generation,
         Updation,
         Modify,
-        FillDatabase
+        FillDatabase,
+        Cancelation
     }
 
+    private static CancellationTokenSource _cancellationToken;
     private bool _enableFullLog = false;
     private OperationType _currentOperation = OperationType.Idle;
 
-    private string ModManagerOutput { get => _stringBuilder.ToString(); set => _stringBuilder = new StringBuilder(value); }
-    private StringBuilder _stringBuilder;
+    private string ModManagerOutput;
+    private StringBuilderInterval _stringBuilderInterval;
 
     protected override Task OnInitializedAsync()
     {
-        _stringBuilder = new StringBuilder();
+        _stringBuilderInterval = new StringBuilderInterval(TimeSpan.FromMilliseconds(50), 2000);
+        _stringBuilderInterval.TextUpdated += TextUpdated;
+
         ModManager.OnOutput += ModManagerOnOutput;
 
         return base.OnInitializedAsync();
     }
 
-    public void ModManagerOutputClear()
+    public async Task TextUpdated(string data)
     {
-        _stringBuilder.Clear();
-    }
-
-    public void ModManagerOnOutput(string data)
-    {
-        App.Current.Dispatcher.Dispatch(async () =>
+        await App.Current.Dispatcher.DispatchAsync(async () =>
         {
-            _stringBuilder.AppendLine(Environment.NewLine);
-            _stringBuilder.AppendLine(data);
+            ModManagerOutput = data;
             StateHasChanged();
-
             await JS.InvokeVoidAsync("scrollHeight", textAreaRef?.Element);
         });
     }
 
+    public void ModManagerOutputClear()
+    {
+        _stringBuilderInterval.Clear();
+    }
+
+    public void ModManagerOnOutput(string data)
+    {
+        _stringBuilderInterval.AddLine(data);
+    }
+
     public async Task CreateMod()
     {
-        await Perform(OperationType.Creation, async () =>
+        await Perform(OperationType.Creation, async (cancellationToken) =>
         {
-            await ModManager.CreateModAsync();
+            await ModManager.CreateModAsync(cancellationToken.Token);
             Storage.Status.GetStatus();
         });
     }
@@ -169,9 +182,29 @@
             await DeleteMod();
     }
 
+    private async Task ShowCancelationModConfirmationAsync()
+    {
+        var options = new ConfirmDialogOptions
+            {
+                YesButtonText = "Ok",
+                YesButtonColor = ButtonColor.Danger,
+                NoButtonText = "Cancel",
+                NoButtonColor = ButtonColor.Secondary
+            };
+
+        var confirmation = await dialog.ShowAsync(
+            title: "Are you sure you want to cancel current operation?",
+            message1: "This will cancel current operation.",
+            message2: "Do you want to proceed?",
+            options);
+
+        if (confirmation)
+            await _cancellationToken.CancelAsync();
+    }
+
     public async Task DeleteMod()
     {
-        await Perform(OperationType.Deletion, async () =>
+        await Perform(OperationType.Deletion, async (cancellationToken) =>
         {
             ModManager.DeleteMod();
             Storage.Status.GetStatus();
@@ -181,41 +214,42 @@
 
     public async Task GenerateMod()
     {
-        await Perform(OperationType.Generation, async () => 
+        await Perform(OperationType.Generation, async (cancellationToken) =>
         {
-            await ModManager.GenerateModAsync();
+            await ModManager.GenerateModAsync(cancellationToken.Token);
             Storage.Status.GetStatus();
         });
     }
 
     public async Task UpdateMod()
     {
-        await Perform(OperationType.Updation, async () =>
+        await Perform(OperationType.Updation, async (cancellationToken) =>
         {
-            await ModManager.UpdateModAsync();
+            await ModManager.UpdateModAsync(cancellationToken.Token);
             Storage.Status.GetStatus();
         });
     }
 
     public async Task Modify()
     {
-        await Perform(OperationType.Modify, async () => await ModManager.Modify(_enableFullLog));
-
+        await Perform(OperationType.Modify, async (cancellationToken) => await ModManager.Modify(_enableFullLog, cancellationToken.Token));
     }
 
     public async Task FillDatabase()
     {
-        await Perform(OperationType.FillDatabase, async () =>
-        {
-            var tokenSource = new CancellationTokenSource();
-
-            await ModManager.FillDatabaseAsync(tokenSource);
-
-        });
+        await Perform(OperationType.FillDatabase,
+            async (cancellationToken) => await ModManager.FillDatabaseAsync(cancellationToken));
     }
 
-    private async Task Perform(OperationType operationType, Func<Task> action)
+    private async Task Perform(OperationType operationType, Func<CancellationTokenSource, Task> action)
     {
+        if (_cancellationToken is not null)
+        {
+            await _cancellationToken.CancelAsync();
+            _cancellationToken.Dispose();
+        }
+
+        _cancellationToken = new CancellationTokenSource(TimeSpan.FromSeconds(45));
         _currentOperation = operationType;
 
         var stopwatch = new Stopwatch();
@@ -224,7 +258,7 @@
 
         try
         {
-            await action();
+            await action(_cancellationToken);
         }
         catch (Exception ex)
         {
