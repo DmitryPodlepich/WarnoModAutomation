@@ -54,14 +54,14 @@ namespace WarnoModeAutomation.Logic
 
             cmdProvier.OnOutput += OnCMDProviderOutput;
 
-            var creationResult = await cmdProvier.PerformCMDCommand($"{_createNewModBatFileName} {Storage.ModeSettings.ModName}", cancellationToken);
+            var creationResult = await cmdProvier.PerformCMDCommand($"{_createNewModBatFileName} {Storage.ModeSettings.ModName}");
 
             if (!creationResult)
                 return creationResult;
 
             var modFullPath = Path.Combine(Storage.ModeSettings.ModsDirectory, Storage.ModeSettings.ModName);
 
-            return await cmdProvier.PerformCMDCommand(_gitInitializationCommand, cancellationToken, modFullPath);
+            return await cmdProvier.PerformCMDCommand(_gitInitializationCommand, modFullPath);
         }
 
         public static bool DeleteMod() 
@@ -120,7 +120,7 @@ namespace WarnoModeAutomation.Logic
 
             cmdProvier.OnOutput += OnCMDProviderOutput;
 
-            return await cmdProvier.PerformCMDCommand(_generateModBatFileName, cancellationToken);
+            return await cmdProvier.PerformCMDCommand(_generateModBatFileName);
         }
 
         public static async Task UpdateModAsync(CancellationToken cancellationToken) 
@@ -138,7 +138,7 @@ namespace WarnoModeAutomation.Logic
 
             cmdProvier.OnOutput += OnCMDProviderOutput;
 
-            _ = await cmdProvier.PerformCMDCommand(_generateModBatFileName, cancellationToken);
+            _ = await cmdProvier.PerformCMDCommand(_generateModBatFileName);
         }
 
         public static async Task FillDatabaseAsync(CancellationTokenSource cancellationTokenSource) 

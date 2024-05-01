@@ -1,29 +1,21 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Diagnostics;
 
 namespace WarnoModeAutomation.Logic
 {
-    public class CMDProvider : IDisposable
+    public class CMDProvider(string workingDirectory) : IDisposable
     {
         public delegate void Outputter(string data);
         public event Outputter OnOutput;
 
-        private CancellationTokenSource _cancellationTokenSource = new();
-        private readonly string _workingDirectory;
+        private CancellationTokenSource _cancellationTokenSource;
+        private readonly string _workingDirectory = workingDirectory;
 
         private Process _process;
 
-        public CMDProvider(string workingDirectory)
+        public async Task<bool> PerformCMDCommand(string command, string workingDirectory = null) 
         {
-            _workingDirectory = workingDirectory;
-        }
+            _cancellationTokenSource = new CancellationTokenSource(TimeSpan.FromMinutes(1));
 
-        public async Task<bool> PerformCMDCommand(string command, CancellationToken cancellationToken, string workingDirectory = null) 
-        {
             using (_process = new Process())
             {
                 _process.StartInfo.UseShellExecute = false;
@@ -45,7 +37,7 @@ namespace WarnoModeAutomation.Logic
 
                     _process.StandardInput.WriteLine(command);
 
-                    await _process.WaitForExitAsync(cancellationToken);
+                    await _process.WaitForExitAsync(_cancellationTokenSource.Token);
                 }
                 catch (TaskCanceledException)
                 {
@@ -53,7 +45,7 @@ namespace WarnoModeAutomation.Logic
                 }
                 catch(OperationCanceledException)
                 {
-                    throw;
+                    return false;
                 }
                 catch (Exception ex)
                 {
@@ -83,7 +75,6 @@ namespace WarnoModeAutomation.Logic
         private void ProcessErrorDataHandler(object sendingProcess, DataReceivedEventArgs outLine)
         {
             OnOutput?.Invoke(outLine.Data);
-
             _cancellationTokenSource.Cancel();
         }
     }
