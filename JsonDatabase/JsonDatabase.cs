@@ -67,14 +67,14 @@ namespace JsonDatabase
             await File.WriteAllTextAsync(_ammoFireRangeFilePath, JsonSerializer.Serialize(AmmoRange));
         }
 
-        public static SettingsDTO LoadSettings()
+        public static async Task<SettingsDTO> LoadSettingsAsync()
         {
-            var text = File.ReadAllText(_settingsFilePath);
+            var text = await File.ReadAllTextAsync(_settingsFilePath);
 
             return JsonSerializer.Deserialize<SettingsDTO>(text);
         }
 
-        public static async Task SaveSettings(SettingsDTO settingsDTO)
+        public static async Task SaveSettingsasync(SettingsDTO settingsDTO)
         {
             var text = JsonSerializer.Serialize(settingsDTO);
 

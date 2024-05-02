@@ -5,6 +5,8 @@
 @using BlazorBootstrap;
 @using Microsoft.JSInterop
 @using System.Collections.Concurrent;
+@using WarnoModeAutomation.Logic.Providers.Interfaces
+@using WarnoModeAutomation.Logic.Services.Interfaces
 @inject IJSRuntime JS
 
 <section class="d-flex flex-column h-100">
@@ -25,7 +27,7 @@
 
                         <p class="h5">
                             <span class="badge badge-secondary">Status:</span>
-                            <strong><small>@Storage.Status.Status</small></strong>
+                            <strong><small>@DTO.StatusDTO.Status</small></strong>
                         </p>
 
                         <hr />
@@ -36,28 +38,28 @@
             <AccordionItem Title="Control" IsActive="true">
                 <Content>
                     <div class="d-flex flex-row">
-                        <Button Loading="@(_currentOperation == OperationType.Creation)" LoadingText="Creating..." Disabled="@(_currentOperation != OperationType.Idle)" Class="btn btn-primary" @onclick="CreateMod">
+                        <Button Loading="@(_currentOperation == OperationType.Creation)" LoadingText="Creating..." Disabled="@(_currentOperation != OperationType.Idle)" Class="btn btn-primary" @onclick="CreateModAsync">
                             <i class="bi bi-plus-circle-dotted"></i> 
                             Create 
                         </Button>
 
                         <hr>
 
-                        <Button Loading="@(_currentOperation == OperationType.Generation)" LoadingText="Generating..." Disabled="@(_currentOperation != OperationType.Idle)" Class="btn btn-primary ms-2" @onclick="GenerateMod">
+                        <Button Loading="@(_currentOperation == OperationType.Generation)" LoadingText="Generating..." Disabled="@(_currentOperation != OperationType.Idle)" Class="btn btn-primary ms-2" @onclick="GenerateModAsync">
                             <i class="bi bi-box-seam"></i>
                             Generate
                         </Button>
 
                         <hr>
 
-                        <Button Loading="@(_currentOperation == OperationType.Updation)" LoadingText="Updating..." Disabled="@(_currentOperation != OperationType.Idle)" Class="btn btn-primary ms-2" @onclick="UpdateMod">
+                        <Button Loading="@(_currentOperation == OperationType.Updation)" LoadingText="Updating..." Disabled="@(_currentOperation != OperationType.Idle)" Class="btn btn-primary ms-2" @onclick="UpdateModAsync">
                             <i class="bi bi-download"></i>
                             Update 
                         </Button>
 
                         <hr>
 
-                        <Button Loading="@(_currentOperation == OperationType.Modify)" LoadingText="Modifying..." Disabled="@(_currentOperation != OperationType.Idle)" Class="btn btn-primary ms-2" @onclick="Modify">
+                        <Button Loading="@(_currentOperation == OperationType.Modify)" LoadingText="Modifying..." Disabled="@(_currentOperation != OperationType.Idle)" Class="btn btn-primary ms-2" @onclick="ModifyAsync">
                             <i class="bi bi-cpu"></i>
                             Modify
                         </Button>
@@ -122,13 +124,19 @@
 
     private string ModManagerOutput;
     private StringBuilderInterval _stringBuilderInterval;
+    private ModManager _modManager;
+
+    [Inject] ICMDProvider _cMDProvider { get; set; }
+    [Inject] ISettingsManagerService _settingsManagerService { get; set; }
+    [Inject] IWarnoModificationService _warnoModificationService { get; set; }
 
     protected override Task OnInitializedAsync()
     {
-        _stringBuilderInterval = new StringBuilderInterval(TimeSpan.FromMilliseconds(50), 2000);
+        _stringBuilderInterval = new StringBuilderInterval();
         _stringBuilderInterval.TextUpdated += TextUpdated;
 
-        ModManager.OnOutput += ModManagerOnOutput;
+        _modManager = new ModManager(_cMDProvider, _settingsManagerService, _warnoModificationService);
+        _modManager.OnOutput += ModManagerOnOutput;
 
         return base.OnInitializedAsync();
     }
@@ -153,12 +161,12 @@
         _stringBuilderInterval.AddLine(data);
     }
 
-    public async Task CreateMod()
+    public async Task CreateModAsync()
     {
-        await Perform(OperationType.Creation, async (cancellationToken) =>
+        await PerformAsync(OperationType.Creation, async (cancellationToken) =>
         {
-            await ModManager.CreateModAsync(cancellationToken.Token);
-            Storage.Status.GetStatus();
+            await _modManager.CreateModAsync();
+            DTO.StatusDTO.GetStatus();
         });
     }
 
@@ -179,7 +187,7 @@
             options);
 
         if (confirmation)
-            await DeleteMod();
+            await DeleteModAsync();
     }
 
     private async Task ShowCancelationModConfirmationAsync()
@@ -202,46 +210,46 @@
             await _cancellationToken.CancelAsync();
     }
 
-    public async Task DeleteMod()
+    public async Task DeleteModAsync()
     {
-        await Perform(OperationType.Deletion, async (cancellationToken) =>
+        await PerformAsync(OperationType.Deletion, async (cancellationToken) =>
         {
-            ModManager.DeleteMod();
-            Storage.Status.GetStatus();
+            await _modManager.DeleteMod();
+            DTO.StatusDTO.GetStatus();
             await Task.CompletedTask;
         });
     }
 
-    public async Task GenerateMod()
+    public async Task GenerateModAsync()
     {
-        await Perform(OperationType.Generation, async (cancellationToken) =>
+        await PerformAsync(OperationType.Generation, async (cancellationToken) =>
         {
-            await ModManager.GenerateModAsync(cancellationToken.Token);
-            Storage.Status.GetStatus();
+            await _modManager.GenerateModAsync();
+            DTO.StatusDTO.GetStatus();
         });
     }
 
-    public async Task UpdateMod()
+    public async Task UpdateModAsync()
     {
-        await Perform(OperationType.Updation, async (cancellationToken) =>
+        await PerformAsync(OperationType.Updation, async (cancellationToken) =>
         {
-            await ModManager.UpdateModAsync(cancellationToken.Token);
-            Storage.Status.GetStatus();
+            await _modManager.UpdateModAsync();
+            DTO.StatusDTO.GetStatus();
         });
     }
 
-    public async Task Modify()
+    public async Task ModifyAsync()
     {
-        await Perform(OperationType.Modify, async (cancellationToken) => await ModManager.Modify(_enableFullLog, cancellationToken.Token));
+        await PerformAsync(OperationType.Modify, async (cancellationToken) => await _modManager.Modify(_enableFullLog, cancellationToken.Token));
     }
 
-    public async Task FillDatabase()
+    public async Task FillDatabaseAsync()
     {
-        await Perform(OperationType.FillDatabase,
-            async (cancellationToken) => await ModManager.FillDatabaseAsync(cancellationToken));
+        await PerformAsync(OperationType.FillDatabase,
+            async (cancellationToken) => await _modManager.FillDatabaseAsync(cancellationToken));
     }
 
-    private async Task Perform(OperationType operationType, Func<CancellationTokenSource, Task> action)
+    private async Task PerformAsync(OperationType operationType, Func<CancellationTokenSource, Task> action)
     {
         if (_cancellationToken is not null)
         {

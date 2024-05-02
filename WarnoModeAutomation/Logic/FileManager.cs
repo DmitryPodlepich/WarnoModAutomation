@@ -1,18 +1,12 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Security.Principal;
-using System.Text;
-using System.Threading.Tasks;
-using WarnoModeAutomation.Constants;
+﻿using WarnoModeAutomation.Constants;
 using WarnoModeAutomation.DTO;
 
 namespace WarnoModeAutomation.Logic
 {
-    public static class FileManager
+    internal static class FileManager
     {
-        public static string SystemPath => "C:/";
-        public static string SavedGamesEugenSystemsModPath => Path.Combine(SystemPath, "Users", CurrentUserName, "Saved Games", "EugenSystems", "WARNO", "mod");
+        public static string WindowsSystemPath => Path.GetPathRoot(Environment.SystemDirectory);
+        public static string SavedGamesEugenSystemsModPath => Path.Combine(WindowsSystemPath, "Users", CurrentUserName, "Saved Games", "EugenSystems", "WARNO", "mod");
         public static string GeneratedGfxPath => Path.Combine(Storage.ModeSettings.ModsDirectory, Storage.ModeSettings.ModName, "GameData", "Generated", "Gameplay", "Gfx");
         public static string GamePlayGfxPath => Path.Combine(Storage.ModeSettings.ModsDirectory, Storage.ModeSettings.ModName, "GameData", "Gameplay", "Gfx");
         public static string DepictionResourcesPath => Path.Combine(GamePlayGfxPath, "DepictionResources");
@@ -39,9 +33,7 @@ namespace WarnoModeAutomation.Logic
             foreach (var subDir in dir.GetDirectories())
                 SetAttributesNormal(subDir);
             foreach (var file in dir.GetFiles())
-            {
                 file.Attributes = FileAttributes.Normal;
-            }
         }
 
         public static bool TryDeleteDirectoryWithFiles(string directoryPath, out string error)
@@ -77,18 +69,6 @@ namespace WarnoModeAutomation.Logic
             }
 
             return true;
-        }
-
-        public static FileInfo TryGetFileWithFullSearch(string directoryPath, string fileName)
-        {
-            string[] files = Directory.GetFiles(directoryPath, fileName, SearchOption.AllDirectories);
-
-            if (files.Length > 0)
-            { 
-                return new FileInfo(files[0]);
-            }
-
-            return null;
         }
     }
 }

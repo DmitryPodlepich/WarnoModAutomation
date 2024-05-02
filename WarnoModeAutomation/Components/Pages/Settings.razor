@@ -5,6 +5,7 @@
 @using WarnoModeAutomation.Constants
 @using WarnoModeAutomation.Logic
 @using JsonDatabase.DTO
+@using WarnoModeAutomation.Logic.Services.Interfaces
 
 <section class="p-3">
 
@@ -29,121 +30,121 @@
     </h5>
     <hr />
 
-    <ModSettingSection PropertyName="@nameof(_settingsDTO.WarnoMetters)" TValue="int" @bind-PropertyValue="_settingsDTO.WarnoMetters">
+    <ModSettingSection PropertyName="@nameof(SettingsDTO.WarnoMetters)" TValue="int" @bind-PropertyValue="_settingsDTO.WarnoMetters">
         <p class="text-muted mb-0">
             The constant value which determinants distance measuring. Has been defined experimental way when we took value from UI and from resource files and compare it. 
             Strongly recommended to leave as is.
         </p>
     </ModSettingSection>
 
-    <ModSettingSection PropertyName="@nameof(_settingsDTO.NerfDistanceCoefficientDivider)" TValue="double" @bind-PropertyValue="_settingsDTO.NerfDistanceCoefficientDivider">
+    <ModSettingSection PropertyName="@nameof(SettingsDTO.NerfDistanceCoefficientDivider)" TValue="double" @bind-PropertyValue="_settingsDTO.NerfDistanceCoefficientDivider">
         <p class="text-muted mb-0">
             There is a special formula which will update distance value. The more is a difference between original and new distance value the more this new value will be reduced in order to save game balance.
             The more this value the longer new attack distance value will set.
         </p>
     </ModSettingSection>
 
-    <ModSettingSection PropertyName="@nameof(_settingsDTO.AdditionalPointsCoefficientMultiplier)" TValue="double" @bind-PropertyValue="_settingsDTO.AdditionalPointsCoefficientMultiplier">
+    <ModSettingSection PropertyName="@nameof(SettingsDTO.AdditionalPointsCoefficientMultiplier)" TValue="double" @bind-PropertyValue="_settingsDTO.AdditionalPointsCoefficientMultiplier">
         <p class="text-muted mb-0">
             This coefficient is a multiplier value for the added ammunition accuracy value. <br>
             The higher this value, the more production points will be added to a unit's cost, based on the sum of increased unit ammunition accuracy.
         </p>
     </ModSettingSection>
 
-    <ModSettingSection PropertyName="@nameof(_settingsDTO.AdditionalPointsArtileryCoefficientDivider)" TValue="double" @bind-PropertyValue="_settingsDTO.AdditionalPointsArtileryCoefficientDivider">
+    <ModSettingSection PropertyName="@nameof(SettingsDTO.AdditionalPointsArtileryCoefficientDivider)" TValue="double" @bind-PropertyValue="_settingsDTO.AdditionalPointsArtileryCoefficientDivider">
         <p class="text-muted mb-0">
             This value is used to divide points for added accuracy for artillery. <br>
             The higher this value, the fewer production points will be added to the artillery unit cost.
         </p>
     </ModSettingSection>
 
-    <ModSettingSection PropertyName="@nameof(_settingsDTO.NatoCommonAccuracityBonusPercentage)" TValue="int" @bind-PropertyValue="_settingsDTO.NatoCommonAccuracityBonusPercentage">
+    <ModSettingSection PropertyName="@nameof(SettingsDTO.NatoCommonAccuracityBonusPercentage)" TValue="int" @bind-PropertyValue="_settingsDTO.NatoCommonAccuracityBonusPercentage">
         <p class="text-muted mb-0">
             This value represents a percentage by which accuracy for NATO will be increased. <br>
             The higher this value, the more accurate NATO ammunition will be overall, but it will also increase the cost of the unit.
         </p>
     </ModSettingSection>
 
-    <ModSettingSection PropertyName="@nameof(_settingsDTO.NatoArtileryAccuracityBonusPercentage)" TValue="int" @bind-PropertyValue="_settingsDTO.NatoArtileryAccuracityBonusPercentage">
+    <ModSettingSection PropertyName="@nameof(SettingsDTO.NatoArtileryAccuracityBonusPercentage)" TValue="int" @bind-PropertyValue="_settingsDTO.NatoArtileryAccuracityBonusPercentage">
         <p class="text-muted mb-0">
             This value represents a percentage by which accuracy for NATO Artilery will be increased.<br>
             The higher this value, the more accurate NATO Artilery ammunition will be overall, but it will also increase the cost of the unit.
         </p>
     </ModSettingSection>
 
-    <ModSettingSection PropertyName="@nameof(_settingsDTO.SovMinOpticalStrength)" TValue="int" @bind-PropertyValue="_settingsDTO.SovMinOpticalStrength">
+    <ModSettingSection PropertyName="@nameof(SettingsDTO.SovMinOpticalStrength)" TValue="int" @bind-PropertyValue="_settingsDTO.SovMinOpticalStrength">
         <p class="text-muted mb-0">Minimum optical streight of Soviet units.</p>
     </ModSettingSection>
 
-    <ModSettingSection PropertyName="@nameof(_settingsDTO.NatoMinOpticalStrength)" TValue="int" @bind-PropertyValue="_settingsDTO.NatoMinOpticalStrength">
+    <ModSettingSection PropertyName="@nameof(SettingsDTO.NatoMinOpticalStrength)" TValue="int" @bind-PropertyValue="_settingsDTO.NatoMinOpticalStrength">
         <p class="text-muted mb-0">Minimum optical streight of Nato units.</p>
     </ModSettingSection>
 
-    <ModSettingSection PropertyName="@nameof(_settingsDTO.SovGroundVisionPercentageFromAmunitionDistance)" TValue="int" @bind-PropertyValue="_settingsDTO.SovGroundVisionPercentageFromAmunitionDistance">
+    <ModSettingSection PropertyName="@nameof(SettingsDTO.SovGroundVisionPercentageFromAmunitionDistance)" TValue="int" @bind-PropertyValue="_settingsDTO.SovGroundVisionPercentageFromAmunitionDistance">
         <p class="text-muted mb-0">
             This value is a percentage of the unit's ammunition distance that will be subtracted from the unit's vision. <br>
             The higher this value, the shorter the unit's vision distance will be but not less than MinVisionDistance.
         </p>
     </ModSettingSection>
 
-    <ModSettingSection PropertyName="@nameof(_settingsDTO.NatoGroundVisionPercentageFromAmunitionDistance)" TValue="int" @bind-PropertyValue="_settingsDTO.NatoGroundVisionPercentageFromAmunitionDistance">
+    <ModSettingSection PropertyName="@nameof(SettingsDTO.NatoGroundVisionPercentageFromAmunitionDistance)" TValue="int" @bind-PropertyValue="_settingsDTO.NatoGroundVisionPercentageFromAmunitionDistance">
         <p class="text-muted mb-0">
             This value is a percentage of the unit's ammunition distance that will be subtracted from the unit's vision.<br>
             The higher this value, the shorter the unit's vision distance will be but not less than MinVisionDistance.
         </p>
     </ModSettingSection>
 
-    <ModSettingSection PropertyName="@nameof(_settingsDTO.SovTBAVisionPercentageFromAmunitionDistance)" TValue="int" @bind-PropertyValue="_settingsDTO.SovTBAVisionPercentageFromAmunitionDistance">
+    <ModSettingSection PropertyName="@nameof(SettingsDTO.SovTBAVisionPercentageFromAmunitionDistance)" TValue="int" @bind-PropertyValue="_settingsDTO.SovTBAVisionPercentageFromAmunitionDistance">
         <p class="text-muted mb-0">
             This value is a percentage of the unit's ammunition distance that will be subtracted from the unit's vision.<br>
             The higher this value, the shorter the unit's vision distance will be but not less than MinVisionDistance.
         </p>
     </ModSettingSection>
 
-    <ModSettingSection PropertyName="@nameof(_settingsDTO.NatoTBAVisionPercentageFromAmunitionDistance)" TValue="int" @bind-PropertyValue="_settingsDTO.NatoTBAVisionPercentageFromAmunitionDistance">
+    <ModSettingSection PropertyName="@nameof(SettingsDTO.NatoTBAVisionPercentageFromAmunitionDistance)" TValue="int" @bind-PropertyValue="_settingsDTO.NatoTBAVisionPercentageFromAmunitionDistance">
         <p class="text-muted mb-0">
             This value is a percentage of the unit's ammunition distance that will be subtracted from the unit's vision.<br>
             The higher this value, the shorter the unit's vision distance will be but not less than MinVisionDistance.
         </p>
     </ModSettingSection>
 
-    <ModSettingSection PropertyName="@nameof(_settingsDTO.SovHAVisionPercentageFromAmunitionDistance)" TValue="int" @bind-PropertyValue="_settingsDTO.SovHAVisionPercentageFromAmunitionDistance">
+    <ModSettingSection PropertyName="@nameof(SettingsDTO.SovHAVisionPercentageFromAmunitionDistance)" TValue="int" @bind-PropertyValue="_settingsDTO.SovHAVisionPercentageFromAmunitionDistance">
         <p class="text-muted mb-0">
             This value is a percentage of the unit's ammunition distance that will be subtracted from the unit's vision.<br>
             The higher this value, the shorter the unit's vision distance will be but not less than MinVisionDistance.
         </p>
     </ModSettingSection>
 
-    <ModSettingSection PropertyName="@nameof(_settingsDTO.NatoHAVisionPercentageFromAmunitionDistance)" TValue="int" @bind-PropertyValue="_settingsDTO.NatoHAVisionPercentageFromAmunitionDistance">
+    <ModSettingSection PropertyName="@nameof(SettingsDTO.NatoHAVisionPercentageFromAmunitionDistance)" TValue="int" @bind-PropertyValue="_settingsDTO.NatoHAVisionPercentageFromAmunitionDistance">
         <p class="text-muted mb-0">
             This value is a percentage of the unit's ammunition distance that will be subtracted from the unit's vision.<br>
             The higher this value, the shorter the unit's vision distance will be but not less than MinVisionDistance.
         </p>
     </ModSettingSection>
 
-    <ModSettingSection PropertyName="@nameof(_settingsDTO.SovMinVisionDistance)" TValue="int" @bind-PropertyValue="_settingsDTO.SovMinVisionDistance">
+    <ModSettingSection PropertyName="@nameof(SettingsDTO.SovMinVisionDistance)" TValue="int" @bind-PropertyValue="_settingsDTO.SovMinVisionDistance">
         <p class="text-muted mb-0">When unit vision is calculated this value will be used as minimum threshold.</p>
     </ModSettingSection>
 
-    <ModSettingSection PropertyName="@nameof(_settingsDTO.NatoMinVisionDistance)" TValue="int" @bind-PropertyValue="_settingsDTO.NatoMinVisionDistance">
+    <ModSettingSection PropertyName="@nameof(SettingsDTO.NatoMinVisionDistance)" TValue="int" @bind-PropertyValue="_settingsDTO.NatoMinVisionDistance">
         <p class="text-muted mb-0">When unit vision is calculated this value will be used as maximum threshold.</p>
     </ModSettingSection>
 
-    <ModSettingSection PropertyName="@nameof(_settingsDTO.TBAAndHADetectionPercentageFromVisionDistance)" TValue="int" @bind-PropertyValue="_settingsDTO.TBAAndHADetectionPercentageFromVisionDistance">
+    <ModSettingSection PropertyName="@nameof(SettingsDTO.TBAAndHADetectionPercentageFromVisionDistance)" TValue="int" @bind-PropertyValue="_settingsDTO.TBAAndHADetectionPercentageFromVisionDistance">
         <p class="text-muted mb-0">
             Detection is a process in which a unit can be precisely identified. This value represents a percentage of the unit's vision. <br>
             This percentage will be subtracted from the unit's vision, and the resulting value will be used as the detection distance for helicopters and planes.
         </p>
     </ModSettingSection>
 
-    <ModSettingSection PropertyName="@nameof(_settingsDTO.GroudDetectionPercentageFromVisionDistance)" TValue="int" @bind-PropertyValue="_settingsDTO.GroudDetectionPercentageFromVisionDistance">
+    <ModSettingSection PropertyName="@nameof(SettingsDTO.GroudDetectionPercentageFromVisionDistance)" TValue="int" @bind-PropertyValue="_settingsDTO.GroudDetectionPercentageFromVisionDistance">
         <p class="text-muted mb-0">
             Detection is a process in which a unit can be precisely identified. This value represents a percentage of the unit's vision.<br>
             This percentage will be subtracted from the unit's vision, and the resulting value will be used as the detection distance for ground units.
         </p>
     </ModSettingSection>
 
-    <ModSettingSection PropertyName="@nameof(_settingsDTO.ArtileryDamagePercentage)" TValue="int" @bind-PropertyValue="_settingsDTO.ArtileryDamagePercentage">
+    <ModSettingSection PropertyName="@nameof(SettingsDTO.ArtileryDamagePercentage)" TValue="int" @bind-PropertyValue="_settingsDTO.ArtileryDamagePercentage">
         <p class="text-muted mb-0">This value is a percentage by which all artillery damage will be increased.</p>
     </ModSettingSection>
 
@@ -151,83 +152,83 @@
     <hr />
 
     <div class="mb-3 d-flex align-items-center">
-        <span class="input-group-text">@nameof(_settingsDTO.ConfigFileName):</span>
+        <span class="input-group-text">@nameof(SettingsDTO.ConfigFileName):</span>
         <input class="form-control" @bind="_settingsDTO.ConfigFileName" Placeholder="Enter ConfigFileName" />
     </div>
 
     <div class="mb-3 d-flex align-items-center">
-        <span class="input-group-text">@nameof(_settingsDTO.BuildingDescriptorsFileName):</span>
+        <span class="input-group-text">@nameof(SettingsDTO.BuildingDescriptorsFileName):</span>
         <input class="form-control" @bind="_settingsDTO.BuildingDescriptorsFileName" Placeholder="Enter BuildingDescriptorsFileName" />
     </div>
 
     <div class="mb-3 d-flex align-items-center">
-        <span class="input-group-text">@nameof(_settingsDTO.UniteDescriptorFileName):</span>
+        <span class="input-group-text">@nameof(SettingsDTO.UniteDescriptorFileName):</span>
         <input class="form-control" @bind="_settingsDTO.UniteDescriptorFileName" Placeholder="Enter UniteDescriptorFileName" />
     </div>
 
     <div class="mb-3 d-flex align-items-center">
-        <span class="input-group-text">@nameof(_settingsDTO.WeaponDescriptorDescriptorsFileName):</span>
+        <span class="input-group-text">@nameof(SettingsDTO.WeaponDescriptorDescriptorsFileName):</span>
         <input class="form-control" @bind="_settingsDTO.WeaponDescriptorDescriptorsFileName" Placeholder="Enter WeaponDescriptorDescriptorsFileName" />
     </div>
 
     <div class="mb-3 d-flex align-items-center">
-        <span class="input-group-text">@nameof(_settingsDTO.AmmunitionDescriptorsFileName):</span>
+        <span class="input-group-text">@nameof(SettingsDTO.AmmunitionDescriptorsFileName):</span>
         <input class="form-control" @bind="_settingsDTO.AmmunitionDescriptorsFileName" Placeholder="Enter AmmunitionDescriptorsFileName" />
     </div>
 
     <div class="mb-3 d-flex align-items-center">
-        <span class="input-group-text">@nameof(_settingsDTO.AmmunitionMissilesDescriptorsFileName):</span>
+        <span class="input-group-text">@nameof(SettingsDTO.AmmunitionMissilesDescriptorsFileName):</span>
         <input class="form-control" @bind="_settingsDTO.AmmunitionMissilesDescriptorsFileName" Placeholder="Enter AmmunitionMissilesDescriptorsFileName" />
     </div>
 
     <div class="mb-3 d-flex align-items-center">
-        <span class="input-group-text">@nameof(_settingsDTO.ResourceCommandPoints):</span>
+        <span class="input-group-text">@nameof(SettingsDTO.ResourceCommandPoints):</span>
         <input class="form-control" @bind="_settingsDTO.ResourceCommandPoints" Placeholder="Enter ResourceCommandPoints" />
     </div>
 
     <div class="mb-3 d-flex align-items-center">
-        <span class="input-group-text">@nameof(_settingsDTO.AmunitionNameSMOKEMarker):</span>
+        <span class="input-group-text">@nameof(SettingsDTO.AmunitionNameSMOKEMarker):</span>
         <input class="form-control" @bind="_settingsDTO.AmunitionNameSMOKEMarker" Placeholder="Enter AmunitionNameSMOKEMarker" />
     </div>
 
     <div class="mb-3 d-flex align-items-center">
-        <span class="input-group-text">@nameof(_settingsDTO.InfanterieTag):</span>
+        <span class="input-group-text">@nameof(SettingsDTO.InfanterieTag):</span>
         <input class="form-control" @bind="_settingsDTO.InfanterieTag" Placeholder="Enter InfanterieTag" />
     </div>
 
     <div class="mb-3 d-flex align-items-center">
-        <span class="input-group-text">@nameof(_settingsDTO.Canon_AA_StandardTag):</span>
+        <span class="input-group-text">@nameof(SettingsDTO.Canon_AA_StandardTag):</span>
         <input class="form-control" @bind="_settingsDTO.Canon_AA_StandardTag" Placeholder="Enter Canon_AA_StandardTag" />
     </div>
 
     <div class="mb-3 d-flex align-items-center">
-        <span class="input-group-text">@nameof(_settingsDTO.Canon_AATag):</span>
+        <span class="input-group-text">@nameof(SettingsDTO.Canon_AATag):</span>
         <input class="form-control" @bind="_settingsDTO.Canon_AATag" Placeholder="Enter Canon_AATag" />
     </div>
 
     <div class="mb-3 d-flex align-items-center">
-        <span class="input-group-text">@nameof(_settingsDTO.AirTag):</span>
+        <span class="input-group-text">@nameof(SettingsDTO.AirTag):</span>
         <input class="form-control" @bind="_settingsDTO.AirTag" Placeholder="Enter AirTag" />
     </div>
 
     <div class="mb-3 d-flex align-items-center">
-        <span class="input-group-text">@nameof(_settingsDTO.Weapon_Cursor_MachineGun):</span>
+        <span class="input-group-text">@nameof(SettingsDTO.Weapon_Cursor_MachineGun):</span>
         <input class="form-control" @bind="_settingsDTO.Weapon_Cursor_MachineGun" Placeholder="Enter Weapon_Cursor_MachineGun" />
     </div>
 
     <div class="mb-3 d-flex align-items-center">
-        <span class="input-group-text">@nameof(_settingsDTO.ArtillerieTag):</span>
+        <span class="input-group-text">@nameof(SettingsDTO.ArtillerieTag):</span>
         <input class="form-control" @bind="_settingsDTO.ArtillerieTag" Placeholder="Enter ArtillerieTag" />
     </div>
 
     <div class="mb-3 d-flex align-items-center">
-        <span class="input-group-text">@nameof(_settingsDTO.ArtileryWeaponCursorType):</span>
+        <span class="input-group-text">@nameof(SettingsDTO.ArtileryWeaponCursorType):</span>
         <input class="form-control" @bind="_settingsDTO.ArtileryWeaponCursorType" Placeholder="Enter ArtileryWeaponCursorType" />
     </div>
 
     <div class="d-flex justify-content-end">
 
-        <Button Loading="@(_currentOperation == OperationType.Save)" LoadingText="Saving..." Disabled="@(_currentOperation != OperationType.Idle)" Class="btn btn-primary me-3" @onclick="Save">
+        <Button Loading="@(_currentOperation == OperationType.Save)" LoadingText="Saving..." Disabled="@(_currentOperation != OperationType.Idle)" Class="btn btn-primary me-3" @onclick="SaveAsync">
             <i class="bi bi-save"></i>
             Save
         </Button>
@@ -251,17 +252,20 @@
 
     private OperationType _currentOperation;
 
-    private SettingsDTO _settingsDTO = JsonDatabase.JsonDatabase.LoadSettings();
+    private SettingsDTO _settingsDTO = GetDefaultSettings();
 
-    private async Task Save()
+    [Inject] ISettingsManagerService _settingsManagerService { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        _settingsDTO = await _settingsManagerService.LoadSettingsAsync();
+    }
+
+    private async Task SaveAsync()
     {
         _currentOperation = OperationType.Save;
 
-        await JsonDatabase.JsonDatabase.SaveSettings(_settingsDTO);
-
-        _settingsDTO = JsonDatabase.JsonDatabase.LoadSettings();
-
-        ModManager.LoadSettings();
+        await _settingsManagerService.SaveSettingsAsync(_settingsDTO);
 
         _currentOperation = OperationType.Idle;
     }
@@ -270,7 +274,14 @@
     {
         _currentOperation = OperationType.RestoreDefaults;
 
-        _settingsDTO = new SettingsDTO(
+        _settingsDTO = GetDefaultSettings();
+
+        _currentOperation = OperationType.Idle;
+    }
+
+    private static SettingsDTO GetDefaultSettings()
+    {
+        return new SettingsDTO(
             Storage.ModeSettings.ModsDirectory,
             Storage.ModeSettings.ModName,
             WarnoConstants.WarnoMetters,
@@ -308,7 +319,5 @@
             WarnoConstants.ArtillerieTag,
             WarnoConstants.ArtileryWeaponCursorType
         );
-
-        _currentOperation = OperationType.Idle;
     }
 }

@@ -1,4 +1,4 @@
-using WarnoModeAutomation.Logic;
+using WarnoModeAutomation.Logic.Services.Impl;
 
 namespace nUnitTests
 {
@@ -16,7 +16,7 @@ namespace nUnitTests
         [TestCase("Ammo_AGM_AGM65D_Maverick", 62_260, 8915)]
         public void NerfDistanceTest(string ammoName, float newDistance, float originalDistance)
         {
-            var actualResult = ModManager.NerfDistance(newDistance, originalDistance);
+            var actualResult = WarnoModificationService.NerfDistance(newDistance, originalDistance);
 
             Assert.That(actualResult, Is.GreaterThan(originalDistance));
             Assert.That(actualResult,  Is.LessThanOrEqualTo(newDistance));

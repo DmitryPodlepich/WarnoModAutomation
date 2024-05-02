@@ -1,17 +1,12 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using WarnoModeAutomation.Logic;
+﻿using WarnoModeAutomation.Logic;
 
 namespace WarnoModeAutomation.DTO
 {
     public class StatusDTO
     {
-        public string Status => GetStatus();
+        public static string Status => GetStatus();
 
-        public string GetStatus() 
+        public static string GetStatus() 
         {
             var isModExist = FileManager.IsModExist();
 

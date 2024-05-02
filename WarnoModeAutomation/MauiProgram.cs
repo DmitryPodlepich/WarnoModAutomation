@@ -1,4 +1,8 @@
 ﻿using Microsoft.Extensions.Logging;
+using WarnoModeAutomation.Logic.Providers.Impl;
+using WarnoModeAutomation.Logic.Providers.Interfaces;
+using WarnoModeAutomation.Logic.Services.Impl;
+using WarnoModeAutomation.Logic.Services.Interfaces;
 
 namespace WarnoModeAutomation
 {
@@ -22,6 +26,10 @@ namespace WarnoModeAutomation
 #endif
 
             builder.Services.AddBlazorBootstrap();
+
+            builder.Services.AddSingleton<ICMDProvider, CMDProvider>();
+            builder.Services.AddSingleton<ISettingsManagerService, SettingsManagerService>();
+            builder.Services.AddSingleton<IWarnoModificationService, WarnoModificationService>();
 
             return builder.Build();
         }

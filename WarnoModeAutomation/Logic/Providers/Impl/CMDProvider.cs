@@ -1,18 +1,24 @@
 ﻿using System.Diagnostics;
+using WarnoModeAutomation.Logic.Providers.Interfaces;
 
-namespace WarnoModeAutomation.Logic
+namespace WarnoModeAutomation.Logic.Providers.Impl
 {
-    public class CMDProvider(string workingDirectory) : IDisposable
+    public class CMDProvider : ICMDProvider, IDisposable
     {
         public delegate void Outputter(string data);
-        public event Outputter OnOutput;
+        public event ICMDProvider.Outputter OnOutput;
 
         private CancellationTokenSource _cancellationTokenSource;
-        private readonly string _workingDirectory = workingDirectory;
+        private string _workingDirectory;
 
         private Process _process;
 
-        public async Task<bool> PerformCMDCommand(string command, string workingDirectory = null) 
+        public void SetWorkingDirectory(string workingDirectory)
+        {
+            _workingDirectory = workingDirectory;
+        }
+
+        public async Task<bool> PerformCMDCommand(string command, string workingDirectory = null)
         {
             _cancellationTokenSource = new CancellationTokenSource(TimeSpan.FromMinutes(1));
 
@@ -43,14 +49,13 @@ namespace WarnoModeAutomation.Logic
                 {
                     return false;
                 }
-                catch(OperationCanceledException)
+                catch (OperationCanceledException)
                 {
                     return false;
                 }
                 catch (Exception ex)
                 {
                     OnOutput?.Invoke(ex.Message);
-
                     return false;
                 }
             }

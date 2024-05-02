@@ -19,6 +19,9 @@ namespace WarnoModeAutomation.Logic
             SetupTimer(textUpdateInterval);
         }
 
+        public StringBuilderInterval() : this(TimeSpan.FromMilliseconds(50), 2000)
+        {
+        }
         public void AddLine(string data) 
         {
             lock (_lock)

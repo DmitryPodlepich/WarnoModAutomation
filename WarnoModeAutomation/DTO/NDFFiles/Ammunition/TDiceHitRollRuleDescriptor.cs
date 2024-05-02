@@ -1,10 +1,5 @@
 ﻿using NDFSerialization.Models;
 using NDFSerialization.NDFDataTypes;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace WarnoModeAutomation.DTO.NDFFiles.Ammunition
 {
