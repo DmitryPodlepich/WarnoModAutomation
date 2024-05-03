@@ -1,4 +1,6 @@
-﻿using WarnoModeAutomation.DTO;
+﻿using Microsoft.Extensions.Configuration;
+using WarnoModeAutomation.DTO;
+using WarnoModeAutomation.Logic.Helpers;
 
 namespace WarnoModeAutomation.Logic
 {
@@ -9,8 +11,10 @@ namespace WarnoModeAutomation.Logic
 
         static Storage()
         {
-            ModeSettings.ModsDirectory = @"C:\Program Files (x86)\Steam\steamapps\common\WARNO\Mods";
-            ModeSettings.ModName = "TestAutoMode";
+            var storageConfiguration = ConfigurationHelper.Config.GetSection("Storage").Get<ModeSettingsDTO>();
+
+            ModeSettings.ModsDirectory = storageConfiguration.ModsDirectory;
+            ModeSettings.ModName = storageConfiguration.ModName;
         }
     }
 }

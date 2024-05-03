@@ -26,6 +26,7 @@ namespace WarnoModeAutomation.Logic
         {
             _settingsManagerService = settingsManagerService;
             _warnoModificationService = warnoModificationService;
+            _warnoModificationService.OnOutput += OnCMDProviderOutput;
 
             _CMDProvider = cmdProvider;
             _CMDProvider.OnOutput += OnCMDProviderOutput;

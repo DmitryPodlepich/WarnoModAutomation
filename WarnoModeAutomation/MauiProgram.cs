@@ -1,4 +1,6 @@
-﻿using Microsoft.Extensions.Logging;
+﻿using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
+using WarnoModeAutomation.Logic.Helpers;
 using WarnoModeAutomation.Logic.Providers.Impl;
 using WarnoModeAutomation.Logic.Providers.Interfaces;
 using WarnoModeAutomation.Logic.Services.Impl;
@@ -27,9 +29,13 @@ namespace WarnoModeAutomation
 
             builder.Services.AddBlazorBootstrap();
 
-            builder.Services.AddSingleton<ICMDProvider, CMDProvider>();
+            builder.Services.AddTransient<ICMDProvider, CMDProvider>();
             builder.Services.AddSingleton<ISettingsManagerService, SettingsManagerService>();
             builder.Services.AddSingleton<IWarnoModificationService, WarnoModificationService>();
+
+            builder.Configuration.AddJsonFile("appsettings.json");
+
+            ConfigurationHelper.Initialize(builder.Configuration);
 
             return builder.Build();
         }

@@ -18,7 +18,7 @@ namespace WarnoModeAutomation.Logic.Services.Impl
     public class WarnoModificationService : IWarnoModificationService
     {
         public delegate void Outputter(string data);
-        public static event Outputter OnOutput;
+        public event IWarnoModificationService.Outputter OnOutput;
 
         private const int SupplyCapacity = 46000;
         private static SettingsDTO _settings;
@@ -127,7 +127,7 @@ namespace WarnoModeAutomation.Logic.Services.Impl
             return buildingsFileDescriptor;
         }
 
-        private static void ModifyUnits(UnitsRelatedDataDTO unitsRelatedData, CancellationToken cancellationToken, bool enableFullLog = false)
+        private void ModifyUnits(UnitsRelatedDataDTO unitsRelatedData, CancellationToken cancellationToken, bool enableFullLog = false)
         {
             var modifiedAmunition = new Dictionary<string, int>();
 
@@ -139,7 +139,7 @@ namespace WarnoModeAutomation.Logic.Services.Impl
             }
         }
 
-        private static void ModifyUnit(TEntityDescriptor unit, UnitsRelatedDataDTO unitsRelatedData, ref Dictionary<string, int> modifiedAmunition, CancellationToken cancellationToken, bool enableFullLog = false)
+        private void ModifyUnit(TEntityDescriptor unit, UnitsRelatedDataDTO unitsRelatedData, ref Dictionary<string, int> modifiedAmunition, CancellationToken cancellationToken, bool enableFullLog = false)
         {
             try
             {
@@ -355,7 +355,7 @@ namespace WarnoModeAutomation.Logic.Services.Impl
             SetNewDistanceMetre(ref unitPorteeMaximaleHAModificationData);
         }
 
-        private static void UpdateUnitVisionByAmunitionDistance(TEntityDescriptor unit, IEnumerable<TAmmunitionDescriptor> ammunitionDescriptor)
+        private void UpdateUnitVisionByAmunitionDistance(TEntityDescriptor unit, IEnumerable<TAmmunitionDescriptor> ammunitionDescriptor)
         {
             var scannerConfigurationDescriptor = unit.ModulesDescriptors.OfType<TScannerConfigurationDescriptor>().SingleOrDefault();
 
@@ -478,7 +478,7 @@ namespace WarnoModeAutomation.Logic.Services.Impl
             return (float)Math.Round((double)result);
         }
 
-        private static void OnCMDProviderOutput(string data)
+        private void OnCMDProviderOutput(string data)
         {
             OnOutput?.Invoke(data);
         }

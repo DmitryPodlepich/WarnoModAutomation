@@ -1,14 +1,17 @@
-﻿using WarnoModeAutomation.Constants;
+﻿using Microsoft.Extensions.Configuration;
+using WarnoModeAutomation.Constants;
 using WarnoModeAutomation.DTO;
+using WarnoModeAutomation.DTO.Configuration;
+using WarnoModeAutomation.Logic.Helpers;
 
 namespace WarnoModeAutomation.Logic
 {
     internal static class FileManager
     {
         public static string WindowsSystemPath => Path.GetPathRoot(Environment.SystemDirectory);
-        public static string SavedGamesEugenSystemsModPath => Path.Combine(WindowsSystemPath, "Users", CurrentUserName, "Saved Games", "EugenSystems", "WARNO", "mod");
-        public static string GeneratedGfxPath => Path.Combine(Storage.ModeSettings.ModsDirectory, Storage.ModeSettings.ModName, "GameData", "Generated", "Gameplay", "Gfx");
-        public static string GamePlayGfxPath => Path.Combine(Storage.ModeSettings.ModsDirectory, Storage.ModeSettings.ModName, "GameData", "Gameplay", "Gfx");
+        public static string SavedGamesEugenSystemsModPath => Path.Combine(WindowsSystemPath, _configuration.Users, CurrentUserName, _configuration.SavedGames, _configuration.EugenSystems, _configuration.WARNO, _configuration.Mod);
+        public static string GeneratedGfxPath => Path.Combine(Storage.ModeSettings.ModsDirectory, Storage.ModeSettings.ModName, _configuration.GameData, _configuration.Generated, _configuration.Gameplay, _configuration.Gfx);
+        public static string GamePlayGfxPath => Path.Combine(Storage.ModeSettings.ModsDirectory, Storage.ModeSettings.ModName, _configuration.GameData, _configuration.Gameplay, _configuration.Gfx);
         public static string DepictionResourcesPath => Path.Combine(GamePlayGfxPath, "DepictionResources");
         public static NDFFilePathInfo[] NDFFilesPaths =>
         [
@@ -18,6 +21,13 @@ namespace WarnoModeAutomation.Logic
             new(WarnoConstants.AmmunitionDescriptorsFileName, Path.Combine(GeneratedGfxPath, WarnoConstants.AmmunitionDescriptorsFileName)),
             new(WarnoConstants.AmmunitionMissilesDescriptorsFileName, Path.Combine(GeneratedGfxPath, WarnoConstants.AmmunitionMissilesDescriptorsFileName)),
         ];
+
+        private static readonly ConfigurationDTO _configuration;
+
+        static FileManager()
+        {
+            _configuration = ConfigurationHelper.Config.GetSection("FileManager").Get<ConfigurationDTO>();
+        }
 
         private static string CurrentUserName => Environment.UserName;
 
