@@ -7,10 +7,10 @@ namespace JsonDatabase
     {
         private const string SETTINGS_FILE_NAME = "Settings.json";
 
-        private static string _settingsFilePath => Path.Combine(AppDomain.CurrentDomain.BaseDirectory, SETTINGS_FILE_NAME);
+        private static string SettingsFilePath => Path.Combine(AppDomain.CurrentDomain.BaseDirectory, SETTINGS_FILE_NAME);
 
         private const string AMMO_FIRE_RANGE_FILE_NAME = "AmmoFireRange.json";
-        private static string _ammoFireRangeFilePath => Path.Combine(AppDomain.CurrentDomain.BaseDirectory, AMMO_FIRE_RANGE_FILE_NAME);
+        private static string AmmoFireRangeFilePath => Path.Combine(AppDomain.CurrentDomain.BaseDirectory, AMMO_FIRE_RANGE_FILE_NAME);
 
         private static readonly Lazy<List<AmmoRangeDTO>> _ammoRange = new(GetAllAmmoRange);
         public static List<AmmoRangeDTO> AmmoRange => _ammoRange.Value;
@@ -54,7 +54,7 @@ namespace JsonDatabase
 
         private static List<AmmoRangeDTO> GetAllAmmoRange()
         {
-            var text = File.ReadAllText(_ammoFireRangeFilePath);
+            var text = File.ReadAllText(AmmoFireRangeFilePath);
 
             if (text.Length == 0)
                 return [];
@@ -64,12 +64,12 @@ namespace JsonDatabase
 
         public static async Task SaveAmmoAsync()
         {
-            await File.WriteAllTextAsync(_ammoFireRangeFilePath, JsonSerializer.Serialize(AmmoRange));
+            await File.WriteAllTextAsync(AmmoFireRangeFilePath, JsonSerializer.Serialize(AmmoRange));
         }
 
         public static async Task<SettingsDTO> LoadSettingsAsync()
         {
-            var text = await File.ReadAllTextAsync(_settingsFilePath);
+            var text = await File.ReadAllTextAsync(SettingsFilePath);
 
             return JsonSerializer.Deserialize<SettingsDTO>(text);
         }
@@ -78,7 +78,7 @@ namespace JsonDatabase
         {
             var text = JsonSerializer.Serialize(settingsDTO);
 
-            await File.WriteAllTextAsync(_settingsFilePath, text);
+            await File.WriteAllTextAsync(SettingsFilePath, text);
         }
     }
 }

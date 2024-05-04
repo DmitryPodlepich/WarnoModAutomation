@@ -21,12 +21,13 @@ namespace WarnoModeAutomation.Logic.Services.Impl
         public event IWarnoModificationService.Outputter OnOutput;
 
         private const int SupplyCapacity = 46000;
-        private static SettingsDTO _settings;
+        private SettingsDTO _settings;
         private readonly ISettingsManagerService _settingsManagerService;
 
         public WarnoModificationService(ISettingsManagerService settingsManagerService)
         {
             _settingsManagerService = settingsManagerService;
+            _ = InitializeSettings();
         }
 
         public async Task Modify(bool enableFullLog, CancellationToken cancellationToken)
@@ -113,13 +114,24 @@ namespace WarnoModeAutomation.Logic.Services.Impl
             await Task.WhenAll(tasks);
         }
 
-        private static FileDescriptor<TEntityDescriptor> ModifyBuildings(FileDescriptor<TEntityDescriptor> buildingsFileDescriptor, CancellationToken cancellationToken)
+        private async Task InitializeSettings()
+        {
+            _settings = await _settingsManagerService.LoadSettingsAsync();
+        }
+
+        private FileDescriptor<TEntityDescriptor> ModifyBuildings(FileDescriptor<TEntityDescriptor> buildingsFileDescriptor, CancellationToken cancellationToken)
         {
             foreach (var entityDescriptor in buildingsFileDescriptor.RootDescriptors)
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
                 var tSupplyModuleDescriptor = entityDescriptor.ModulesDescriptors.OfType<TSupplyModuleDescriptor>().SingleOrDefault();
+
+                if (tSupplyModuleDescriptor is null)
+                {
+                    OnCMDProviderOutput($"TSupplyModuleDescriptor not found for: {entityDescriptor.ClassNameForDebug}");
+                    continue;
+                }
 
                 tSupplyModuleDescriptor.SupplyCapacity = SupplyCapacity;
             }
@@ -166,7 +178,10 @@ namespace WarnoModeAutomation.Logic.Services.Impl
                 var unitAmunitionNames = weaponManagerModule
                     .TurretDescriptorList.OfType<ITTurretDescriptor>()
                     .SelectMany(d => d.MountedWeaponDescriptorList.OfType<TMountedWeaponDescriptor>())
-                    .Select(w => w.Ammunition.Split('/').Last().Trim());
+                    .Select(w => {
+                        var array = w.Ammunition.Split('/').ToArray();
+                        return array[^1].Trim();
+                    });
 
                 var unitAmunitions = unitsRelatedData.AmmunitionDescriptor.RootDescriptors
                     .Where(d => unitAmunitionNames.Contains(d.EntityNDFType.Trim()));
@@ -279,7 +294,7 @@ namespace WarnoModeAutomation.Logic.Services.Impl
             }
         }
 
-        private static int ModifyAmunitionAccuracity(TAmmunitionDescriptor ammunition)
+        private int ModifyAmunitionAccuracity(TAmmunitionDescriptor ammunition)
         {
             int additionalResourceCommandPoints = 0;
 
@@ -320,7 +335,7 @@ namespace WarnoModeAutomation.Logic.Services.Impl
             return additionalResourceCommandPoints;
         }
 
-        private static bool EnsureModifiedArtileryDamage(TAmmunitionDescriptor ammunition)
+        private bool EnsureModifiedArtileryDamage(TAmmunitionDescriptor ammunition)
         {
             if (ammunition.WeaponCursorType != _settings.ArtileryWeaponCursorType && !ammunition.EntityNDFType.Contains(_settings.AmunitionNameSMOKEMarker, StringComparison.InvariantCultureIgnoreCase))
                 return false;
@@ -333,11 +348,11 @@ namespace WarnoModeAutomation.Logic.Services.Impl
             return true;
         }
 
-        private static void ModifyAmunitionDistance(int originalResourceCommandPoints, TAmmunitionDescriptor ammunition, AmmoRangeDTO ammoRangeDTO, bool shouldNerf)
+        private void ModifyAmunitionDistance(int originalResourceCommandPoints, TAmmunitionDescriptor ammunition, AmmoRangeDTO ammoRangeDTO, bool shouldNerf)
         {
             var realDistanceInMetersToWarnoDistance = MathExtensions.ConverToWarnoDistance(ammoRangeDTO.FireRangeInMeters, WarnoConstants.WarnoMetters);
 
-            var unitPorteeMaximaleModificationData = new UnitModificationDataDTO(
+            var unitPorteeMaximaleModificationData = new UnitModificationDataDto(
                 ammunition.PorteeMaximale,
                 ammunition,
                 originalResourceCommandPoints,
@@ -377,7 +392,7 @@ namespace WarnoModeAutomation.Logic.Services.Impl
 
             var isSovUnit = tTypeUnitModuleDescriptor.IsSovUnit();
 
-            if (scannerConfigurationDescriptor.OpticalStrength == 0)
+            if (scannerConfigurationDescriptor.OpticalStrength <= 0)
             {
                 scannerConfigurationDescriptor.OpticalStrength = isSovUnit ? _settings.SovMinOpticalStrength : _settings.NatoMinOpticalStrength;
             }
@@ -401,20 +416,16 @@ namespace WarnoModeAutomation.Logic.Services.Impl
             var newGroundVisionValue = Math.Max(scannerConfigurationDescriptor.PorteeVision.FloatValue, CalculateUnitVisionGround(longestGroundAmunitionRange, isSovUnit));
 
             scannerConfigurationDescriptor.PorteeVision.FloatValue = Math.Max(minVisionDistance, newGroundVisionValue);
-
-            //ToDo: change unit vison according to a new fire range
-            //-For Scout unit: vision - 2 %;
-            //SpecializedDetections research
         }
 
-        private static float CalculateUnitDetectionTBAAndHA(float visionDistance)
+        private float CalculateUnitDetectionTBAAndHA(float visionDistance)
         {
             var percentage = MathExtensions.GetNumberPercentage(_settings.TBAAndHADetectionPercentageFromVisionDistance, visionDistance);
 
             return visionDistance - percentage;
         }
 
-        private static float CalculateUnitVisionGround(DistanceMetre amunitionDistance, bool isSovUnit)
+        private float CalculateUnitVisionGround(DistanceMetre amunitionDistance, bool isSovUnit)
         {
             var percentage = isSovUnit
                 ? MathExtensions.GetNumberPercentage(_settings.SovGroundVisionPercentageFromAmunitionDistance, amunitionDistance.FloatValue)
@@ -423,7 +434,7 @@ namespace WarnoModeAutomation.Logic.Services.Impl
             return amunitionDistance.FloatValue - percentage;
         }
 
-        private static float CalculateUnitVisionTBA(DistanceMetre amunitionDistance, bool isSovUnit)
+        private float CalculateUnitVisionTBA(DistanceMetre amunitionDistance, bool isSovUnit)
         {
             var percentage = isSovUnit
                 ? MathExtensions.GetNumberPercentage(_settings.SovTBAVisionPercentageFromAmunitionDistance, amunitionDistance.FloatValue)
@@ -432,7 +443,7 @@ namespace WarnoModeAutomation.Logic.Services.Impl
             return amunitionDistance.FloatValue - percentage;
         }
 
-        private static float CalculateUnitVisionHA(DistanceMetre amunitionDistance, bool isSovUnit)
+        private float CalculateUnitVisionHA(DistanceMetre amunitionDistance, bool isSovUnit)
         {
             var percentage = isSovUnit
                 ? MathExtensions.GetNumberPercentage(_settings.SovHAVisionPercentageFromAmunitionDistance, amunitionDistance.FloatValue)
@@ -441,7 +452,7 @@ namespace WarnoModeAutomation.Logic.Services.Impl
             return amunitionDistance.FloatValue - percentage;
         }
 
-        private static void SetNewDistanceMetre(ref UnitModificationDataDTO unitModificationDataDTO)
+        private void SetNewDistanceMetre(ref UnitModificationDataDto unitModificationDataDTO)
         {
             if (IsAllowedToChangeValue(unitModificationDataDTO.DistanceMetre, unitModificationDataDTO.RealFireRangeDistance))
             {
@@ -460,7 +471,7 @@ namespace WarnoModeAutomation.Logic.Services.Impl
             return distanceMetre.FloatValue > 0 && distanceMetre.FloatValue < realDistanceInMetersToWarnoDistance;
         }
 
-        internal static float NerfDistance(float newValue, float originalValue)
+        internal float NerfDistance(float newValue, float originalValue)
         {
             if (newValue <= originalValue)
                 return originalValue;
@@ -475,7 +486,7 @@ namespace WarnoModeAutomation.Logic.Services.Impl
 
             var result = (newValue - pcentageTotal) / Math.Max(percentageDifference / percentageoriginalValue / _settings.NerfDistanceCoefficientDivider, 1);
 
-            return (float)Math.Round((double)result);
+            return (float)Math.Round(result);
         }
 
         private void OnCMDProviderOutput(string data)

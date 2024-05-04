@@ -4,7 +4,7 @@ using System.Text.RegularExpressions;
 
 namespace NDFSerialization.NDFDataTypes.Primitive
 {
-    public class DistanceMetre
+    public partial class DistanceMetre
     {
         private string _initialData;
 
@@ -36,7 +36,9 @@ namespace NDFSerialization.NDFDataTypes.Primitive
             }
         }
 
-        //[GeneratedRegex("(?<DistanceValue>[\\d{1,}.]+)", RegexOptions.IgnoreCase | RegexOptions.Compiled)]
-        private readonly static Regex DistanceMetreRegex = new("(?<DistanceValue>[\\d{1,}.]+)", RegexOptions.IgnoreCase | RegexOptions.Compiled);
+        private readonly static Regex DistanceMetreRegex = DistanceValueRegex();
+
+        [GeneratedRegex("(?<DistanceValue>[\\d{1,}.]+)", RegexOptions.IgnoreCase | RegexOptions.Compiled, "ru-RU")]
+        private static partial Regex DistanceValueRegex();
     }
 }

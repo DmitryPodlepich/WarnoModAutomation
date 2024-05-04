@@ -2,7 +2,7 @@
 
 namespace WarnoModeAutomation.DTO
 {
-    public class StatusDTO
+    public static class StatusDTO
     {
         public static string Status => GetStatus();
 

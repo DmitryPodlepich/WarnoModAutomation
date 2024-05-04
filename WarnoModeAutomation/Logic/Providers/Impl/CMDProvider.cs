@@ -13,6 +13,26 @@ namespace WarnoModeAutomation.Logic.Providers.Impl
 
         private Process _process;
 
+        ~CMDProvider()
+        {
+            Dispose(false);
+        }
+
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if (disposing)
+            {
+                _process.Dispose();
+                _cancellationTokenSource.Dispose();
+            }
+        }
+
         public void SetWorkingDirectory(string workingDirectory)
         {
             _workingDirectory = workingDirectory;
@@ -61,12 +81,6 @@ namespace WarnoModeAutomation.Logic.Providers.Impl
             }
 
             return true;
-        }
-
-        public void Dispose()
-        {
-            _process.Dispose();
-            _cancellationTokenSource.Dispose();
         }
 
         private void ProcessOutputDataHandler(object sendingProcess, DataReceivedEventArgs outLine)

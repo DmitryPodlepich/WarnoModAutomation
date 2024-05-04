@@ -1,9 +1,9 @@
 ﻿using System.Text;
 using System.Timers;
 
-namespace WarnoModeAutomation.Logic
+namespace WarnoModeAutomation.Logic.Helpers
 {
-    internal class StringBuilderInterval
+    internal class StringBuilderIntervalHelper
     {
         public delegate Task TextUpdatedDelegate(string data);
         public event TextUpdatedDelegate TextUpdated;
@@ -13,16 +13,16 @@ namespace WarnoModeAutomation.Logic
         private int _lastLength = 0;
         private System.Timers.Timer Timer { get; set; }
 
-        public StringBuilderInterval(TimeSpan textUpdateInterval, int textBuilderCapacity)
+        public StringBuilderIntervalHelper(TimeSpan textUpdateInterval, int textBuilderCapacity)
         {
             _stringBuilder = new(textBuilderCapacity);
             SetupTimer(textUpdateInterval);
         }
 
-        public StringBuilderInterval() : this(TimeSpan.FromMilliseconds(50), 2000)
+        public StringBuilderIntervalHelper() : this(TimeSpan.FromMilliseconds(50), 2000)
         {
         }
-        public void AddLine(string data) 
+        public void AddLine(string data)
         {
             lock (_lock)
             {
@@ -48,7 +48,7 @@ namespace WarnoModeAutomation.Logic
             Timer.Enabled = true;
         }
 
-        private void OnTimedEvent(Object source, ElapsedEventArgs e)
+        private void OnTimedEvent(object source, ElapsedEventArgs e)
         {
             lock (_lock)
             {

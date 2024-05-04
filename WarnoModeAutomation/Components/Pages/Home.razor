@@ -5,6 +5,7 @@
 @using BlazorBootstrap;
 @using Microsoft.JSInterop
 @using System.Collections.Concurrent;
+@using WarnoModeAutomation.Logic.Helpers
 @using WarnoModeAutomation.Logic.Providers.Interfaces
 @using WarnoModeAutomation.Logic.Services.Interfaces
 @inject IJSRuntime JS
@@ -123,7 +124,7 @@
     private OperationType _currentOperation = OperationType.Idle;
 
     private string ModManagerOutput;
-    private StringBuilderInterval _stringBuilderInterval;
+    private StringBuilderIntervalHelper _stringBuilderInterval;
     private ModManager _modManager;
 
     [Inject] ICMDProvider _cMDProvider { get; set; }
@@ -132,7 +133,7 @@
 
     protected override Task OnInitializedAsync()
     {
-        _stringBuilderInterval = new StringBuilderInterval();
+        _stringBuilderInterval = new StringBuilderIntervalHelper();
         _stringBuilderInterval.TextUpdated += TextUpdated;
 
         _modManager = new ModManager(_cMDProvider, _settingsManagerService, _warnoModificationService);

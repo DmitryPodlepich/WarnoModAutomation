@@ -1,7 +1,4 @@
-﻿using Microsoft.Maui.Storage;
-using Microsoft.UI.Xaml;
-
-// To learn more about WinUI, the WinUI project structure,
+﻿// To learn more about WinUI, the WinUI project structure,
 // and more about our project templates, see: http://aka.ms/winui-project-info.
 
 namespace WarnoModeAutomation.WinUI
@@ -25,27 +22,15 @@ namespace WarnoModeAutomation.WinUI
             Environment.SetEnvironmentVariable("DOTNET_EnableCrashReport", "1");
             Environment.SetEnvironmentVariable("DOTNET_CreateDumpVerboseDiagnostics", "1");
 
-            //Environment.SetEnvironmentVariable("DOTNET_DbgMiniDumpName", "WarnoModeAutomation");
-
             AppDomain currentDomain = AppDomain.CurrentDomain;
-            currentDomain.UnhandledException += new System.UnhandledExceptionEventHandler(MyHandler);
+            currentDomain.UnhandledException += new UnhandledExceptionEventHandler(Handler);
 
-            try
-            {
-                this.InitializeComponent();
-            }
-            catch (Exception ex) 
-            {
-                using StreamWriter sw = File.CreateText(_path);
-
-                sw.WriteLine("MyHandler caught : " + ex.Message);
-                sw.WriteLine("Runtime terminating: {0}", ex.StackTrace);
-            }
+            this.InitializeComponent();
         }
 
         protected override MauiApp CreateMauiApp() => MauiProgram.CreateMauiApp();
 
-        static void MyHandler(object sender, System.UnhandledExceptionEventArgs args)
+        private static void Handler(object sender, UnhandledExceptionEventArgs args)
         {
             Exception e = (Exception)args.ExceptionObject;
 
@@ -55,5 +40,4 @@ namespace WarnoModeAutomation.WinUI
             sw.WriteLine("Runtime terminating: {0}", args.IsTerminating);
         }
     }
-
 }
