@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.8.34330.188
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "WarnoModeAutomation", "WarnoModeAutomation\WarnoModeAutomation.csproj", "{E43E3C68-7070-4D8C-85AE-86F440E5E763}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "WarnoModAutomation", "WarnoModeAutomation\WarnoModAutomation.csproj", "{E43E3C68-7070-4D8C-85AE-86F440E5E763}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NDFSerialization", "NDFSerialization\NDFSerialization.csproj", "{7D58E5F4-0C3C-4341-A16C-397F6E9C426E}"
 EndProject
