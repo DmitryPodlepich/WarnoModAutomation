@@ -4,32 +4,24 @@ using NDFSerialization.Models;
 using NDFSerialization.NDFDataTypes;
 using NDFSerialization.NDFDataTypes.Interfaces;
 using NDFSerialization.NDFDataTypes.Primitive;
-using System;
 using System.Collections;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
-using System.Linq;
 using System.Reflection;
 using System.Text;
-using System.Text.RegularExpressions;
 
 namespace WarnoModeAutomation.Logic
 {
     public static class NDFSerializer
     {
-        #region NDFKeywords
-
         private const string IS_KEYWORD = "is";
-
-        #endregion
 
         public static async Task Initialize() 
         {
             await Task.Run(() => FileDescriptor<Descriptor>.Initialize());
         }
 
-        public static string Serialize<T>(FileDescriptor<T> fileDescriptor)
+        public static string Serialize<T>(FileDescriptor<T> fileDescriptor, Action<string> outputLogs = null)
             where T : Descriptor
         {
             var sb = new StringBuilder(fileDescriptor.RawLines.Count);
@@ -93,9 +85,14 @@ namespace WarnoModeAutomation.Logic
 
                     sb.AppendLine(modifiedLine);
                 }
+                catch (OperationCanceledException)
+                {
+                    throw;
+                }
                 catch (Exception ex)
                 {
-                    Debug.WriteLine(ex.Message);
+                    outputLogs?.Invoke($"Serialization error: {ex.Message}");
+                    outputLogs?.Invoke(ex.StackTrace);
                 }
             }
 

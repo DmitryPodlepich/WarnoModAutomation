@@ -104,11 +104,11 @@ namespace WarnoModeAutomation.Logic.Services.Impl
 
             tasks =
             [
-                Task.Run(async () => await File.WriteAllTextAsync(unitsFilePath.FilePath, NDFSerializer.Serialize(units), cancellationToken), cancellationToken),
-                Task.Run(async () => await File.WriteAllTextAsync(amunitionMissiles.FilePath, NDFSerializer.Serialize(amunitionMissiles), cancellationToken), cancellationToken),
-                Task.Run(async () => await File.WriteAllTextAsync(amunitionFilePath.FilePath, NDFSerializer.Serialize(amunition), cancellationToken), cancellationToken),
-                Task.Run(async () => await File.WriteAllTextAsync(weaponFilePath.FilePath, NDFSerializer.Serialize(weapon), cancellationToken), cancellationToken),
-                Task.Run(async () => await File.WriteAllTextAsync(buildingsFilePath.FilePath, NDFSerializer.Serialize(buildings), cancellationToken), cancellationToken)
+                Task.Run(async () => await File.WriteAllTextAsync(unitsFilePath.FilePath, NDFSerializer.Serialize(units, OnCMDProviderOutput), cancellationToken), cancellationToken),
+                Task.Run(async () => await File.WriteAllTextAsync(amunitionMissiles.FilePath, NDFSerializer.Serialize(amunitionMissiles, OnCMDProviderOutput), cancellationToken), cancellationToken),
+                Task.Run(async () => await File.WriteAllTextAsync(amunitionFilePath.FilePath, NDFSerializer.Serialize(amunition, OnCMDProviderOutput), cancellationToken), cancellationToken),
+                Task.Run(async () => await File.WriteAllTextAsync(weaponFilePath.FilePath, NDFSerializer.Serialize(weapon, OnCMDProviderOutput), cancellationToken), cancellationToken),
+                Task.Run(async () => await File.WriteAllTextAsync(buildingsFilePath.FilePath, NDFSerializer.Serialize(buildings, OnCMDProviderOutput), cancellationToken), cancellationToken)
             ];
 
             await Task.WhenAll(tasks);
