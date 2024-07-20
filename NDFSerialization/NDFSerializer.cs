@@ -115,6 +115,9 @@ namespace WarnoModeAutomation.Logic
                 var i = 0;
                 while ((line = streamReader.ReadLine()) != null)
                 {
+                    //if (line.Contains("SupplyCost"))
+                        //Debugger.Break();
+
                     try
                     {
                         cancellationToken.ThrowIfCancellationRequested();

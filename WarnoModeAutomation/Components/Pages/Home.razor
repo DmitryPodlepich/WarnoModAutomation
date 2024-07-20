@@ -166,7 +166,7 @@
     {
         await PerformAsync(OperationType.Creation, async (cancellationToken) =>
         {
-            await _modManager.CreateModAsync();
+            await _modManager.CreateModAsync(cancellationToken);
             DTO.StatusDTO.GetStatus();
         });
     }
@@ -225,7 +225,7 @@
     {
         await PerformAsync(OperationType.Generation, async (cancellationToken) =>
         {
-            await _modManager.GenerateModAsync();
+            await _modManager.GenerateModAsync(cancellationToken);
             DTO.StatusDTO.GetStatus();
         });
     }
@@ -234,7 +234,7 @@
     {
         await PerformAsync(OperationType.Updation, async (cancellationToken) =>
         {
-            await _modManager.UpdateModAsync();
+            await _modManager.UpdateModAsync(cancellationToken);
             DTO.StatusDTO.GetStatus();
         });
     }
@@ -258,7 +258,7 @@
             _cancellationToken.Dispose();
         }
 
-        _cancellationToken = new CancellationTokenSource(TimeSpan.FromSeconds(45));
+        _cancellationToken = new CancellationTokenSource(TimeSpan.FromSeconds(60));
         _currentOperation = operationType;
 
         var stopwatch = new Stopwatch();

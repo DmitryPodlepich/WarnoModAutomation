@@ -5,6 +5,6 @@
         delegate void Outputter(string data);
         event Outputter OnOutput;
         void SetWorkingDirectory(string workingDirectory);
-        Task<bool> PerformCMDCommand(string command, string workingDirectory = null);
+        Task<bool> PerformCMDCommand(string command, CancellationTokenSource cancellationTokenSource, string workingDirectory = null);
     }
 }

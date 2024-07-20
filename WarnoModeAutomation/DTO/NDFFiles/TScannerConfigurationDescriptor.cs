@@ -8,10 +8,10 @@ namespace WarnoModeAutomation.DTO.NDFFiles
     {
         public override Type Type => typeof(TScannerConfigurationDescriptor);
 
-        public DistanceMetre PorteeVisionTBA {get; set; }
-        public DistanceMetre PorteeVisionFOW { get; set; }
-        public DistanceMetre DetectionTBA { get; set; }
-        public DistanceMetre PorteeVision { get; set; }
+        public DistanceMetre PorteeVisionTBAGRU {get; set; }
+        public DistanceMetre PorteeVisionFOWGRU { get; set; }
+        public DistanceMetre DetectionTBAGRU { get; set; }
+        public DistanceMetre PorteeVisionGRU { get; set; }
         public DistanceMetre PorteeIdentification { get; set; }
         public float OpticalStrength { get; set; }
         public float OpticalStrengthAltitude { get; set; }

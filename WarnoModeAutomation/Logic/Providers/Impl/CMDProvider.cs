@@ -38,9 +38,9 @@ namespace WarnoModeAutomation.Logic.Providers.Impl
             _workingDirectory = workingDirectory;
         }
 
-        public async Task<bool> PerformCMDCommand(string command, string workingDirectory = null)
+        public async Task<bool> PerformCMDCommand(string command, CancellationTokenSource cancellationTokenSource, string workingDirectory = null)
         {
-            _cancellationTokenSource = new CancellationTokenSource(TimeSpan.FromMinutes(1));
+            _cancellationTokenSource = cancellationTokenSource;
 
             using (_process = new Process())
             {

@@ -32,7 +32,7 @@ namespace WarnoModeAutomation.Logic
             _CMDProvider.OnOutput += OnCMDProviderOutput;
         }
 
-        public async Task<bool> CreateModAsync()
+        public async Task<bool> CreateModAsync(CancellationTokenSource cancellationToken)
         {
             var batFullPath = Path.Combine(Storage.ModeSettings.ModsDirectory, CreateNewModBatFileName);
 
@@ -44,14 +44,14 @@ namespace WarnoModeAutomation.Logic
 
             _CMDProvider.SetWorkingDirectory(Storage.ModeSettings.ModsDirectory);
 
-            var creationResult = await _CMDProvider.PerformCMDCommand($"{CreateNewModBatFileName} {Storage.ModeSettings.ModName}");
+            var creationResult = await _CMDProvider.PerformCMDCommand($"{CreateNewModBatFileName} {Storage.ModeSettings.ModName}", cancellationToken);
 
             if (!creationResult)
                 return creationResult;
 
             var modFullPath = Path.Combine(Storage.ModeSettings.ModsDirectory, Storage.ModeSettings.ModName);
 
-            return await _CMDProvider.PerformCMDCommand(GitInitializationCommand, modFullPath);
+            return await _CMDProvider.PerformCMDCommand(GitInitializationCommand, cancellationToken, modFullPath);
         }
 
         public async Task<bool> DeleteMod() 
@@ -96,7 +96,7 @@ namespace WarnoModeAutomation.Logic
             return true;
         }
 
-        public async Task<bool> GenerateModAsync() 
+        public async Task<bool> GenerateModAsync(CancellationTokenSource cancellationToken) 
         {
             var batFullPath = Path.Combine(Storage.ModeSettings.ModsDirectory, Storage.ModeSettings.ModName, GenerateModBatFileName);
 
@@ -110,10 +110,10 @@ namespace WarnoModeAutomation.Logic
 
             _CMDProvider.SetWorkingDirectory(modDirectory);
 
-            return await _CMDProvider.PerformCMDCommand(GenerateModBatFileName);
+            return await _CMDProvider.PerformCMDCommand(GenerateModBatFileName, cancellationToken);
         }
 
-        public async Task UpdateModAsync() 
+        public async Task UpdateModAsync(CancellationTokenSource cancellationToken) 
         {
             var batFullPath = Path.Combine(Storage.ModeSettings.ModsDirectory, Storage.ModeSettings.ModName, UpdateModBatFileName);
 
@@ -126,7 +126,7 @@ namespace WarnoModeAutomation.Logic
 
             _CMDProvider.SetWorkingDirectory(modDirectory);
 
-            _ = await _CMDProvider.PerformCMDCommand(GenerateModBatFileName);
+            _ = await _CMDProvider.PerformCMDCommand(GenerateModBatFileName, cancellationToken);
         }
 
         public async Task FillDatabaseAsync(CancellationTokenSource cancellationTokenSource) 

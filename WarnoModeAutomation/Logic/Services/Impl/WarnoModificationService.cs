@@ -263,6 +263,12 @@ namespace WarnoModeAutomation.Logic.Services.Impl
 
                     if (realFireRange is not null)
                     {
+                        if (!unitAmunition.HasAnyAmmunitionDistance())
+                        {
+                            OnCMDProviderOutput($"Unit: {unit.ClassNameForDebug} amunition {unitAmunition.EntityNDFType} has no AmmunitionDistance data!");
+                            continue;
+                        }
+
                         ModifyAmunitionDistance(resourceCommandPoints, unitAmunition, realFireRange, shouldNerf);
 
                         if (enableFullLog)
@@ -350,18 +356,18 @@ namespace WarnoModeAutomation.Logic.Services.Impl
 
         private void ModifyAmunitionDistance(int originalResourceCommandPoints, TAmmunitionDescriptor ammunition, AmmoRangeDTO ammoRangeDTO, bool shouldNerf)
         {
-            var realDistanceInMetersToWarnoDistance = MathExtensions.ConverToWarnoDistance(ammoRangeDTO.FireRangeInMeters, WarnoConstants.WarnoMetters);
+            var realDistanceInMetersToWarnoDistance = MathExtensions.ConverToWarnoDistance(ammoRangeDTO.FireRangeInMeters);
 
             var unitPorteeMaximaleModificationData = new UnitModificationDataDto(
-                ammunition.PorteeMaximale,
+                ammunition.PorteeMaximaleGRU,
                 ammunition,
                 originalResourceCommandPoints,
                 realDistanceInMetersToWarnoDistance,
                 shouldNerf);
 
-            var unitPorteeMaximaleTBAModificationData = unitPorteeMaximaleModificationData with { DistanceMetre = ammunition.PorteeMaximaleTBA };
+            var unitPorteeMaximaleTBAModificationData = unitPorteeMaximaleModificationData with { DistanceMetre = ammunition.PorteeMaximaleTBAGRU };
 
-            var unitPorteeMaximaleHAModificationData = unitPorteeMaximaleModificationData with { DistanceMetre = ammunition.PorteeMaximaleHA };
+            var unitPorteeMaximaleHAModificationData = unitPorteeMaximaleModificationData with { DistanceMetre = ammunition.PorteeMaximaleHAGRU };
 
             SetNewDistanceMetre(ref unitPorteeMaximaleModificationData);
 
@@ -397,25 +403,28 @@ namespace WarnoModeAutomation.Logic.Services.Impl
                 scannerConfigurationDescriptor.OpticalStrength = isSovUnit ? _settings.SovMinOpticalStrength : _settings.NatoMinOpticalStrength;
             }
 
-            var longestGroundAmunitionRange = ammunitionDescriptor.Select(x => x.PorteeMaximale).MaxBy(x => x.FloatValue);
+            var longestGroundAmunitionRange = ammunitionDescriptor.Where(x => x.PorteeMaximaleGRU != null).Select(x => x.PorteeMaximaleGRU).MaxBy(x => x.FloatValue);
 
-            var longestTBAAmunitionRange = ammunitionDescriptor.Select(x => x.PorteeMaximaleTBA).MaxBy(x => x.FloatValue);
+            var longestTBAAmunitionRange = ammunitionDescriptor.Where(x => x.PorteeMaximaleTBAGRU != null).Select(x => x.PorteeMaximaleTBAGRU).MaxBy(x => x.FloatValue);
 
-            var longestHAAmunitionRange = ammunitionDescriptor.Select(x => x.PorteeMaximaleHA).MaxBy(x => x.FloatValue);
+            var longestHAAmunitionRange = ammunitionDescriptor.Where(x => x.PorteeMaximaleHAGRU != null).Select(x => x.PorteeMaximaleHAGRU).MaxBy(x => x.FloatValue);
 
             var minVisionDistance = isSovUnit ? _settings.SovMinVisionDistance : _settings.NatoMinVisionDistance;
 
-            var newTBAVisionValue = Math.Max(CalculateUnitVisionTBA(longestTBAAmunitionRange, isSovUnit), CalculateUnitVisionHA(longestHAAmunitionRange, isSovUnit));
+            if (longestHAAmunitionRange != null)
+            {
+                var newTBAVisionValue = Math.Max(CalculateUnitVisionTBA(longestTBAAmunitionRange, isSovUnit), CalculateUnitVisionHA(longestHAAmunitionRange, isSovUnit));
+                scannerConfigurationDescriptor.PorteeVisionTBAGRU.FloatValue = Math.Max(minVisionDistance, newTBAVisionValue);
+            }
 
-            scannerConfigurationDescriptor.PorteeVisionTBA.FloatValue = Math.Max(minVisionDistance, newTBAVisionValue);
+            var newDetectionValue = CalculateUnitDetectionTBAAndHA(scannerConfigurationDescriptor.PorteeVisionTBAGRU.FloatValue);
+            scannerConfigurationDescriptor.DetectionTBAGRU.FloatValue = Math.Max(minVisionDistance, newDetectionValue);
 
-            var newDetectionValue = CalculateUnitDetectionTBAAndHA(scannerConfigurationDescriptor.PorteeVisionTBA.FloatValue);
-
-            scannerConfigurationDescriptor.DetectionTBA.FloatValue = Math.Max(minVisionDistance, newDetectionValue);
-
-            var newGroundVisionValue = Math.Max(scannerConfigurationDescriptor.PorteeVision.FloatValue, CalculateUnitVisionGround(longestGroundAmunitionRange, isSovUnit));
-
-            scannerConfigurationDescriptor.PorteeVision.FloatValue = Math.Max(minVisionDistance, newGroundVisionValue);
+            if (longestGroundAmunitionRange != null)
+            {
+                var newGroundVisionValue = Math.Max(scannerConfigurationDescriptor.PorteeVisionGRU.FloatValue, CalculateUnitVisionGround(longestGroundAmunitionRange, isSovUnit));
+                scannerConfigurationDescriptor.PorteeVisionGRU.FloatValue = Math.Max(minVisionDistance, newGroundVisionValue);
+            }
         }
 
         private float CalculateUnitDetectionTBAAndHA(float visionDistance)
@@ -454,7 +463,8 @@ namespace WarnoModeAutomation.Logic.Services.Impl
 
         private void SetNewDistanceMetre(ref UnitModificationDataDto unitModificationDataDTO)
         {
-            if (IsAllowedToChangeValue(unitModificationDataDTO.DistanceMetre, unitModificationDataDTO.RealFireRangeDistance))
+            if (unitModificationDataDTO.DistanceMetre != null
+                && IsAllowedToChangeValue(unitModificationDataDTO.DistanceMetre, unitModificationDataDTO.RealFireRangeDistance))
             {
                 if (unitModificationDataDTO.NerfRequired)
                     unitModificationDataDTO.RealFireRangeDistance = NerfDistance(unitModificationDataDTO.RealFireRangeDistance, unitModificationDataDTO.DistanceMetre.FloatValue);

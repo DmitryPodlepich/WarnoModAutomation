@@ -17,9 +17,9 @@
             return a / b * 100;
         }
 
-        public static float ConverToWarnoDistance(float value, int warnoMetters)
+        public static float ConverToWarnoDistance(float value)
         {
-            return value / 1000 * warnoMetters;
+            return value;
         }
     }
 }

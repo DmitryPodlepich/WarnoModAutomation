@@ -9,12 +9,10 @@ namespace WarnoModeAutomation.DTO.NDFFiles.Ammunition
         public string WeaponCursorType { get; set; }
         public float TempsEntreDeuxTirs { get; set; }
         public float TempsEntreDeuxFx { get; set; }
-        public DistanceMetre PorteeMaximale { get; set; }
-        public DistanceMetre PorteeMinimaleTBA { get; set; }
-        public DistanceMetre PorteeMaximaleTBA { get; set; }
-        public DistanceMetre PorteeMinimaleHA { get; set; }
-        public DistanceMetre PorteeMaximaleHA { get; set; }
-        public DistanceMetre PorteeMinimale { get; set; }
+        public DistanceMetre PorteeMaximaleGRU { get; set; }
+        public DistanceMetre PorteeMaximaleTBAGRU { get; set; }
+        public DistanceMetre PorteeMaximaleHAGRU { get; set; }
+        public DistanceMetre PorteeMinimaleGRU { get; set; }
         public DistanceMetre AltitudeAPorteeMinimale { get; set; }
         public DistanceMetre AltitudeAPorteeMaximale { get; set; }
         public float AngleDispersion { get; set; }
@@ -33,11 +31,16 @@ namespace WarnoModeAutomation.DTO.NDFFiles.Ammunition
         public float TempsEntreDeuxSalves_Min { get; set; }
         public float TempsEntreDeuxSalves_Max { get; set; }
         public int NbTirParSalves { get; set; }
-        public int SupplyCost { get; set; }
+        public float SupplyCost { get; set; }
         public int NbSalvosShootOnPosition { get; set; }
         public bool CanShootOnPosition { get; set; }
         public bool CanShootWhileMoving { get; set; }
         public int NbrProjectilesSimultanes { get; set; }
         public int AffichageMunitionParSalve { get; set; }
+
+        public bool HasAnyAmmunitionDistance() 
+        {
+            return PorteeMaximaleGRU != null || PorteeMaximaleTBAGRU != null || PorteeMaximaleHAGRU != null;
+        }
     }
 }
