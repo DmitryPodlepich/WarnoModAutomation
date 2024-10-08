@@ -9,6 +9,7 @@
         public const string WeaponDescriptorDescriptorsFileName = "WeaponDescriptor.ndf";
         public const string AmmunitionDescriptorsFileName = "Ammunition.ndf";
         public const string AmmunitionMissilesDescriptorsFileName = "AmmunitionMissiles.ndf";
+        public const string RavitaillementFileName = "Ravitaillement.ndf";
 
         public const string ResourceCommandPoints = "Resource_CommandPoints";
         public const string AmunitionNameSMOKEMarker = "SMOKE";

@@ -60,6 +60,7 @@
     </ItemGroup>
 
     <ItemGroup>
+      <Content Remove="Components\Pages\DivisionsManager.razor" />
       <Content Remove="Resources\Raw\AmmoFireRange.json" />
       <Content Remove="Resources\Raw\Settings.json" />
     </ItemGroup>
@@ -104,6 +105,18 @@
       <MauiAsset Update="Resources\Raw\Settings.json">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </MauiAsset>
+    </ItemGroup>
+
+    <ItemGroup>
+      <UpToDateCheckInput Remove="Components\Pages\DivisionsManager.razor" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <_ContentIncludedByDefault Remove="Components\Pages\DivisionsManager.razor" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <None Include="Components\Pages\DivisionsManager.razor" />
     </ItemGroup>
 
 </Project>

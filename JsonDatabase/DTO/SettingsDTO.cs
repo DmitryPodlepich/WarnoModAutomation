@@ -36,7 +36,8 @@
         string AirTag,
         string Weapon_Cursor_MachineGun,
         string ArtillerieTag,
-        string ArtileryWeaponCursorType)
+        string ArtileryWeaponCursorType,
+        string RavitaillementFileName)
     {
         public string ModsDirectory { get; set; } = ModsDirectory;
         public string ModName { get; set; } = ModName;
@@ -86,6 +87,8 @@
 
         public string ArtillerieTag { get; set; } = ArtillerieTag;
         public string ArtileryWeaponCursorType { get; set; } = ArtileryWeaponCursorType;
+
+        public string RavitaillementFileName { get; set; } = RavitaillementFileName;
 
         #endregion
     }

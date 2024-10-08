@@ -39,12 +39,14 @@ namespace WarnoModeAutomation.Logic.Services.Impl
             var weaponFilePath = FileManager.NDFFilesPaths.SingleOrDefault(f => f.FileName == _settings.WeaponDescriptorDescriptorsFileName);
             var unitsFilePath = FileManager.NDFFilesPaths.SingleOrDefault(f => f.FileName == _settings.UniteDescriptorFileName);
             var buildingsFilePath = FileManager.NDFFilesPaths.SingleOrDefault(f => f.FileName == _settings.BuildingDescriptorsFileName);
+            var ravitaillementFilePath = FileManager.NDFFilesPaths.SingleOrDefault(f => f.FileName == _settings.RavitaillementFileName);
 
             FileDescriptor<TAmmunitionDescriptor> amunitionMissiles = null;
             FileDescriptor<TAmmunitionDescriptor> amunition = null;
             FileDescriptor<TWeaponManagerModuleDescriptor> weapon = null;
             FileDescriptor<TEntityDescriptor> units = null;
             FileDescriptor<TEntityDescriptor> buildings = null;
+            FileDescriptor<TSupplyDescriptor> ravitaillement = null;
 
             Task[] tasks =
             [
@@ -83,6 +85,13 @@ namespace WarnoModeAutomation.Logic.Services.Impl
                     if (enableFullLog)
                         OnCMDProviderOutput($"{buildingsFilePath.FileName} desirialized!");
                 }, cancellationToken),
+                Task.Run(() =>
+                {
+                    ravitaillement = NDFSerializer.Deserialize<TSupplyDescriptor>(ravitaillementFilePath.FilePath, cancellationToken, OnCMDProviderOutput);
+
+                    if (enableFullLog)
+                        OnCMDProviderOutput($"{ravitaillementFilePath.FileName} desirialized!");
+                }, cancellationToken)
             ];
 
             await Task.WhenAll(tasks);
@@ -97,6 +106,10 @@ namespace WarnoModeAutomation.Logic.Services.Impl
                 Task.Run(() =>
                 {
                     buildings = ModifyBuildings(buildings, cancellationToken);
+                }, cancellationToken),
+                Task.Run(() =>
+                {
+                    ravitaillement = ModifyRavitaillement(ravitaillement, cancellationToken);
                 }, cancellationToken)
             ];
 
@@ -108,7 +121,8 @@ namespace WarnoModeAutomation.Logic.Services.Impl
                 Task.Run(async () => await File.WriteAllTextAsync(amunitionMissiles.FilePath, NDFSerializer.Serialize(amunitionMissiles, OnCMDProviderOutput), cancellationToken), cancellationToken),
                 Task.Run(async () => await File.WriteAllTextAsync(amunitionFilePath.FilePath, NDFSerializer.Serialize(amunition, OnCMDProviderOutput), cancellationToken), cancellationToken),
                 Task.Run(async () => await File.WriteAllTextAsync(weaponFilePath.FilePath, NDFSerializer.Serialize(weapon, OnCMDProviderOutput), cancellationToken), cancellationToken),
-                Task.Run(async () => await File.WriteAllTextAsync(buildingsFilePath.FilePath, NDFSerializer.Serialize(buildings, OnCMDProviderOutput), cancellationToken), cancellationToken)
+                Task.Run(async () => await File.WriteAllTextAsync(buildingsFilePath.FilePath, NDFSerializer.Serialize(buildings, OnCMDProviderOutput), cancellationToken), cancellationToken),
+                Task.Run(async () => await File.WriteAllTextAsync(ravitaillementFilePath.FilePath, NDFSerializer.Serialize(ravitaillement, OnCMDProviderOutput), cancellationToken), cancellationToken),
             ];
 
             await Task.WhenAll(tasks);
@@ -117,6 +131,35 @@ namespace WarnoModeAutomation.Logic.Services.Impl
         private async Task InitializeSettings()
         {
             _settings = await _settingsManagerService.LoadSettingsAsync();
+        }
+
+        private FileDescriptor<TSupplyDescriptor> ModifyRavitaillement(FileDescriptor<TSupplyDescriptor> descriptor, CancellationToken cancellationToken)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+
+            const float commonSupplyCost = 10;
+            const float commonSupplyBySecond = 10;
+
+            foreach (var supplyDescriptor in descriptor.RootDescriptors)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+
+                supplyDescriptor.FuelSupplyBySecond = commonSupplyBySecond;
+                supplyDescriptor.FuelSupplyCostBySecond = commonSupplyCost;
+
+                supplyDescriptor.HealthSupplyBySecond = 0.1f;
+                supplyDescriptor.HealthSupplyCostBySecond = commonSupplyCost;
+
+                supplyDescriptor.SupplySupplyBySecond = commonSupplyBySecond;
+                supplyDescriptor.SupplySupplyCostBySecond = commonSupplyCost;
+
+                supplyDescriptor.AmmunitionSupplyBySecond = commonSupplyBySecond;
+
+                supplyDescriptor.CriticsSupplyBySecond = commonSupplyBySecond;
+                supplyDescriptor.CriticsSupplyCostBySecond = commonSupplyCost;
+            }
+
+            return descriptor;
         }
 
         private FileDescriptor<TEntityDescriptor> ModifyBuildings(FileDescriptor<TEntityDescriptor> buildingsFileDescriptor, CancellationToken cancellationToken)

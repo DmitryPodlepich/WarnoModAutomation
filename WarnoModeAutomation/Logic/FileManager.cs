@@ -12,6 +12,7 @@ namespace WarnoModeAutomation.Logic
         public static string SavedGamesEugenSystemsModPath => Path.Combine(WindowsSystemPath, _configuration.Users, CurrentUserName, _configuration.SavedGames, _configuration.EugenSystems, _configuration.WARNO, _configuration.Mod);
         public static string GeneratedGfxPath => Path.Combine(Storage.ModeSettings.ModsDirectory, Storage.ModeSettings.ModName, _configuration.GameData, _configuration.Generated, _configuration.Gameplay, _configuration.Gfx);
         public static string GamePlayGfxPath => Path.Combine(Storage.ModeSettings.ModsDirectory, Storage.ModeSettings.ModName, _configuration.GameData, _configuration.Gameplay, _configuration.Gfx);
+        public static string ConstantesPath => Path.Combine(Storage.ModeSettings.ModsDirectory, Storage.ModeSettings.ModName, _configuration.GameData, _configuration.Generated, _configuration.Gameplay, _configuration.Constantes);
         public static string DepictionResourcesPath => Path.Combine(GamePlayGfxPath, _configuration.DepictionResources);
         public static NDFFilePathInfo[] NDFFilesPaths =>
         [
@@ -20,6 +21,7 @@ namespace WarnoModeAutomation.Logic
             new(WarnoConstants.WeaponDescriptorDescriptorsFileName, Path.Combine(GeneratedGfxPath, WarnoConstants.WeaponDescriptorDescriptorsFileName)),
             new(WarnoConstants.AmmunitionDescriptorsFileName, Path.Combine(GeneratedGfxPath, WarnoConstants.AmmunitionDescriptorsFileName)),
             new(WarnoConstants.AmmunitionMissilesDescriptorsFileName, Path.Combine(GeneratedGfxPath, WarnoConstants.AmmunitionMissilesDescriptorsFileName)),
+            new(WarnoConstants.RavitaillementFileName, Path.Combine(ConstantesPath, WarnoConstants.RavitaillementFileName)),
         ];
 
         private static readonly ConfigurationDTO _configuration = ConfigurationHelper.Config.GetSection("FileManager").Get<ConfigurationDTO>();

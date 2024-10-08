@@ -226,6 +226,11 @@
         <input class="form-control" @bind="_settingsDTO.ArtileryWeaponCursorType" Placeholder="Enter ArtileryWeaponCursorType" />
     </div>
 
+    <div class="mb-3 d-flex align-items-center">
+        <span class="input-group-text">@nameof(SettingsDTO.RavitaillementFileName):</span>
+        <input class="form-control" @bind="_settingsDTO.RavitaillementFileName" Placeholder="Enter Ravitaillement file name" />
+    </div>
+
     <div class="d-flex justify-content-end">
 
         <Button Loading="@(_currentOperation == OperationType.Save)" LoadingText="Saving..." Disabled="@(_currentOperation != OperationType.Idle)" Class="btn btn-primary me-3" @onclick="SaveAsync">
@@ -317,7 +322,8 @@
             WarnoConstants.AirTag,
             WarnoConstants.Weapon_Cursor_MachineGun,
             WarnoConstants.ArtillerieTag,
-            WarnoConstants.ArtileryWeaponCursorType
+            WarnoConstants.ArtileryWeaponCursorType,
+            WarnoConstants.RavitaillementFileName
         );
     }
 }

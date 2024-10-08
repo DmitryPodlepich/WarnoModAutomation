@@ -26,7 +26,7 @@ namespace WarnoModeAutomation.Logic.Providers.Impl
 
         protected virtual void Dispose(bool disposing)
         {
-            if (disposing)
+            if (disposing && _process != null)
             {
                 _process.Dispose();
                 _cancellationTokenSource.Dispose();

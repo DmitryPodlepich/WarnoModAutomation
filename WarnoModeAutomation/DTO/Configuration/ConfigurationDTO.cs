@@ -11,6 +11,7 @@
         public string Generated { get; set; }
         public string Gameplay { get; set; }
         public string Gfx { get; set; }
+        public string Constantes { get; set; }
         public string DepictionResources { get; set; }
     }
 }
