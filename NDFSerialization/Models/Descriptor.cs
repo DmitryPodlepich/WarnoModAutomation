@@ -9,6 +9,8 @@ namespace NDFSerialization.Models
 
         public abstract Type Type { get; }
 
+        public virtual Dictionary<string, string> PropertiesToAnonymousNestedDescriptiors { get; set; } = [];
+
         public readonly PropertyInfo[] PropertiesInfo;
 
         public PropertyInfo LastSettedPropery;

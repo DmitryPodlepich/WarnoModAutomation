@@ -9,11 +9,12 @@ namespace WarnoModeAutomation.Logic
     internal static class FileManager
     {
         public static string WindowsSystemPath => Path.GetPathRoot(Environment.SystemDirectory);
-        public static string SavedGamesEugenSystemsModPath => Path.Combine(WindowsSystemPath, _configuration.Users, CurrentUserName, _configuration.SavedGames, _configuration.EugenSystems, _configuration.WARNO, _configuration.Mod);
-        public static string GeneratedGfxPath => Path.Combine(Storage.ModeSettings.ModsDirectory, Storage.ModeSettings.ModName, _configuration.GameData, _configuration.Generated, _configuration.Gameplay, _configuration.Gfx);
-        public static string GamePlayGfxPath => Path.Combine(Storage.ModeSettings.ModsDirectory, Storage.ModeSettings.ModName, _configuration.GameData, _configuration.Gameplay, _configuration.Gfx);
-        public static string ConstantesPath => Path.Combine(Storage.ModeSettings.ModsDirectory, Storage.ModeSettings.ModName, _configuration.GameData, _configuration.Generated, _configuration.Gameplay, _configuration.Constantes);
-        public static string DepictionResourcesPath => Path.Combine(GamePlayGfxPath, _configuration.DepictionResources);
+        public static string SavedGamesEugenSystemsModPath => Path.Combine(WindowsSystemPath, Configuration.Users, CurrentUserName, Configuration.SavedGames, Configuration.EugenSystems, Configuration.WARNO, Configuration.Mod);
+        public static string GeneratedGfxPath => Path.Combine(Storage.ModeSettings.ModsDirectory, Storage.ModeSettings.ModName, Configuration.GameData, Configuration.Generated, Configuration.Gameplay, Configuration.Gfx);
+        public static string GamePlayGfxPath => Path.Combine(Storage.ModeSettings.ModsDirectory, Storage.ModeSettings.ModName, Configuration.GameData, Configuration.Gameplay, Configuration.Gfx);
+        public static string ConstantesPath => Path.Combine(Storage.ModeSettings.ModsDirectory, Storage.ModeSettings.ModName, Configuration.GameData, Configuration.Gameplay, Configuration.Constantes);
+        public static string DeskPath => Path.Combine(Storage.ModeSettings.ModsDirectory, Storage.ModeSettings.ModName, Configuration.GameData, Configuration.Generated, Configuration.Gameplay, Configuration.Decks);
+
         public static NDFFilePathInfo[] NDFFilesPaths =>
         [
             new(WarnoConstants.BuildingDescriptorsFileName, Path.Combine(GeneratedGfxPath, WarnoConstants.BuildingDescriptorsFileName)),
@@ -22,9 +23,11 @@ namespace WarnoModeAutomation.Logic
             new(WarnoConstants.AmmunitionDescriptorsFileName, Path.Combine(GeneratedGfxPath, WarnoConstants.AmmunitionDescriptorsFileName)),
             new(WarnoConstants.AmmunitionMissilesDescriptorsFileName, Path.Combine(GeneratedGfxPath, WarnoConstants.AmmunitionMissilesDescriptorsFileName)),
             new(WarnoConstants.RavitaillementFileName, Path.Combine(ConstantesPath, WarnoConstants.RavitaillementFileName)),
+            new(WarnoConstants.DivisionsFileName, Path.Combine(DeskPath, WarnoConstants.DivisionsFileName)),
+            new(WarnoConstants.DivisionRulesFileName, Path.Combine(DeskPath, WarnoConstants.DivisionRulesFileName)),
         ];
 
-        private static readonly ConfigurationDTO _configuration = ConfigurationHelper.Config.GetSection("FileManager").Get<ConfigurationDTO>();
+        private static ConfigurationDTO Configuration => ConfigurationHelper.Config.GetSection("FileManager").Get<ConfigurationDTO>();
 
         private static string CurrentUserName => Environment.UserName;
 

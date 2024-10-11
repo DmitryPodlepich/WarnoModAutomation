@@ -231,6 +231,16 @@
         <input class="form-control" @bind="_settingsDTO.RavitaillementFileName" Placeholder="Enter Ravitaillement file name" />
     </div>
 
+    <div class="mb-3 d-flex align-items-center">
+        <span class="input-group-text">@nameof(SettingsDTO.DivisionsFileName):</span>
+        <input class="form-control" @bind="_settingsDTO.DivisionsFileName" Placeholder="Enter Divisions file name" />
+    </div>
+
+    <div class="mb-3 d-flex align-items-center">
+        <span class="input-group-text">@nameof(SettingsDTO.DivisionRulesFileName):</span>
+        <input class="form-control" @bind="_settingsDTO.DivisionRulesFileName" Placeholder="Enter DivisionRules file name" />
+    </div>
+
     <div class="d-flex justify-content-end">
 
         <Button Loading="@(_currentOperation == OperationType.Save)" LoadingText="Saving..." Disabled="@(_currentOperation != OperationType.Idle)" Class="btn btn-primary me-3" @onclick="SaveAsync">
@@ -323,7 +333,9 @@
             WarnoConstants.Weapon_Cursor_MachineGun,
             WarnoConstants.ArtillerieTag,
             WarnoConstants.ArtileryWeaponCursorType,
-            WarnoConstants.RavitaillementFileName
+            WarnoConstants.RavitaillementFileName,
+            WarnoConstants.DivisionsFileName,
+            WarnoConstants.DivisionRulesFileName
         );
     }
 }

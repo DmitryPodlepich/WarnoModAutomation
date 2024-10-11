@@ -1,16 +1,17 @@
 ﻿using JsonDatabase.DTO;
 using System.Text.Json;
+using static System.Net.Mime.MediaTypeNames;
 
 namespace JsonDatabase
 {
     public static class JsonDatabase
     {
         private const string SETTINGS_FILE_NAME = "Settings.json";
-
-        private static string SettingsFilePath => Path.Combine(AppDomain.CurrentDomain.BaseDirectory, SETTINGS_FILE_NAME);
-
         private const string AMMO_FIRE_RANGE_FILE_NAME = "AmmoFireRange.json";
+        private const string DIVISION_RULES_FILE_NAME = "DivisionRules.json";
+        private static string SettingsFilePath => Path.Combine(AppDomain.CurrentDomain.BaseDirectory, SETTINGS_FILE_NAME);
         private static string AmmoFireRangeFilePath => Path.Combine(AppDomain.CurrentDomain.BaseDirectory, AMMO_FIRE_RANGE_FILE_NAME);
+        private static string DivisionRulesFilePath => Path.Combine(AppDomain.CurrentDomain.BaseDirectory, DIVISION_RULES_FILE_NAME);
 
         private static readonly Lazy<List<AmmoRangeDTO>> _ammoRange = new(GetAllAmmoRange);
         public static List<AmmoRangeDTO> AmmoRange => _ammoRange.Value;
@@ -19,6 +20,7 @@ namespace JsonDatabase
 
         static JsonDatabase()
         {
+            EnsureFilesCreated();
         }
 
         public static string[] GetDuplicatedAmmoNames() 
@@ -52,16 +54,6 @@ namespace JsonDatabase
             AmmoRange.Add(item);
         }
 
-        private static List<AmmoRangeDTO> GetAllAmmoRange()
-        {
-            var text = File.ReadAllText(AmmoFireRangeFilePath);
-
-            if (text.Length == 0)
-                return [];
-
-            return JsonSerializer.Deserialize<List<AmmoRangeDTO>>(text);
-        }
-
         public static async Task SaveAmmoAsync()
         {
             await File.WriteAllTextAsync(AmmoFireRangeFilePath, JsonSerializer.Serialize(AmmoRange));
@@ -79,6 +71,43 @@ namespace JsonDatabase
             var text = JsonSerializer.Serialize(settingsDTO);
 
             await File.WriteAllTextAsync(SettingsFilePath, text);
+        }
+
+        public static async Task<List<DivisionRuleDTO>> LoadDivisionRulesAsync()
+        {
+            var text = await File.ReadAllTextAsync(DivisionRulesFilePath);
+
+            if (text.Length == 0)
+                return [];
+
+            return JsonSerializer.Deserialize<List<DivisionRuleDTO>>(text);
+        }
+
+        public static async Task SaveDivisionRulesAsync(DivisionRuleDTO[] divisionRules)
+        {
+            var text = JsonSerializer.Serialize(divisionRules);
+
+            await File.WriteAllTextAsync(DivisionRulesFilePath, text);
+        }
+
+        private static List<AmmoRangeDTO> GetAllAmmoRange()
+        {
+            var text = File.ReadAllText(AmmoFireRangeFilePath);
+
+            if (text.Length == 0)
+                return [];
+
+            return JsonSerializer.Deserialize<List<AmmoRangeDTO>>(text);
+        }
+
+        private static async Task EnsureFilesCreated()
+        {
+            if (!File.Exists(SettingsFilePath))
+                File.Create(SettingsFilePath);
+            if(!File.Exists(AmmoFireRangeFilePath))
+                await File.WriteAllTextAsync(AmmoFireRangeFilePath, JsonSerializer.Serialize(new List<AmmoRangeDTO>()));
+            if(!File.Exists(DivisionRulesFilePath))
+                await File.WriteAllTextAsync(DivisionRulesFilePath, JsonSerializer.Serialize(new List<DivisionRuleDTO>()));
         }
     }
 }

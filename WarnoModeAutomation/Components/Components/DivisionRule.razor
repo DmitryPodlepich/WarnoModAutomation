@@ -1,0 +1,121 @@
+﻿@using BlazorBootstrap
+@using System.Diagnostics
+@using System.Numerics
+@using WarnoModeAutomation.Constants
+@using WarnoModeAutomation.DTO.NDFFiles
+@using WarnoModeAutomation.DTO.NDFFiles.Desk
+@using WarnoModeAutomation.Logic
+@using JsonDatabase.DTO
+@using WarnoModeAutomation.Logic.Services.Interfaces
+
+<div class="flex-column d-flex card p-3 mb-3">
+    <div class="d-flex mb-3">
+        <span class="input-group-text">Division name</span> 
+        <AutoComplete @bind-Value="DivisionName"
+            TItem="TDeckDivisionDescriptor"
+            DataProvider="DivisionsDataProvider"
+            PropertyName="CfgName"
+            Placeholder="Search a division..."
+            OnChanged="(TDeckDivisionDescriptor division) => OnDivisionAutoCompleteChanged(division)" />
+    </div>
+    <div class="d-flex mb-3">
+        <span class="input-group-text">Unit name</span>
+        <AutoComplete @bind-Value="UnitName"
+            TItem="TEntityDescriptor"
+            DataProvider="UnitsDataProvider"
+            PropertyName="ClassNameForDebug"
+            Placeholder="Search a unit..."
+            OnChanged="(TEntityDescriptor unit) => OnUnitAutoCompleteChanged(unit)" />
+    </div>
+    <div class="d-flex mb-3">
+        <span class="input-group-text">Count</span> 
+        <InputNumber class="form-control" DisplayName="Count" TValue="int" @bind-Value="@Count"></InputNumber>
+    </div>
+    <Button Class="btn btn-danger" @onclick="DeleteClick">
+        <i class="bi bi-trash-fill"></i>
+        Delete
+    </Button>
+</div>
+
+@code {
+
+    [Inject] INDFPreloader _nNDFPreloader { get; set; }
+
+    [Parameter] public Guid Id { get; set; }
+
+    private async Task<AutoCompleteDataProviderResult<TEntityDescriptor>> UnitsDataProvider(AutoCompleteDataProviderRequest<TEntityDescriptor> request)
+    {
+        return await Task.FromResult(request.ApplyTo(_nNDFPreloader.Units.RootDescriptors.OrderBy(x => x.ClassNameForDebug)));
+    }
+
+    private async Task<AutoCompleteDataProviderResult<TDeckDivisionDescriptor>> DivisionsDataProvider(AutoCompleteDataProviderRequest<TDeckDivisionDescriptor> request)
+    {
+        return await Task.FromResult(request.ApplyTo(_nNDFPreloader.Divisions.RootDescriptors.OrderBy(x => x.CfgName)));
+    }
+
+    private void OnUnitAutoCompleteChanged(TEntityDescriptor unit)
+    {
+        UnitName = unit?.ClassNameForDebug;
+    }
+
+    private void OnDivisionAutoCompleteChanged(TDeckDivisionDescriptor division)
+    {
+        DivisionName = division?.CfgName;
+    }
+
+    [Parameter]
+    public string DivisionName
+    {
+        get => _divisionName;
+        set
+        {
+            if (_divisionName == value) return;
+
+            _divisionName = value;
+            DivisionNameChanged.InvokeAsync(value);
+        }
+    }
+    [Parameter]
+    public string UnitName
+    {
+        get => _unitName;
+        set
+        {
+            if (_unitName == value) return;
+
+            _unitName = value;
+            UnitNameChanged.InvokeAsync(value);
+        }
+    }
+    [Parameter]
+    public int Count
+    {
+        get => _count;
+        set
+        {
+            if (_count == value) return;
+
+            _count = value;
+            CountChanged.InvokeAsync(value);
+        }
+    }
+
+    private string _unitName;
+    private string _divisionName;
+    private int _count = 1;
+
+    [Parameter]
+    public EventCallback<string> DivisionNameChanged { get; set; }
+    [Parameter]
+    public EventCallback<string> UnitNameChanged { get; set; }
+    [Parameter]
+    public EventCallback<int> CountChanged { get; set; }
+
+    [Parameter]
+    public EventCallback<Guid> Delete { get; set; }
+
+    private void DeleteClick()
+    {
+        Delete.InvokeAsync(Id);
+    }
+}

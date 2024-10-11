@@ -1,18 +1,20 @@
-﻿using System.Reflection;
+﻿using NDFSerialization.Interfaces;
+using System.Reflection;
 
 namespace NDFSerialization.Models
 {
-    public class FileDescriptor<T> where T : Descriptor
+    //public class FileDescriptor<T> where T : Descriptor
+    public class FileDescriptor<T> : IFileDescriptor<T> where T : Descriptor
     {
-        public readonly string FilePath;
+        public string FilePath { get; set; }
 
-        public readonly List<T> RootDescriptors = [];
+        public List<T> RootDescriptors { get; set; } = [];
 
-        public readonly Dictionary<Guid, string> RawLines = [];
+        public Dictionary<Guid, string> RawLines { get; set; } = [];
 
-        public readonly Dictionary<Guid, PropertyToObject> RawLineToObjectPropertyMap = [];
+        public Dictionary<Guid, PropertyToObject> RawLineToObjectPropertyMap { get; set; } = [];
 
-        public static readonly Dictionary<string, Type> TypesMap = [];
+        public static Dictionary<string, Type> TypesMap { get; private set; } = [];
 
         private static readonly object _lock = new();
 

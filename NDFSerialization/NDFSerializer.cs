@@ -157,9 +157,15 @@ namespace WarnoModeAutomation.Logic
                         if (lineHasKeyAndValue && currentDescriptor is not null)
                         {
                             var key = line.Split('=')[0].Trim();
-                            var value = line.Split('=')[1].Trim();
+                            var value = line.Split('=')[1].Split("//")[0].Trim();
 
                             SetDescriptorProperty(fileDescriptior, currentDescriptor, rawLineKey, key, value);
+                            continue;
+                        }
+
+                        if (FileDescriptor<T>.TypesMap.TryGetValue(line.Trim(), out Type definedType) && currentDescriptor is not null)
+                        {
+                            SetDescriptorProperty(fileDescriptior, currentDescriptor, rawLineKey, line.Trim(), null);
                             continue;
                         }
 
@@ -204,6 +210,22 @@ namespace WarnoModeAutomation.Logic
 
             var entityNDFType = Array.Exists(splittedName, x => x.Equals(IS_KEYWORD))
                 ? splittedName[Array.IndexOf(splittedName, IS_KEYWORD) - 1] : typeName;
+
+            var trimmedTypeName = typeName.Trim();
+            if (trimmedTypeName.Length == 0 || trimmedTypeName == "(" || trimmedTypeName == "[")
+            {
+                if (currentDescriptor is not null && currentDescriptor.PropertiesToAnonymousNestedDescriptiors.Count != 0)
+                {
+                    if (currentDescriptor.LastSettedPropery != null)
+                    {
+                        if (currentDescriptor.PropertiesToAnonymousNestedDescriptiors.TryGetValue(currentDescriptor.LastSettedPropery.Name, out string value))
+                        {
+                            typeName = value;
+                            entityNDFType = value;
+                        }
+                    }
+                }
+            }
 
             if (!FileDescriptor<T>.TypesMap.TryGetValue(typeName, out Type definedType))
                 definedType = typeof(UnknownDescriptor);
@@ -351,7 +373,10 @@ namespace WarnoModeAutomation.Logic
                     return;
 
                 //Skip all objects
-                if (line.TrimStart()[0] == 'T' || line.TrimStart()[0] == '~' || line.Contains(" is"))
+                if (line.TrimStart()[0] == 'T' 
+                    || line.TrimStart()[0] == '~' 
+                    || line.Contains(" is")
+                    || line.Trim() == "[")
                     return;
 
                 if (descriptor.LastSettedProperyNDFType != NDFPropertyTypes.Vector && descriptor.LastSettedProperyNDFType != NDFPropertyTypes.VectorGeneric)

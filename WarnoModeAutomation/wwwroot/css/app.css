@@ -105,3 +105,7 @@ h1:focus {
 .opacity-0 {
 	opacity: 0 !important;
 }
+
+.autocomplete {
+	width: 100%;
+}

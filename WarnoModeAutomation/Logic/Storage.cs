@@ -6,14 +6,19 @@ namespace WarnoModeAutomation.Logic
 {
     internal static class Storage
     {
-        public static ModeSettingsDTO ModeSettings { get; set; } = new ModeSettingsDTO();
+        public static ModeSettingsDTO ModeSettings => ConfigurationHelper.Config.GetSection("Storage").Get<ModeSettingsDTO>();
 
-        static Storage()
-        {
-            var storageConfiguration = ConfigurationHelper.Config.GetSection("Storage").Get<ModeSettingsDTO>();
+        //static Storage()
+        //{
+            //var storageConfiguration = ConfigurationHelper.Config.GetSection("Storage").Get<ModeSettingsDTO>();
 
-            ModeSettings.ModsDirectory = storageConfiguration.ModsDirectory;
-            ModeSettings.ModName = storageConfiguration.ModName;
-        }
+            //ModeSettings.ModsDirectory = storageConfiguration.ModsDirectory;
+            //ModeSettings.ModName = storageConfiguration.ModName;
+        //}
+
+        //private static ModeSettingsDTO GetModeSettings() 
+        //{
+            
+        //}
     }
 }

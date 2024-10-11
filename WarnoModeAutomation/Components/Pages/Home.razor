@@ -130,6 +130,7 @@
     [Inject] ICMDProvider _cMDProvider { get; set; }
     [Inject] ISettingsManagerService _settingsManagerService { get; set; }
     [Inject] IWarnoModificationService _warnoModificationService { get; set; }
+    [Inject] INDFPreloader _nDFPreloader { get; set; }
 
     protected override Task OnInitializedAsync()
     {
@@ -138,6 +139,8 @@
 
         _modManager = new ModManager(_cMDProvider, _settingsManagerService, _warnoModificationService);
         _modManager.OnOutput += ModManagerOnOutput;
+
+        //_ = Task.Run(_nDFPreloader.Initialize);
 
         return base.OnInitializedAsync();
     }

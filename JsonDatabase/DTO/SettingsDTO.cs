@@ -37,7 +37,9 @@
         string Weapon_Cursor_MachineGun,
         string ArtillerieTag,
         string ArtileryWeaponCursorType,
-        string RavitaillementFileName)
+        string RavitaillementFileName,
+        string DivisionsFileName,
+        string DivisionRulesFileName)
     {
         public string ModsDirectory { get; set; } = ModsDirectory;
         public string ModName { get; set; } = ModName;
@@ -89,6 +91,10 @@
         public string ArtileryWeaponCursorType { get; set; } = ArtileryWeaponCursorType;
 
         public string RavitaillementFileName { get; set; } = RavitaillementFileName;
+
+        public string DivisionsFileName { get; set; } = DivisionsFileName;
+
+        public string DivisionRulesFileName { get; set; } = DivisionRulesFileName;
 
         #endregion
     }

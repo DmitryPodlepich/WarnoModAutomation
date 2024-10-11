@@ -1,23 +1,102 @@
 ﻿@page "/divisionsManager"
 @using BlazorBootstrap;
+@using JsonDatabase.DTO
+@using NDFSerialization.Models
+@using WarnoModeAutomation.Components.Components
+@using WarnoModeAutomation.DTO.Configuration
+@using WarnoModeAutomation.DTO.NDFFiles
+@using WarnoModeAutomation.DTO.NDFFiles.Desk
+@using WarnoModeAutomation.Logic
+@using WarnoModeAutomation.Logic.Helpers
+@using WarnoModeAutomation.Logic.Services.Interfaces
+@using Microsoft.Extensions.Configuration;
 
 <section class="p-3">
 
-<h4 class="fw-bold">Divisions manager</h4>
+    <section class="mb-3">
 
-    <Button Class="btn btn-primary" @onclick="AddDivisionRule">
-        <i class="bi bi-plus-circle-dotted"></i> 
-        Add division rule 
-    </Button>
+        <h4 class="fw-bold">Divisions manager</h4>
 
-    <section class="p3">
+        <p>
+            Add any additional unit to any division.
+        </p>
+
+        <Button Disabled="!_nNDFPreloader.Initialized" Class="btn btn-primary" @onclick="AddDivisionRule">
+            <i class="bi bi-plus-circle-dotted"></i> 
+            Add division rule 
+        </Button>
+
+        <Button Disabled="!_nNDFPreloader.Initialized" Class="btn btn-danger" @onclick="RemoveAllDivisionRules">
+            <i class="bi bi-trash-fill"></i>
+            Remove all
+        </Button>
+
+        <Button Disabled="!_nNDFPreloader.Initialized" Class="btn btn-primary" @onclick="SaveAsync">
+            <i class="bi bi-save"></i>
+            Save
+        </Button>
+
+    </section>
+
+    <section class="p3 flex-column">
+
+        @if (@_nNDFPreloader.Initialized)
+        {
+            @foreach (var divisionRule in _divisionRules)
+            {
+                <DivisionRule 
+                    Id="divisionRule.Id"
+                    @bind-DivisionName="divisionRule.DivisionName"
+                    @bind-UnitName="divisionRule.UnitName"
+                    @bind-Count="divisionRule.Count"
+                    Delete="(id) => DeleteRule(id)" />
+            }
+        }
+        else
+        {
+            <p>Loading NDF game files...</p>
+        }
 
     </section>
 
 </section>
 
 @code {
+    [Inject] ISettingsManagerService _settingsManagerService { get; set; }
+    [Inject] INDFPreloader _nNDFPreloader { get; set; }
+
+    private List<DivisionRuleDTO> _divisionRules = [];
+
     public void AddDivisionRule()
     {
+        _divisionRules.Add(new DivisionRuleDTO() { Id = Guid.NewGuid() });
+    }
+
+    public void RemoveAllDivisionRules()
+    {
+        _divisionRules.Clear();
+    }
+
+    private void DeleteRule(Guid id)
+    {
+        var rule = _divisionRules.Single(x => x.Id == id);
+        _divisionRules.Remove(rule);
+    }
+
+    private async Task SaveAsync()
+    {
+        var validDivisionRules = _divisionRules.Where(dr => dr.IsValid).ToArray();
+        await JsonDatabase.JsonDatabase.SaveDivisionRulesAsync(validDivisionRules);
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        _nNDFPreloader.OnInitialized += OnNDFPreloaderInitialized;
+        _divisionRules = await JsonDatabase.JsonDatabase.LoadDivisionRulesAsync();
+    }
+
+    public void OnNDFPreloaderInitialized()
+    {
+        InvokeAsync(StateHasChanged);
     }
 }

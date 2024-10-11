@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.Configuration;
+﻿using CsQuery.ExtensionMethods.Internal;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using WarnoModeAutomation.Logic.Helpers;
 using WarnoModeAutomation.Logic.Providers.Impl;
@@ -32,6 +33,7 @@ namespace WarnoModeAutomation
             builder.Services.AddTransient<ICMDProvider, CMDProvider>();
             builder.Services.AddSingleton<ISettingsManagerService, SettingsManagerService>();
             builder.Services.AddSingleton<IWarnoModificationService, WarnoModificationService>();
+            builder.Services.AddSingleton<INDFPreloader, NDFPreloader>();
 
             builder.Configuration.AddJsonFile("appsettings.json");
 
