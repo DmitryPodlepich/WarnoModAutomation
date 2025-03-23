@@ -1,5 +1,6 @@
 ﻿using NDFSerialization.Interfaces;
 using System.Reflection;
+using System.Collections;
 
 namespace NDFSerialization.Models
 {
@@ -10,9 +11,12 @@ namespace NDFSerialization.Models
 
         public List<T> RootDescriptors { get; set; } = [];
 
-        public Dictionary<Guid, string> RawLines { get; set; } = [];
+        public Dictionary<string, int> CollectionsToRawLineIndex = [];
+        public Dictionary<string, List<string>> NewRawLines { get; set; } = [];
 
-        public Dictionary<Guid, PropertyToObject> RawLineToObjectPropertyMap { get; set; } = [];
+        public Dictionary<Guid, string> ExistingRawLines { get; set; } = [];
+
+        public Dictionary<Guid, PropertyToObject> ExistingRawLineToObjectPropertyMap { get; set; } = [];
 
         public static Dictionary<string, Type> TypesMap { get; private set; } = [];
 
@@ -23,6 +27,19 @@ namespace NDFSerialization.Models
             FilePath = filePath;
 
             Initialize();
+        }
+
+        public void InitializeCollections(T descriptor)
+        {
+            if (NewRawLines.Count != 0)
+                return;
+
+            var collectionsProperties = descriptor.PropertiesInfo.Where(x => x.PropertyType.GetInterface(nameof(IEnumerable)) is not null && x != typeof(string));
+
+            foreach (var collection in collectionsProperties)
+            {
+                NewRawLines.Add(collection.Name, []);
+            }
         }
 
         public static void Initialize()

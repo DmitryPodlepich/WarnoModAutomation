@@ -16,13 +16,13 @@ namespace WarnoModeAutomation.DTO.NDFFiles.Ammunition
         public DistanceMetre AltitudeAPorteeMinimale { get; set; }
         public DistanceMetre AltitudeAPorteeMaximale { get; set; }
         public float AngleDispersion { get; set; }
-        public DistanceMetre DispersionAtMaxRange { get; set; }
-        public DistanceMetre DispersionAtMinRange { get; set; }
+        public DistanceMetre DispersionAtMaxRangeGRU { get; set; }
+        public DistanceMetre DispersionAtMinRangeGRU { get; set; }
         public bool DispersionWithoutSorting { get; set; }
         public float CorrectedShotAimtimeMultiplier { get; set; }
-        public DistanceMetre RadiusSplashPhysicalDamages { get; set; }
+        public DistanceMetre RadiusSplashPhysicalDamagesGRU { get; set; }
         public float PhysicalDamages { get; set; }
-        public DistanceMetre RadiusSplashSuppressDamages { get; set; }
+        public DistanceMetre RadiusSplashSuppressDamagesGRU { get; set; }
         public float SuppressDamages { get; set; }
         public TDiceHitRollRuleDescriptor HitRollRuleDescriptor { get ;set; }
         public float MaxSuccessiveHitCount { get; set; }

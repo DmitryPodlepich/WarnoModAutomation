@@ -30,7 +30,7 @@ namespace WarnoModeAutomation.Logic.Services.Impl
         private CancellationToken _cancellationToken;
 
         public bool Initialized { get; private set; }
-        private bool _isInitializing;
+        private volatile bool _isInitializing;
 
         public NDFPreloader(ISettingsManagerService settingsManagerService)
         {
@@ -41,6 +41,9 @@ namespace WarnoModeAutomation.Logic.Services.Impl
 
         public async Task Initialize()
         {
+            if (!FileManager.IsModExist())
+                return;
+
             if (Initialized || _isInitializing)
                 return;
 
@@ -84,7 +87,7 @@ namespace WarnoModeAutomation.Logic.Services.Impl
                     else if (item == _settings.DivisionsFileName)
                         NdfFiles[item] = NDFSerializer.Deserialize<TDeckDivisionDescriptor>(filePath, _cancellationToken);
 
-                    else if (item == _settings.DivisionRulesFileName)
+                    else if(item == _settings.DivisionRulesFileName)
                         NdfFiles[item] = NDFSerializer.Deserialize<TDeckDivisionRules>(filePath, _cancellationToken);
 
                     else
@@ -100,6 +103,14 @@ namespace WarnoModeAutomation.Logic.Services.Impl
             Initialized = true;
 
             OnInitialized?.Invoke();
+        }
+
+        public void ResetInitialization()
+        {
+            if (_isInitializing)
+                return;
+
+            Initialized = false;
         }
     }
 }

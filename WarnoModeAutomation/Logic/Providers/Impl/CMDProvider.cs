@@ -87,7 +87,7 @@ namespace WarnoModeAutomation.Logic.Providers.Impl
         {
             OnOutput?.Invoke(outLine.Data);
 
-            if (outLine.Data == "New mod created successfully!" || outLine.Data.Contains("Error:"))
+            if (outLine.Data.Contains("success", StringComparison.OrdinalIgnoreCase) || outLine.Data.Contains("error", StringComparison.OrdinalIgnoreCase))
                 _cancellationTokenSource.Cancel();
         }
 

@@ -16,6 +16,7 @@ namespace WarnoModeAutomation.Logic.Services.Interfaces
         FileDescriptor<TEntityDescriptor> Units { get; }
         FileDescriptor<TSupplyDescriptor> Ravitaillements { get; }
         FileDescriptor<TDeckDivisionDescriptor> Divisions { get; }
+        FileDescriptor<TDeckDivisionRules> DeckDivisionRules { get; }
         Dictionary<string, IFileDescriptor<Descriptor>> NdfFiles { get; }
         public bool Initialized { get; }
 
@@ -23,5 +24,7 @@ namespace WarnoModeAutomation.Logic.Services.Interfaces
         event InitializedDel OnInitialized;
 
         Task Initialize();
+
+        void ResetInitialization();
     }
 }

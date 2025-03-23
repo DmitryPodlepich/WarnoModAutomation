@@ -4,6 +4,7 @@ using NDFSerialization.Models;
 using NDFSerialization.NDFDataTypes;
 using NDFSerialization.NDFDataTypes.Interfaces;
 using NDFSerialization.NDFDataTypes.Primitive;
+using System;
 using System.Collections;
 using System.Diagnostics;
 using System.Globalization;
@@ -24,13 +25,13 @@ namespace WarnoModeAutomation.Logic
         public static string Serialize<T>(FileDescriptor<T> fileDescriptor, Action<string> outputLogs = null)
             where T : Descriptor
         {
-            var sb = new StringBuilder(fileDescriptor.RawLines.Count);
+            var sb = new StringBuilder(fileDescriptor.ExistingRawLines.Count);
 
-            foreach (var rawLine in fileDescriptor.RawLines)
+            foreach (var rawLine in fileDescriptor.ExistingRawLines)
             {
                 try
                 {
-                    if (!fileDescriptor.RawLineToObjectPropertyMap.ContainsKey(rawLine.Key))
+                    if (!fileDescriptor.ExistingRawLineToObjectPropertyMap.ContainsKey(rawLine.Key))
                     {
                         sb.AppendLine(rawLine.Value);
                         continue;
@@ -38,11 +39,11 @@ namespace WarnoModeAutomation.Logic
 
                     var modifiedLine = string.Empty;
 
-                    var mapInstantce = fileDescriptor.RawLineToObjectPropertyMap[rawLine.Key];
+                    var mapInstantce = fileDescriptor.ExistingRawLineToObjectPropertyMap[rawLine.Key];
 
                     var propertyValue = mapInstantce.PropertyInfo.GetValue(mapInstantce.Object);
 
-                    //Logic for collections
+                    //Logic for updating collections values
                     if (mapInstantce.Index is not null)
                     {
                         //Logic for vectors
@@ -96,6 +97,48 @@ namespace WarnoModeAutomation.Logic
                 }
             }
 
+            if (fileDescriptor.NewRawLines.Count != 0)
+            {
+                try
+                {
+                    string[] sbLines = sb.ToString().Split(new[] { Environment.NewLine }, StringSplitOptions.None);
+
+                    var modifiedLines = new List<string>(sbLines);
+                    //var initialStartIndex = fileDescriptor.NewRawLinesStartLineIndex - 1;
+                    var initialStartIndex = 1;
+                    foreach (var collection in fileDescriptor.NewRawLines.Where(x => x.Value.Count > 0))
+                    {
+                        initialStartIndex += fileDescriptor.CollectionsToRawLineIndex[collection.Key];
+                        var newLines = collection.Value.SelectMany(x => x.Split("\r\n", StringSplitOptions.None)).ToArray();
+
+                        Debug.WriteLine("initialStartIndex: " + initialStartIndex);
+
+                        foreach (var item in newLines)
+                        {
+                            Debug.WriteLine($"newLine.Value: {item}");
+                        }
+
+                        modifiedLines.InsertRange(initialStartIndex, newLines);
+                        initialStartIndex += newLines.Length;
+                    }
+
+                    sb.Clear();
+                    foreach (string line in modifiedLines)
+                    {
+                        sb.AppendLine(line);
+                    }
+                }
+                catch (OperationCanceledException)
+                {
+                    throw;
+                }
+                catch (Exception ex)
+                {
+                    outputLogs?.Invoke($"Serialization error: {ex.Message}");
+                    outputLogs?.Invoke(ex.StackTrace);
+                }
+            }
+
             return sb.ToString();
         }
 
@@ -124,7 +167,7 @@ namespace WarnoModeAutomation.Logic
 
                         var rawLineKey = Guid.NewGuid();
 
-                        fileDescriptior.RawLines.Add(rawLineKey, line);
+                        fileDescriptior.ExistingRawLines.Add(rawLineKey, line);
                         i++;
 
                         _ = descriptorsStack.TryPeek(out var currentDescriptor);
@@ -159,13 +202,14 @@ namespace WarnoModeAutomation.Logic
                             var key = line.Split('=')[0].Trim();
                             var value = line.Split('=')[1].Split("//")[0].Trim();
 
-                            SetDescriptorProperty(fileDescriptior, currentDescriptor, rawLineKey, key, value);
+                            SetDescriptorProperty(fileDescriptior, currentDescriptor, rawLineKey, key, value, i);
                             continue;
                         }
 
+                        //Hadle anonymous data types.
                         if (FileDescriptor<T>.TypesMap.TryGetValue(line.Trim(), out Type definedType) && currentDescriptor is not null)
                         {
-                            SetDescriptorProperty(fileDescriptior, currentDescriptor, rawLineKey, line.Trim(), null);
+                            SetDescriptorProperty(fileDescriptior, currentDescriptor, rawLineKey, line.Trim(), null, i);
                             continue;
                         }
 
@@ -182,6 +226,21 @@ namespace WarnoModeAutomation.Logic
                         {
                             SetVectorItem(fileDescriptior, currentDescriptor, rawLineKey, line);
                             continue;
+                        }
+
+                        //Handle NFD references
+                        if (currentDescriptor?.HasReferences == true && NDFReference.NDFReferenceValueRegex.IsMatch(line))
+                        {
+                            var referenceProperty = currentDescriptor.PropertiesInfo
+                                .SingleOrDefault(x => x.PropertyType == typeof(NDFReference) && line.Contains(x.Name, StringComparison.OrdinalIgnoreCase));
+
+                            var propertyValue = new NDFReference(line);
+
+                            referenceProperty?.SetValue(currentDescriptor, propertyValue);
+
+                            currentDescriptor.LastSettedPropery = referenceProperty;
+
+                            currentDescriptor.LastSettedProperyNDFType = NDFPropertyTypes.Primitive;
                         }
                     }
                     catch (OperationCanceledException)
@@ -202,7 +261,7 @@ namespace WarnoModeAutomation.Logic
         private static Descriptor CreateDescriptor<T>(FileDescriptor<T> fileDescriptor, int currentIndex, Descriptor currentDescriptor)
             where T : Descriptor
         {
-            var previousLine = fileDescriptor.RawLines.ElementAt(currentIndex - 2);
+            var previousLine = fileDescriptor.ExistingRawLines.ElementAt(currentIndex - 2);
 
             var splittedName = previousLine.Value.Split(' ');
 
@@ -211,8 +270,7 @@ namespace WarnoModeAutomation.Logic
             var entityNDFType = Array.Exists(splittedName, x => x.Equals(IS_KEYWORD))
                 ? splittedName[Array.IndexOf(splittedName, IS_KEYWORD) - 1] : typeName;
 
-            var trimmedTypeName = typeName.Trim();
-            if (trimmedTypeName.Length == 0 || trimmedTypeName == "(" || trimmedTypeName == "[")
+            if (!FileDescriptor<T>.TypesMap.TryGetValue(typeName, out Type definedType))
             {
                 if (currentDescriptor is not null && currentDescriptor.PropertiesToAnonymousNestedDescriptiors.Count != 0)
                 {
@@ -222,17 +280,22 @@ namespace WarnoModeAutomation.Logic
                         {
                             typeName = value;
                             entityNDFType = value;
+
+                            if(!FileDescriptor<T>.TypesMap.TryGetValue(typeName, out definedType))
+                                definedType = typeof(UnknownDescriptor);
                         }
                     }
                 }
+                else
+                {
+                    definedType = typeof(UnknownDescriptor);
+                }
             }
-
-            if (!FileDescriptor<T>.TypesMap.TryGetValue(typeName, out Type definedType))
-                definedType = typeof(UnknownDescriptor);
 
             var descriptor = Activator.CreateInstance(definedType) as Descriptor;
 
             descriptor.EntityNDFType = entityNDFType;
+            descriptor.StartLineIndex = currentIndex - 1;
 
             //Nested objects logic
             if (currentDescriptor is not null && currentDescriptor.LastSettedPropery is not null && currentDescriptor.LastSettedPropery.GetValue(currentDescriptor) is INDFVector)
@@ -257,13 +320,16 @@ namespace WarnoModeAutomation.Logic
                 }
             }
 
-            if(descriptor is T entityDescriptor)
+            if (descriptor is T entityDescriptor)
+            {
                 fileDescriptor.RootDescriptors.Add(entityDescriptor);
+                fileDescriptor.InitializeCollections(entityDescriptor);
+            }
 
             return descriptor;
         }
 
-        private static void SetDescriptorProperty<T>(FileDescriptor<T> fileDescriptor, Descriptor descriptor, Guid rawLineKey, string key, string value)
+        private static void SetDescriptorProperty<T>(FileDescriptor<T> fileDescriptor, Descriptor descriptor, Guid rawLineKey, string key, string value, int currentIndex)
             where T : Descriptor
         {
             if (string.IsNullOrWhiteSpace(key))
@@ -284,6 +350,9 @@ namespace WarnoModeAutomation.Logic
 
                 descriptor.LastSettedProperyNDFType = lastSettedProperyNDFType;
 
+                if (!fileDescriptor.CollectionsToRawLineIndex.TryAdd(key, currentIndex))
+                    fileDescriptor.CollectionsToRawLineIndex[key] = currentIndex;
+
                 return;
             }
 
@@ -298,7 +367,7 @@ namespace WarnoModeAutomation.Logic
                 return;
             }
 
-            fileDescriptor.RawLineToObjectPropertyMap.Add(rawLineKey, new PropertyToObject() { Object = descriptor, PropertyInfo = applicableProperty });
+            fileDescriptor.ExistingRawLineToObjectPropertyMap.Add(rawLineKey, new PropertyToObject() { Object = descriptor, PropertyInfo = applicableProperty });
 
             if (string.IsNullOrEmpty(value))
                 return;
@@ -360,7 +429,7 @@ namespace WarnoModeAutomation.Logic
                     index++;
                 }
 
-                fileDescriptor.RawLineToObjectPropertyMap.Add(rawLineKey, new PropertyToObject() { Object = descriptor, PropertyInfo = descriptor.LastSettedPropery, Index = index});
+                fileDescriptor.ExistingRawLineToObjectPropertyMap.Add(rawLineKey, new PropertyToObject() { Object = descriptor, PropertyInfo = descriptor.LastSettedPropery, Index = index});
             }
         }
 
@@ -388,7 +457,7 @@ namespace WarnoModeAutomation.Logic
 
                 vectorCollection.Add(line);
 
-                fileDescriptor.RawLineToObjectPropertyMap.Add(rawLineKey, new PropertyToObject() { Object = descriptor, PropertyInfo = descriptor.LastSettedPropery, Index = vectorCollection.CurrentIndex - 1 });
+                fileDescriptor.ExistingRawLineToObjectPropertyMap.Add(rawLineKey, new PropertyToObject() { Object = descriptor, PropertyInfo = descriptor.LastSettedPropery, Index = vectorCollection.CurrentIndex - 1 });
                 
             }
             catch(Exception ex)

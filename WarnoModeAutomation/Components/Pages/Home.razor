@@ -39,40 +39,40 @@
             <AccordionItem Title="Control" IsActive="true">
                 <Content>
                     <div class="d-flex flex-row">
-                        <Button Loading="@(_currentOperation == OperationType.Creation)" LoadingText="Creating..." Disabled="@(_currentOperation != OperationType.Idle)" Class="btn btn-primary" @onclick="CreateModAsync">
+                        <Button Loading="@(_currentOperation == OperationType.Creation)" LoadingText="Creating..." Disabled="ShouldDisable()" Class="btn btn-primary" @onclick="CreateModAsync">
                             <i class="bi bi-plus-circle-dotted"></i> 
                             Create 
                         </Button>
 
                         <hr>
 
-                        <Button Loading="@(_currentOperation == OperationType.Generation)" LoadingText="Generating..." Disabled="@(_currentOperation != OperationType.Idle)" Class="btn btn-primary ms-2" @onclick="GenerateModAsync">
+                        <Button Loading="@(_currentOperation == OperationType.Generation)" LoadingText="Generating..." Disabled="ShouldDisable()" Class="btn btn-primary ms-2" @onclick="GenerateModAsync">
                             <i class="bi bi-box-seam"></i>
                             Generate
                         </Button>
 
                         <hr>
 
-                        <Button Loading="@(_currentOperation == OperationType.Updation)" LoadingText="Updating..." Disabled="@(_currentOperation != OperationType.Idle)" Class="btn btn-primary ms-2" @onclick="UpdateModAsync">
+                        @* <Button Loading="@(_currentOperation == OperationType.Updation)" LoadingText="Updating..." Disabled="ShouldDisable()" Class="btn btn-primary ms-2" @onclick="UpdateModAsync">
                             <i class="bi bi-download"></i>
                             Update 
-                        </Button>
+                        </Button> *@
 
                         <hr>
 
-                        <Button Loading="@(_currentOperation == OperationType.Modify)" LoadingText="Modifying..." Disabled="@(_currentOperation != OperationType.Idle)" Class="btn btn-primary ms-2" @onclick="ModifyAsync">
+                        <Button Loading="@(_currentOperation == OperationType.Modify)" LoadingText="Modifying..." Disabled="ShouldDisable()" Class="btn btn-primary ms-2" @onclick="ModifyAsync">
                             <i class="bi bi-cpu"></i>
                             Modify
                         </Button>
 
                         <hr>
 
-                        <Button Loading="@(_currentOperation == OperationType.Deletion)" LoadingText="Deleting..." Disabled="@(_currentOperation != OperationType.Idle)" Class="btn btn-danger ms-2" @onclick="ShowDeleteModConfirmationAsync">
+                        <Button Loading="@(_currentOperation == OperationType.Deletion)" LoadingText="Deleting..." Disabled="ShouldDisable()" Class="btn btn-danger ms-2" @onclick="ShowDeleteModConfirmationAsync">
                             <i class="bi bi-trash-fill"></i>
                             Delete
                         </Button>
 
-                        <Button Loading="@(_currentOperation == OperationType.Cancelation)" LoadingText="Cancelation..." Disabled="@(_currentOperation == OperationType.Cancelation || _currentOperation == OperationType.Idle)" Class="btn btn-danger ms-auto" @onclick="ShowCancelationModConfirmationAsync">
+                        <Button Loading="@(_currentOperation == OperationType.Cancelation)" LoadingText="Cancelation..." Disabled="@(_cancellationToken == null || _currentOperation == OperationType.Cancelation || ShouldDisable())" Class="btn btn-danger ms-auto" @onclick="ShowCancelationModConfirmationAsync">
                             <i class="bi bi-trash-fill"></i>
                             Cancel
                         </Button>
@@ -140,7 +140,7 @@
         _modManager = new ModManager(_cMDProvider, _settingsManagerService, _warnoModificationService);
         _modManager.OnOutput += ModManagerOnOutput;
 
-        //_ = Task.Run(_nDFPreloader.Initialize);
+        _nDFPreloader.OnInitialized += NDFPreloaderInitialized;
 
         return base.OnInitializedAsync();
     }
@@ -171,7 +171,48 @@
         {
             await _modManager.CreateModAsync(cancellationToken);
             DTO.StatusDTO.GetStatus();
+
+            _ = Task.Run(_nDFPreloader.Initialize);
         });
+    }
+
+    public async Task DeleteModAsync()
+    {
+        await PerformAsync(OperationType.Deletion, async (cancellationToken) =>
+        {
+            await _modManager.DeleteMod();
+            DTO.StatusDTO.GetStatus();
+            _nDFPreloader.ResetInitialization();
+        });
+    }
+
+    public async Task GenerateModAsync()
+    {
+        await PerformAsync(OperationType.Generation, async (cancellationToken) =>
+        {
+            await _modManager.GenerateModAsync(cancellationToken);
+            DTO.StatusDTO.GetStatus();
+        });
+    }
+
+    public async Task UpdateModAsync()
+    {
+        await PerformAsync(OperationType.Updation, async (cancellationToken) =>
+        {
+            await _modManager.UpdateModAsync(cancellationToken);
+            DTO.StatusDTO.GetStatus();
+        });
+    }
+
+    public async Task ModifyAsync()
+    {
+        await PerformAsync(OperationType.Modify, async (cancellationToken) => await _modManager.Modify(_enableFullLog, cancellationToken.Token));
+    }
+
+    public async Task FillDatabaseAsync()
+    {
+        await PerformAsync(OperationType.FillDatabase,
+            async (cancellationToken) => await _modManager.FillDatabaseAsync(cancellationToken));
     }
 
     private async Task ShowDeleteModConfirmationAsync()
@@ -214,45 +255,6 @@
             await _cancellationToken.CancelAsync();
     }
 
-    public async Task DeleteModAsync()
-    {
-        await PerformAsync(OperationType.Deletion, async (cancellationToken) =>
-        {
-            await _modManager.DeleteMod();
-            DTO.StatusDTO.GetStatus();
-            await Task.CompletedTask;
-        });
-    }
-
-    public async Task GenerateModAsync()
-    {
-        await PerformAsync(OperationType.Generation, async (cancellationToken) =>
-        {
-            await _modManager.GenerateModAsync(cancellationToken);
-            DTO.StatusDTO.GetStatus();
-        });
-    }
-
-    public async Task UpdateModAsync()
-    {
-        await PerformAsync(OperationType.Updation, async (cancellationToken) =>
-        {
-            await _modManager.UpdateModAsync(cancellationToken);
-            DTO.StatusDTO.GetStatus();
-        });
-    }
-
-    public async Task ModifyAsync()
-    {
-        await PerformAsync(OperationType.Modify, async (cancellationToken) => await _modManager.Modify(_enableFullLog, cancellationToken.Token));
-    }
-
-    public async Task FillDatabaseAsync()
-    {
-        await PerformAsync(OperationType.FillDatabase,
-            async (cancellationToken) => await _modManager.FillDatabaseAsync(cancellationToken));
-    }
-
     private async Task PerformAsync(OperationType operationType, Func<CancellationTokenSource, Task> action)
     {
         if (_cancellationToken is not null)
@@ -280,5 +282,15 @@
         stopwatch.Stop();
         ModManagerOnOutput($"{operationType} finished! time: {stopwatch.ElapsedMilliseconds}");
         _currentOperation = OperationType.Idle;
+    }
+
+    private bool ShouldDisable()
+    {
+        return _currentOperation != OperationType.Idle || ( FileManager.IsModExist() && !_nDFPreloader.Initialized);
+    }
+
+    private void NDFPreloaderInitialized()
+    {
+        InvokeAsync(StateHasChanged);
     }
 }

@@ -1,4 +1,5 @@
 ﻿using NDFSerialization.Models;
+using NDFSerialization.NDFDataTypes.Primitive;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -11,6 +12,7 @@ namespace WarnoModeAutomation.DTO.NDFFiles.Desk
     {
         public override Type Type => typeof(AnonymousDivisionRule);
 
+        public NDFReference Descriptor_Deck_Division { get; set; }
         public TDeckDivisionRule TDeckDivisionRule { get; set; }
     }
 }

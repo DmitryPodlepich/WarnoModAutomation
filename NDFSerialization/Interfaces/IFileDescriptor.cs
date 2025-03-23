@@ -8,9 +8,9 @@ namespace NDFSerialization.Interfaces
 
         //public List<T> RootDescriptors { get; set; }
 
-        public Dictionary<Guid, string> RawLines { get; set; }
+        public Dictionary<Guid, string> ExistingRawLines { get; set; }
 
-        public Dictionary<Guid, PropertyToObject> RawLineToObjectPropertyMap { get; set; }
+        public Dictionary<Guid, PropertyToObject> ExistingRawLineToObjectPropertyMap { get; set; }
 
         public static Dictionary<string, Type> TypesMap { get; }
     }
