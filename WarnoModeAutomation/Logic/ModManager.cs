@@ -84,11 +84,13 @@ namespace WarnoModeAutomation.Logic
             if (!FileManager.TryDeleteDirectoryWithFiles(modSavedGamesDirectory, out string modSavedGamesDirectoryErrors))
             {
                 OnOutput?.Invoke(modSavedGamesDirectoryErrors);
+                return false;
             }
 
             if (!FileManager.TryDeleteFile(savedGamesConfigFilePath, out string savedGamesConfigFilePathErrors))
             {
                 OnOutput?.Invoke(savedGamesConfigFilePathErrors);
+                return false;
             }
 
             OnOutput?.Invoke($"{Storage.ModeSettings.ModName} mod has been deleted.");

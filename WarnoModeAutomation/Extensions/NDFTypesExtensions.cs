@@ -6,7 +6,7 @@ namespace WarnoModeAutomation.Extensions
 {
     public static class NDFTypesExtensions
     {
-        private static readonly string[] _sovMotherCountries = ["SOV", "DDR"];
+        private static readonly string[] _sovMotherCountries = ["SOV", "DDR", "POL"];
 
         public static bool IsSovUnit(this TTypeUnitModuleDescriptor typeUnitModuleDescriptor)
         {

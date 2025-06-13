@@ -234,8 +234,15 @@ namespace WarnoModeAutomation.Logic.Services.Impl
                     return;
                 }
 
-                var weaponManagerModule = unitsRelatedData.WeaponManagerModuleDescriptor.RootDescriptors
-                    .SingleOrDefault(w => unitWeaponModuleDescriptor.Default.Contains(w.EntityNDFType, StringComparison.InvariantCultureIgnoreCase));
+                var weaponManagerModules = unitsRelatedData.WeaponManagerModuleDescriptor.RootDescriptors
+                    .Where(w => unitWeaponModuleDescriptor.Default.Contains(w.EntityNDFType, StringComparison.InvariantCultureIgnoreCase)).ToArray();
+
+                if (weaponManagerModules.Length > 1)
+                {
+                    OnCMDProviderOutput($"Find more than one weapon modules: {string.Join(',',weaponManagerModules.Select(x => x.EntityNDFType))} fro Unit: {unit.ClassNameForDebug}");
+                }
+
+                var weaponManagerModule = weaponManagerModules.FirstOrDefault();
 
                 if (weaponManagerModule is null)
                 {
@@ -464,9 +471,14 @@ namespace WarnoModeAutomation.Logic.Services.Impl
 
             var isSovUnit = tTypeUnitModuleDescriptor.IsSovUnit();
 
-            if (scannerConfigurationDescriptor.OpticalStrength <= 0)
+            foreach (var opticalStrenghts in scannerConfigurationDescriptor.OpticalStrengths)
             {
-                scannerConfigurationDescriptor.OpticalStrength = isSovUnit ? _settings.SovMinOpticalStrength : _settings.NatoMinOpticalStrength;
+                if (opticalStrenghts.Value.FloatValue <= 0)
+                    continue;
+
+                opticalStrenghts.Value.FloatValue = isSovUnit 
+                    ? Math.Max(opticalStrenghts.Value.FloatValue, _settings.SovMinOpticalStrength)
+                    : Math.Max(opticalStrenghts.Value.FloatValue, _settings.NatoMinOpticalStrength);
             }
 
             var longestGroundAmunitionRange = ammunitionDescriptor.Where(x => x.PorteeMaximaleGRU != null).Select(x => x.PorteeMaximaleGRU).MaxBy(x => x.FloatValue);
@@ -484,31 +496,28 @@ namespace WarnoModeAutomation.Logic.Services.Impl
 
                 var newTBAVisionValue = Math.Max(calculatedUnitVisionTBA, calculatedUnitVisionHA);
 
-                if (scannerConfigurationDescriptor.PorteeVisionTBAGRU.FloatValue > 0)
+                if (scannerConfigurationDescriptor.VisionRangesGRU.TryGetValue("EVisionUnitType/HighAltitude", out DistanceMetre highAltitudevalue)
+                    && highAltitudevalue.FloatValue > 0)
                 {
-                    scannerConfigurationDescriptor.PorteeVisionTBAGRU.FloatValue = Math.Max(minVisionDistance, newTBAVisionValue);
-
-                    var newDetectionValue = CalculateUnitDetectionTBAAndHA(scannerConfigurationDescriptor.PorteeVisionTBAGRU.FloatValue);
-
-                    if(scannerConfigurationDescriptor.DetectionTBAGRU.FloatValue > 0)
-                        scannerConfigurationDescriptor.DetectionTBAGRU.FloatValue = Math.Max(minVisionDistance, newDetectionValue);
+                    highAltitudevalue.FloatValue = Math.Max(minVisionDistance, newTBAVisionValue);
                 }
+
+                if (scannerConfigurationDescriptor.VisionRangesGRU.TryGetValue("EVisionUnitType/LowAltitude", out DistanceMetre lowAltitudevalue)
+                    && lowAltitudevalue.FloatValue > 0)
+                {
+                    lowAltitudevalue.FloatValue = Math.Max(minVisionDistance, newTBAVisionValue);
+                }
+
             }
 
-            if (longestGroundAmunitionRange != null)
+            if(longestGroundAmunitionRange != null 
+                && scannerConfigurationDescriptor.VisionRangesGRU.TryGetValue("EVisionUnitType/Standard", out DistanceMetre value)
+                && value.FloatValue > 0)
             {
-                var newGroundVisionValue = Math.Max(scannerConfigurationDescriptor.PorteeVisionGRU.FloatValue, CalculateUnitVisionGround(longestGroundAmunitionRange, isSovUnit));
+                var newGroundVisionValue = Math.Max(value.FloatValue, CalculateUnitVisionGround(longestGroundAmunitionRange, isSovUnit));
 
-                if (scannerConfigurationDescriptor.PorteeVisionGRU.FloatValue > 0)
-                    scannerConfigurationDescriptor.PorteeVisionGRU.FloatValue = Math.Max(minVisionDistance, newGroundVisionValue);
+                value.FloatValue = Math.Max(minVisionDistance, newGroundVisionValue);
             }
-        }
-
-        private float CalculateUnitDetectionTBAAndHA(float visionDistance)
-        {
-            var percentage = MathExtensions.GetNumberPercentage(_settings.TBAAndHADetectionPercentageFromVisionDistance, visionDistance);
-
-            return visionDistance - percentage;
         }
 
         private float CalculateUnitVisionGround(DistanceMetre amunitionDistance, bool isSovUnit)
