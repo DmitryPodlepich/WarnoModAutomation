@@ -473,9 +473,6 @@ namespace WarnoModeAutomation.Logic.Services.Impl
 
             foreach (var opticalStrenghts in scannerConfigurationDescriptor.OpticalStrengths)
             {
-                if (opticalStrenghts.Value.FloatValue <= 0)
-                    continue;
-
                 opticalStrenghts.Value.FloatValue = isSovUnit 
                     ? Math.Max(opticalStrenghts.Value.FloatValue, _settings.SovMinOpticalStrength)
                     : Math.Max(opticalStrenghts.Value.FloatValue, _settings.NatoMinOpticalStrength);
